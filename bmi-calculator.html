@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI Calculator — ENMAR</title>
+  <link rel="stylesheet" href="/css/harvest-market.css">
+  <script src="/js/devtools-guard.js"></script>
+  <script src="/js/theme.js"></script>
+  <style>
+    /* ── Page Container ── */
+    .bmi-page-container {
+      max-width: 800px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+    }
+
+    /* ── Header Section ── */
+    .bmi-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .bmi-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--forest);
+      margin: 0 0 12px;
+    }
+
+    .bmi-subtitle {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+
+    /* ── Main Card ── */
+    .bmi-card {
+      background: var(--paper-alt);
+      border: 1px solid var(--line);
+      padding: 36px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* ── Form Section ── */
+    .bmi-form-section h3 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--forest);
+      margin: 0 0 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .bmi-input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .bmi-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bmi-field label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .bmi-field input {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--ink);
+      border-radius: 6px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .bmi-field input:focus {
+      outline: none;
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+    }
+
+    /* ── Button ── */
+    .bmi-btn-calculate {
+      width: 100%;
+      padding: 14px 24px;
+      background: var(--forest);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .bmi-btn-calculate:hover {
+      background: #15803d;
+      transform: translateY(-2px);
+    }
+
+    .bmi-btn-calculate:active {
+      transform: translateY(0);
+    }
+
+    .bmi-btn-calculate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Message ── */
+    .bmi-message {
+      margin-bottom: 20px;
+      min-height: 0;
+    }
+
+    .bmi-notice-box {
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      border-left: 3px solid var(--forest);
+      background: var(--paper);
+      border-radius: 4px;
+      color: var(--ink);
+    }
+
+    .bmi-notice-box.error {
+      border-left-color: var(--tomato);
+      background: #fff5f5;
+      color: var(--tomato);
+    }
+
+    /* ── Results Section ── */
+    .bmi-results {
+      margin-top: 32px;
+      display: none;
+    }
+
+    .bmi-results.visible {
+      display: block;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .bmi-results h3 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--forest);
+      margin: 0 0 20px;
+      padding-top: 20px;
+      padding-bottom: 12px;
+      border-top: 2px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .bmi-results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .bmi-result-item {
+      background: var(--paper);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .bmi-result-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .bmi-result-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--forest);
+      margin: 0;
+    }
+
+    .bmi-category-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .bmi-explanation {
+      background: var(--paper);
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .bmi-explanation-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+      margin-bottom: 6px;
+      display: block;
+      font-weight: 600;
+    }
+
+    .bmi-explanation-text {
+      font-size: 0.95rem;
+      color: var(--ink);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .bmi-scale {
+      background: var(--paper);
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 3px solid var(--forest);
+    }
+
+    .bmi-scale-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+      margin-bottom: 10px;
+      display: block;
+      font-weight: 600;
+    }
+
+    .bmi-scale-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    .bmi-scale-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bmi-scale-item strong {
+      color: var(--ink);
+    }
+
+    .pdf-btn {
+      background: #3b82f6 !important;
+      flex: 1;
+    }
+
+    .reset-btn {
+      background: #6b7280 !important;
+      flex: 1;
+    }
+
+    /* ── Information Section ── */
+    .bmi-info-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px solid var(--line);
+    }
+
+    .bmi-info-section h3 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--forest);
+      margin: 0 0 16px;
+    }
+
+    .bmi-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .bmi-info-box {
+      background: var(--paper);
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .bmi-info-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--forest);
+      margin: 0 0 8px;
+    }
+
+    .bmi-info-text {
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 600px) {
+      .bmi-page-container {
+        margin: 24px auto 60px;
+        padding: 0 16px;
+      }
+
+      .bmi-card {
+        padding: 24px;
+      }
+
+      .bmi-title {
+        font-size: 1.6rem;
+      }
+
+      .bmi-input-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .bmi-results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bmi-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a href="/" class="logo">
+    <span id="logoIcon">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/>
+    </svg>
+    </span>
+    <span id="brandName">ENMAR</span>
+  </a>
+  <div class="header-right">
+    <a href="/" class="account-btn">← Shop</a>
+  </div>
+</header>
+
+<!-- BMI CALCULATOR PAGE -->
+<div class="bmi-page-container">
+  <div class="bmi-header">
+    <h1 class="bmi-title">BMI Calculator</h1>
+    <p class="bmi-subtitle">Calculate your Body Mass Index and get health insights</p>
+  </div>
+
+  <div class="bmi-card">
+    <!-- Form Section -->
+    <div class="bmi-form-section">
+      <h3>Enter Your Measurements</h3>
+      <div class="bmi-message" id="bmiMsg"></div>
+
+      <form id="bmiForm" novalidate>
+        <div class="bmi-input-grid">
+          <div class="bmi-field">
+            <label>Height (Feet & Inches)</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <input type="number" id="bmiFeet" required min="3" max="8" placeholder="Feet" step="1">
+                <span style="font-size: 0.65rem; color: var(--ink-soft); display: block; margin-top: 2px;">Feet</span>
+              </div>
+              <div>
+                <input type="number" id="bmiInches" required min="0" max="11" placeholder="Inches" step="0.1">
+                <span style="font-size: 0.65rem; color: var(--ink-soft); display: block; margin-top: 2px;">Inches</span>
+              </div>
+            </div>
+          </div>
+          <div class="bmi-field">
+            <label for="bmiWeight">Weight (kg)</label>
+            <input type="number" id="bmiWeight" required min="20" max="500" placeholder="e.g. 70" step="0.1">
+          </div>
+        </div>
+        <button type="submit" class="bmi-btn-calculate">Calculate BMI</button>
+      </form>
+    </div>
+
+    <!-- Results Section -->
+    <div class="bmi-results" id="bmiResults">
+      <h3>Your Results</h3>
+
+      <div class="bmi-results-grid">
+        <div class="bmi-result-item">
+          <span class="bmi-result-label">Your BMI</span>
+          <p class="bmi-result-value" id="bmiValue">—</p>
+        </div>
+        <div class="bmi-result-item">
+          <span class="bmi-result-label">Category</span>
+          <p class="bmi-category-value" id="bmiCategory">—</p>
+        </div>
+      </div>
+
+      <div class="bmi-explanation">
+        <span class="bmi-explanation-label">What does this mean?</span>
+        <p class="bmi-explanation-text" id="bmiExplanation">—</p>
+      </div>
+
+      <div class="bmi-scale">
+        <span class="bmi-scale-label">BMI Scale Reference</span>
+        <div class="bmi-scale-items">
+          <div class="bmi-scale-item">
+            <span>🟢</span>
+            <div><strong>Underweight:</strong> BMI < 18.5</div>
+          </div>
+          <div class="bmi-scale-item">
+            <span>🟡</span>
+            <div><strong>Normal Weight:</strong> BMI 18.5 - 24.9</div>
+          </div>
+          <div class="bmi-scale-item">
+            <span>🟠</span>
+            <div><strong>Overweight:</strong> BMI 25 - 29.9</div>
+          </div>
+          <div class="bmi-scale-item">
+            <span>🔴</span>
+            <div><strong>Obese:</strong> BMI &ge; 30</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <button type="button" id="resetBtn" class="bmi-btn-calculate reset-btn">Calculate Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information Section -->
+  <div class="bmi-info-section">
+    <h3>About BMI</h3>
+    <div class="bmi-info-grid">
+      <div class="bmi-info-box">
+        <p class="bmi-info-title">What is BMI?</p>
+        <p class="bmi-info-text">BMI (Body Mass Index) is a measure of body fat based on height and weight that applies to adult men and women.</p>
+      </div>
+      <div class="bmi-info-box">
+        <p class="bmi-info-title">How is it calculated?</p>
+        <p class="bmi-info-text">BMI = weight (kg) / (height (m))&sup2;. It provides a general indicator of whether a person is at a healthy weight.</p>
+      </div>
+      <div class="bmi-info-box">
+        <p class="bmi-info-title">Important Note</p>
+        <p class="bmi-info-text">BMI is a screening tool, not a diagnostic measure. Consult healthcare professionals for personalized health advice.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  'use strict';
+
+  const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&','<':'<','>':'>',"'":'&#39;','"':'"'}[c]));
+  let _currentBmiData = null;
+  let _siteSettings = null;
+
+  function notice(el, text, ok) {
+    if (!el) return;
+    if (!text) { el.innerHTML = ''; return; }
+    const cls = ok ? '' : ' error';
+    el.innerHTML = '<div class="bmi-notice-box' + cls + '">' + esc(text) + '</div>';
+  }
+
+  document.getElementById('bmiForm').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const feetInput = document.getElementById('bmiFeet');
+    const inchesInput = document.getElementById('bmiInches');
+    const weightInput = document.getElementById('bmiWeight');
+    const msg = document.getElementById('bmiMsg');
+    const resultDiv = document.getElementById('bmiResults');
+    const bmiValue = document.getElementById('bmiValue');
+    const bmiCategory = document.getElementById('bmiCategory');
+    const bmiExplanation = document.getElementById('bmiExplanation');
+
+    notice(msg, '', false);
+
+    const feet = Number(feetInput.value);
+    const inches = Number(inchesInput.value);
+    const weight = Number(weightInput.value);
+
+    if (!feet || feet < 3 || feet > 8) {
+      notice(msg, 'Please enter a valid height in feet (3-8 feet).', false);
+      return;
+    }
+    if (inches < 0 || inches > 11.9) {
+      notice(msg, 'Please enter valid inches (0-11).', false);
+      return;
+    }
+    if (!weight || weight < 20 || weight > 500) {
+      notice(msg, 'Please enter a valid weight between 20-500 kg.', false);
+      return;
+    }
+
+    const totalInches = feet * 12 + inches;
+    const heightInMeters = totalInches * 0.0254;
+    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+    let category = '';
+    let categoryColor = '';
+    let explanation = '';
+
+    if (bmi < 18.5) {
+      category = 'Underweight';
+      categoryColor = '#10b981';
+      explanation = 'You are underweight. Consider consulting with a healthcare provider for personalized nutrition guidance to maintain a healthy weight.';
+    } else if (bmi < 25) {
+      category = 'Normal Weight';
+      categoryColor = '#059669';
+      explanation = 'You are at a healthy weight! Continue maintaining balanced nutrition and regular physical activity for optimal wellness.';
+    } else if (bmi < 30) {
+      category = 'Overweight';
+      categoryColor = '#f97316';
+      explanation = 'You are overweight. Consider incorporating more physical activity and mindful eating habits. A healthcare provider can offer personalized guidance.';
+    } else {
+      category = 'Obese';
+      categoryColor = '#dc2626';
+      explanation = 'You are obese. It is recommended to consult with a healthcare provider or dietitian for a personalized wellness plan.';
+    }
+
+    _currentBmiData = { feet, inches, weight, bmi, category, categoryColor, explanation };
+
+    bmiValue.textContent = bmi;
+    bmiCategory.textContent = category;
+    bmiCategory.style.color = categoryColor;
+    bmiExplanation.textContent = explanation;
+    resultDiv.classList.add('visible');
+
+    notice(msg, 'BMI calculated successfully!', true);
+  });
+
+  if (document.getElementById('downloadPdfBtn')) {
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+      if (!_currentBmiData) return;
+    const data = _currentBmiData;
+    const siteName = (_siteSettings && _siteSettings.brandName) || 'ENMAR';
+    const sitePhone = (_siteSettings && _siteSettings.phone) || '+880-2-XXXX-XXXX';
+    const siteEmail = (_siteSettings && _siteSettings.email) || 'hello@enmar.com';
+    const siteWebsite = (_siteSettings && _siteSettings.website) || 'www.enmar.com';
+    const timestamp = new Date().toLocaleString('en-BD');
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; padding: 0; line-height: 1.6; margin: 0;">
+        <!-- Header with Logo and Company Info -->
+        <div style="text-align: center; margin: 0; padding: 20px 40px; background: #f9f6f2; border-bottom: 3px solid #15803d;">
+          <div style="margin-bottom: 12px;">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#15803d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block;">
+              <path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/>
+            </svg>
+          </div>
+          <h1 style="margin: 0 0 4px; color: #15803d; font-size: 28px; font-weight: bold;">${esc(siteName)}</h1>
+          <p style="margin: 4px 0 0; color: #666; font-size: 12px;">BMI Calculator Report</p>
+        </div>
+
+        <!-- Contact Information -->
+        <div style="padding: 20px 40px; margin-bottom: 0; border-bottom: 1px solid #e7e5e4; padding-bottom: 15px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 11px; color: #666;">
+            <div>
+              <p style="margin: 0 0 6px; font-weight: 600; color: #333;">Contact Information</p>
+              <p style="margin: 3px 0;">📞 ${esc(sitePhone)}</p>
+              <p style="margin: 3px 0;">📧 ${esc(siteEmail)}</p>
+            </div>
+            <div style="text-align: right;">
+              <p style="margin: 0 0 6px; font-weight: 600; color: #333;">Report Details</p>
+              <p style="margin: 3px 0;"><strong>Generated:</strong> ${esc(timestamp)}</p>
+              <p style="margin: 3px 0;"><strong>Website:</strong> ${esc(siteWebsite)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div style="padding: 0 40px; padding-top: 20px;">
+          <div style="background: #f0f9ff; border-left: 4px solid #15803d; padding: 20px; margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px; color: #15803d; font-size: 16px;">Your Measurements</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; width: 50%;"><strong>Height:</strong></td>
+                <td style="padding: 8px 0;">${data.feet} ft ${data.inches.toFixed(1)} in</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>Weight:</strong></td>
+                <td style="padding: 8px 0;">${data.weight} kg</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background: #f9f6f2; border-left: 4px solid #f97316; padding: 20px; margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px; color: #15803d; font-size: 16px;">Your Results</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+              <div>
+                <p style="margin: 0 0 5px; color: #999; font-size: 12px; text-transform: uppercase;">Your BMI</p>
+                <p style="margin: 0; font-size: 36px; font-weight: bold; color: #15803d;">${data.bmi}</p>
+              </div>
+              <div>
+                <p style="margin: 0 0 5px; color: #999; font-size: 12px; text-transform: uppercase;">Category</p>
+                <p style="margin: 0; font-size: 24px; font-weight: bold; color: ${data.categoryColor};">${esc(data.category)}</p>
+              </div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px;">
+              <p style="margin: 0; color: #333; line-height: 1.6;">${esc(data.explanation)}</p>
+            </div>
+          </div>
+
+          <div style="background: #f5f5f5; border-left: 4px solid #6b7280; padding: 20px; margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px; color: #15803d; font-size: 16px;">BMI Scale Reference</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="background: #e8f5e9;">
+                <td style="padding: 10px; border: 1px solid #ddd; width: 20%;"><strong>Category</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>BMI Range</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">🟢 Underweight</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">BMI < 18.5</td>
+              </tr>
+              <tr style="background: #fafafa;">
+                <td style="padding: 10px; border: 1px solid #ddd;">🟡 Normal Weight</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">BMI 18.5 - 24.9</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">🟠 Overweight</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">BMI 25 - 29.9</td>
+              </tr>
+              <tr style="background: #fafafa;">
+                <td style="padding: 10px; border: 1px solid #ddd;">🔴 Obese</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">BMI &ge; 30</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; color: #999; font-size: 11px; padding: 15px 0; border-top: 1px solid #ddd; margin-top: 20px; margin-bottom: 20px;">
+            <p style="margin: 3px 0;">This BMI calculator is for informational purposes only.</p>
+            <p style="margin: 3px 0;">Please consult a healthcare professional for personalized medical advice.</p>
+            <p style="margin: 5px 0 0; color: #15803d; font-weight: 600;">${esc(siteName)} © 2026</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const options = {
+      margin: [0, 0, 10, 0],
+      filename: 'bmi-report.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+
+      html2pdf().set(options).from(html).save();
+    });
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('bmiForm').reset();
+    document.getElementById('bmiResults').classList.remove('visible');
+    document.getElementById('bmiMsg').innerHTML = '';
+    _currentBmiData = null;
+  });
+
+  (async () => {
+    try {
+      const settings = await fetch('/api/settings').then(r => r.json()).catch(() => ({}));
+      _siteSettings = settings;
+      if (settings.brandName) {
+        document.getElementById('brandName').textContent = settings.brandName;
+        document.title = 'BMI Calculator — ' + settings.brandName;
+      }
+    } catch (err) {
+      console.log('Could not load branding');
+    }
+  })();
+</script>
+<script src="/js/branding.js"></script>
+</body>
+</html>

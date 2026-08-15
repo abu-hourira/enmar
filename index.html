@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENMAR — Organic Food, Field to Door</title>
+<meta name="description" content="Fresh organic produce and pantry staples for homes across Bangladesh.">
+<link rel="stylesheet" href="/css/harvest-market.css">
+<script src="/js/devtools-guard.js"></script>
+<script src="/js/theme.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="logo" id="logoBtn">
+    <span id="logoIcon"></span>
+    <span id="brandName">ENMAR</span>
+  </div>
+  <nav class="nav" id="nav"></nav>
+  <div class="header-right">
+     <button type="button" class="account-btn" id="accountBtn">Account</button>
+     <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false"></button>
+     <button type="button" class="cart-btn" id="cartBtn" aria-label="Open cart">
+       <span id="basketIcon"></span>
+       <span class="cart-count" id="cartCount" hidden>0</span>
+     </button>
+   </div>
+</header>
+
+<main id="shopView" class="view active" aria-label="Shop">
+
+  <!-- ── FULL-WIDTH AD BANNER ── -->
+  <section class="ad-banner" id="adBanner">
+    <div class="ad-track" id="adTrack">
+
+      <!-- Ad pair 1 -->
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--orange">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">Special Offer</div>
+            <h2>তাজা সবজি<br>১০% ছাড়!</h2>
+            <p>Vegetables — Fresh from the farm</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Vegetables">Shop Now →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.15)"/>
+              <circle cx="60" cy="68" r="22" fill="#e63946"/>
+              <path d="M60 46c-3 3-4 4-9 4M60 46c3 3 4 4 9 4M60 46v6" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+              <ellipse cx="60" cy="68" rx="15" ry="14" fill="#c1121f" opacity=".4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--yellow">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">Best Seller</div>
+            <h2>সুন্দরবন মধু<br>এখনই অর্ডার করুন</h2>
+            <p>Pure Sundarbans Honey — 450৳/jar</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Pantry & Grains">Order Now →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.15)"/>
+              <path d="M48 52h24l5 9v30l-5 9H48l-5-9V61z" fill="#c0912e" stroke="#fff" stroke-width="1.5"/>
+              <path d="M43 68h34M43 78h34" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="60" cy="52" r="4" fill="#f9c74f" stroke="#fff" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ad pair 2 -->
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--green">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">Fresh Today</div>
+            <h2>দেশি ঘি<br>বিশুদ্ধ গরুর দুধ থেকে</h2>
+            <p>Deshi Ghee 500g — only 850৳</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Dairy & Eggs">Buy Now →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.12)"/>
+              <rect x="38" y="54" width="44" height="28" rx="4" fill="#c0912e" stroke="#fff" stroke-width="1.5"/>
+              <path d="M38 66h44" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <rect x="44" y="44" width="32" height="12" rx="3" fill="#e9c46a" stroke="#fff" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--blue">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">Limited Stock</div>
+            <h2>হিলশা ফিলেট<br>পদ্মার তাজা ইলিশ</h2>
+            <p>Frozen Hilsha 500g — 550৳</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Frozen Food">Order Fast →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.1)"/>
+              <ellipse cx="60" cy="68" rx="26" ry="12" fill="#90e0ef" stroke="#fff" stroke-width="1.5"/>
+              <path d="M34 68c0-10 8-20 26-20s26 10 26 20" fill="#48cae4" stroke="#fff" stroke-width="1.5"/>
+              <circle cx="50" cy="62" r="3" fill="#fff" opacity=".7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ad pair 3 -->
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--purple">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">Organic</div>
+            <h2>চিনিগুড়া চাল<br>দিনাজপুরের সেরা</h2>
+            <p>Chinigura Rice 1kg — only 180৳</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Pantry & Grains">Add to Cart →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.12)"/>
+              <path d="M60 40v40" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+              <path d="M60 44l-9 6M60 44l9 6M60 54l-9 6M60 54l9 6M60 64l-9 6M60 64l9 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="ad-slide">
+        <div class="dummy-ad dummy-ad--red">
+          <div class="dummy-ad-text">
+            <div class="dummy-ad-tag">20% Off</div>
+            <h2>পেয়ারা ও লেবু<br>টাটকা ফলের সমাহার</h2>
+            <p>Fresh Fruits — starting from 90৳</p>
+            <button type="button" class="dummy-ad-btn" data-ad-cat="Fruits">Shop Fruits →</button>
+          </div>
+          <div class="dummy-ad-img">
+            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">
+              <circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.12)"/>
+              <path d="M60 48c-9-9-24-3-22.5 10.5C39 72 48 79.5 60 85.5c12-6 21-13.5 22.5-27C84 45 69 39 60 48z" fill="#ffb703" stroke="#fff" stroke-width="1.5"/>
+              <path d="M60 48v-7.5M60 40.5c3-3 6-3 9-1.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="ad-dots" id="adDots"></div>
+  </section>
+
+  <!-- ── CATEGORY ROW ── -->
+  <section class="cat-section">
+    <h2 class="cat-section-title" id="catSectionTitle">Featured Categories</h2>
+    <div class="cat-row-wrap">
+      <div class="cat-circles-scroll" id="catCirclesScroll">
+        <div class="cat-circles" id="catCircles"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RECENTLY ADDED PRODUCTS (Side-by-side Auto-scrollable Carousel) ── -->
+  <section class="recent-products-section" id="recentProductsSection">
+    <div class="recent-products-header">
+      <div class="recent-header-left">
+        <span class="recent-badge" id="recentSectionBadge">🌱 Fresh Arrivals</span>
+        <h2 class="recent-title" id="recentSectionTitle">Recently Added Products</h2>
+        <p class="recent-subtitle" id="recentSectionSubtitle">Freshly added organic picks direct from our partner farms — auto scrolling.</p>
+      </div>
+      <div class="recent-header-right">
+        <a href="#shop" class="btn-recent-explore" id="recentSectionExplore">Full Catalog ↓</a>
+      </div>
+    </div>
+
+    <div class="recent-carousel-container" id="recentCarouselContainer">
+      <div class="recent-carousel-track" id="recentCarouselTrack" aria-live="polite"></div>
+    </div>
+    <div class="recent-dots" id="recentDots"></div>
+  </section>
+
+  <!-- ── PRODUCTS ── -->
+  <section class="products-section">
+    <div class="products-header">
+      <h2 class="products-title" id="productsSectionTitle">Top Selling Products</h2>
+      <div class="product-search-wrap">
+        <input type="search" id="productSearchInput" class="product-search-input" placeholder="Search products…" aria-label="Search products">
+      </div>
+      <div class="filters" id="filters"></div>
+    </div>
+    <a id="shop"></a>
+    <div class="product-grid" id="productGrid" aria-live="polite"></div>
+  </section>
+
+  <!-- ── COMMUNITY COMMENTS & MEMBER FEEDBACK ── -->
+  <section class="community-section" id="communitySection">
+    <div class="community-header">
+      <div class="community-header-left">
+        <span class="community-pill" id="communitySectionPill">💬 Community Voices</span>
+        <h2 class="community-title" id="communitySectionTitle">Member Discussions &amp; Feedback</h2>
+        <p class="community-subtitle" id="communitySectionSubtitle">Read thoughts from our verified members or sign in to share your experience.</p>
+      </div>
+      <div class="community-header-right">
+        <span class="community-count-tag" id="communityCountTag">0 Comments</span>
+      </div>
+    </div>
+
+    <!-- Compose Box: Active for logged-in members, prompt for guests -->
+    <div class="community-compose-card" id="communityComposeCard">
+      <!-- Injected via JavaScript based on authentication status -->
+    </div>
+
+    <!-- Comments Stream Grid -->
+    <div class="community-comments-grid" id="communityCommentsGrid">
+      <div class="community-loading">Loading member comments…</div>
+    </div>
+
+    <!-- See more comments button -->
+    <div class="community-more-wrap" id="communityMoreWrap" style="display:none">
+      <button type="button" class="btn-community-more" id="btnSeeMoreComments">See more comments</button>
+    </div>
+  </section>
+
+  <!-- ── NEWSLETTER ── -->
+  <section class="newsletter">
+    <span id="mailIcon"></span>
+    <h2 id="newsletterHeading">…</h2>
+    <p id="newsletterBody">…</p>
+    <form class="newsletter-form" id="newsletterForm" novalidate>
+      <input type="email" id="newsletterEmail" placeholder="you@example.com" required>
+      <button type="submit">Subscribe</button>
+    </form>
+    <p class="newsletter-note" id="newsletterNote">Thanks — you're subscribed!</p>
+  </section>
+
+</main>
+
+<section id="checkoutView" class="view" aria-label="Checkout">
+  <div id="checkoutRoot"></div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4 class="footer-col-title">Information</h4>
+      <ul class="footer-links">
+        <li><button type="button" class="footer-page-btn" data-page="pageAboutUs" data-title="About Us">About Us</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageContactUs" data-title="Contact Us">Contact Us</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageCompanyInfo" data-title="Company Information">Company Information</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageTerms" data-title="Terms &amp; Conditions">Terms &amp; Conditions</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pagePrivacyPolicy" data-title="Privacy Policy">Privacy Policy</button></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4 class="footer-col-title">Shop By</h4>
+      <ul class="footer-links" id="footerShopLinks"></ul>
+    </div>
+    <div class="footer-col">
+      <h4 class="footer-col-title">Support</h4>
+      <ul class="footer-links">
+        <li><button type="button" class="footer-page-btn" data-page="pageSupportCenter" data-title="Support Center">Support Center</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageHowToOrder" data-title="How to Order">How to Order</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageOrderTracking" data-title="Order Tracking">Order Tracking</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pagePaymentInfo" data-title="Payment">Payment</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="footerShippingInfo" data-title="Shipping">Shipping</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageFaq" data-title="FAQ">FAQ</button></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4 class="footer-col-title">Consumer Policy</h4>
+      <ul class="footer-links">
+        <li><button type="button" class="footer-page-btn" data-page="pageHappyReturn" data-title="Happy Return">Happy Return</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageRefundPolicy" data-title="Refund Policy">Refund Policy</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pageCancellation" data-title="Cancellation">Cancellation</button></li>
+        <li><button type="button" class="footer-page-btn" data-page="pagePreOrder" data-title="Pre-Order">Pre-Order</button></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="footerTagline">…</span>
+  </div>
+</footer>
+
+<!-- ── PAGE CONTENT MODAL ── -->
+<div class="page-modal-overlay" id="pageModalOverlay" aria-modal="true" role="dialog" aria-labelledby="pageModalTitle">
+  <div class="page-modal-box">
+    <div class="page-modal-head">
+      <h2 id="pageModalTitle">—</h2>
+      <button type="button" class="page-modal-close" id="pageModalClose" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="page-modal-body" id="pageModalBody"></div>
+  </div>
+</div>
+
+<!-- ── CART ── -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart" inert>
+  <div class="cart-header">
+    <h2>Your Cart</h2>
+    <button type="button" id="closeCart" aria-label="Close cart"></button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-subtotal-row">
+      <span>Subtotal</span>
+      <span id="cartSubtotal">৳0.00</span>
+    </div>
+    <button type="button" class="btn-checkout" id="checkoutBtn">Proceed to Checkout</button>
+  </div>
+</aside>
+
+<!-- ── MESSENGER BUBBLE ── -->
+<a class="messenger-bubble" id="messengerBubble" href="#" target="_blank" rel="noopener" aria-label="Chat with us on Messenger">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true">
+    <path d="M12 2C6.477 2 2 6.243 2 11.5c0 2.91 1.318 5.52 3.408 7.306V23l3.958-2.174A10.54 10.54 0 0 0 12 21c5.523 0 10-4.243 10-9.5S17.523 2 12 2zm1.008 12.787-2.545-2.712-4.97 2.712 5.467-5.804 2.607 2.712 4.908-2.712-5.467 5.804z"/>
+  </svg>
+  <span class="mb-tooltip">Chat on Messenger</span>
+</a>
+
+<!-- ── ENHANCED AUTH & REGISTRATION MODAL ── -->
+<div class="auth-modal-overlay" id="authModalOverlay" aria-modal="true" role="dialog" aria-labelledby="authModalTitle">
+  <div class="auth-modal-box">
+    <div class="auth-modal-head">
+      <div class="auth-head-text">
+        <h2 id="authModalTitle">Sign In</h2>
+        <p id="authModalSubtitle">Sign in to access your orders and account.</p>
+      </div>
+      <button type="button" class="auth-modal-close" id="authModalCloseBtn" aria-label="Close dialog">&times;</button>
+    </div>
+
+    <div class="auth-tabs-wrap" id="authTabsWrap">
+      <button type="button" class="auth-tab-btn active" id="tabRegister">Register</button>
+      <button type="button" class="auth-tab-btn" id="tabLogin">Sign In</button>
+      <button type="button" class="auth-tab-btn" id="tabForgot" style="display:none">Reset</button>
+    </div>
+
+    <div id="authModalNotice"></div>
+
+    <form class="auth-form" id="authModalForm" novalidate autocomplete="on">
+      <!-- ── REGISTRATION SECTION ── -->
+      <div id="authSectionRegister">
+        <div class="auth-field">
+          <label for="regName">Full Name *</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input type="text" id="regName" name="name" placeholder="e.g. Shakib Al Hasan" autocomplete="name" required minlength="2">
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <label for="regEmail">Email Address *</label>
+          <div class="auth-otp-row">
+            <div class="auth-input-wrap">
+              <span class="auth-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </span>
+              <input type="email" id="regEmail" name="email" placeholder="you@domain.com" autocomplete="email" required>
+            </div>
+            <button type="button" class="btn-auth-otp" id="btnSendRegOtp">Send Code</button>
+          </div>
+        </div>
+
+        <div class="auth-field" id="regOtpField" style="margin-top:10px; display:none;">
+          <label for="regOtp" style="color:var(--forest,#631e2a)">Enter 6-Digit Email Verification Code *</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            </span>
+            <input type="text" id="regOtp" name="otp" placeholder="Enter 6-digit code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" style="letter-spacing:4px; font-weight:700; font-family:monospace; font-size:1.05rem;" required>
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <label for="regPhone">Mobile Number (Bangladesh) *</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            </span>
+            <input type="tel" id="regPhone" name="phone" placeholder="017XXXXXXXX" autocomplete="tel" required pattern="01[0-9]{9}">
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="regPassword" style="margin:0">Password *</label>
+            <span class="pwd-strength-label" id="pwdStrengthLabel" style="font-size:0.75rem; font-weight:700; color:var(--ink-soft,#888)">Min. 8 characters</span>
+          </div>
+          <div class="auth-input-wrap" style="margin-top:4px">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="regPassword" name="password" placeholder="Min. 8 characters (any type)" autocomplete="new-password" required minlength="8">
+            <button type="button" class="auth-toggle-pwd" data-target="regPassword" title="Toggle password visibility" aria-label="Toggle password visibility">Show</button>
+          </div>
+          <!-- Password strength meter -->
+          <div class="pwd-strength-wrap" id="regPwdStrengthWrap">
+            <div class="pwd-strength-bars">
+              <div class="pwd-bar-segment" id="pwdBar1"></div>
+              <div class="pwd-bar-segment" id="pwdBar2"></div>
+              <div class="pwd-bar-segment" id="pwdBar3"></div>
+              <div class="pwd-bar-segment" id="pwdBar4"></div>
+            </div>
+            <div class="pwd-strength-text">
+              <span>Security: <strong id="pwdStrengthLabelText" style="color:var(--ink-soft,#888)">Enter password</strong></span>
+              <span id="pwdMatchStatus"></span>
+            </div>
+            <div class="pwd-checklist">
+              <span class="pwd-check-item" id="chkLen">○ Min. 8 characters (numbers, letters, symbols accepted)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <label for="regPasswordConfirm">Confirm Password *</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="regPasswordConfirm" placeholder="Re-type password" autocomplete="new-password" required minlength="8">
+            <button type="button" class="auth-toggle-pwd" data-target="regPasswordConfirm" title="Toggle password visibility" aria-label="Toggle password visibility">Show</button>
+          </div>
+        </div>
+
+        <!-- Optional Quick Delivery Details Accordion -->
+        <details style="margin-top:10px; background:var(--paper,#f9f6f2); border:1px dashed var(--line-dark,#d8cebf); border-radius:10px; padding:8px 12px; font-size:0.82rem;">
+          <summary style="font-weight:700; color:var(--forest,#631e2a); cursor:pointer; user-select:none;">Add Delivery Address (Optional — Speeds up Checkout)</summary>
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+            <input type="text" id="regCity" placeholder="City / District (e.g. Dhaka, Chittagong)" style="width:100%; padding:8px 12px; border:1px solid #d0c8be; border-radius:8px; font-size:0.85rem;">
+            <input type="text" id="regAddress" placeholder="Full Delivery Address (House, Road, Area)" style="width:100%; padding:8px 12px; border:1px solid #d0c8be; border-radius:8px; font-size:0.85rem;">
+          </div>
+        </details>
+
+        <div style="margin-top:12px">
+          <label class="auth-terms-label">
+            <input type="checkbox" id="regTerms" checked required>
+            <span>I agree to the <a href="javascript:void(0)" class="footer-page-btn" data-page="pageTerms" data-title="Terms &amp; Conditions">Terms &amp; Conditions</a> and <a href="javascript:void(0)" class="footer-page-btn" data-page="pagePrivacyPolicy" data-title="Privacy Policy">Privacy Policy</a></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="btnSubmitRegister" style="margin-top:14px; width:100%;">
+          <span>Create My Account →</span>
+        </button>
+
+        <div style="text-align:center; margin-top:12px; font-size:0.82rem; color:var(--ink-soft,#666);">
+          Already have an account? <button type="button" class="btn-link" id="linkGoToLogin" style="color:var(--forest,#631e2a); font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline; padding:0;">Sign In here</button>
+        </div>
+        <div class="auth-reg-guide" id="authRegGuideRegister" style="display:none"></div>
+      </div>
+
+      <!-- ── LOGIN SECTION ── -->
+      <div id="authSectionLogin" style="display:none;">
+        <div class="auth-field">
+          <label for="loginEmail">Email Address</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </span>
+            <input type="email" id="loginEmail" name="email" placeholder="you@domain.com" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:12px">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="loginPassword" style="margin:0">Password</label>
+            <button type="button" id="linkGoToForgot" style="background:none; border:none; color:var(--forest,#631e2a); font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:underline; padding:0;">Forgot password?</button>
+          </div>
+          <div class="auth-input-wrap" style="margin-top:5px">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="loginPassword" name="password" placeholder="Enter your password" autocomplete="current-password">
+            <button type="button" class="auth-toggle-pwd" data-target="loginPassword" title="Toggle password visibility" aria-label="Toggle password visibility">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="btnSubmitLogin" style="margin-top:18px; width:100%;">
+          <span>Sign In to Account →</span>
+        </button>
+
+        <div style="text-align:center; margin-top:14px; font-size:0.82rem; color:var(--ink-soft,#666);">
+          Don't have an account yet? <button type="button" class="btn-link" id="linkGoToRegister" style="color:var(--forest,#631e2a); font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline; padding:0;">Create Account</button>
+        </div>
+
+        <!-- Registration Help Guide (Admin Controlled) -->
+        <div class="auth-reg-guide" id="authRegGuideLogin" style="display:none"></div>
+      </div>
+
+      <!-- ── FORGOT PASSWORD SECTION ── -->
+      <div id="authSectionForgot" style="display:none;">
+        <div class="auth-field">
+          <label for="forgotEmail">Registered Email Address</label>
+          <div class="auth-otp-row">
+            <div class="auth-input-wrap">
+              <span class="auth-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </span>
+              <input type="email" id="forgotEmail" name="email" placeholder="you@domain.com" autocomplete="email">
+            </div>
+            <button type="button" class="btn-auth-otp" id="btnSendForgotOtp">Send Code</button>
+          </div>
+        </div>
+
+        <div class="auth-field" id="forgotOtpField" style="margin-top:10px; display:none;">
+          <label for="forgotOtp" style="color:var(--forest,#631e2a)">6-Digit Password Reset Code</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            </span>
+            <input type="text" id="forgotOtp" placeholder="Enter 6-digit code" inputmode="numeric" maxlength="6" style="letter-spacing:4px; font-weight:700; font-family:monospace; font-size:1.05rem;">
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <label for="forgotPassword">New Password (min 8 chars)</label>
+          <div class="auth-input-wrap">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="forgotPassword" placeholder="New password (min. 8 characters)" minlength="8" autocomplete="new-password">
+            <button type="button" class="auth-toggle-pwd" data-target="forgotPassword" title="Toggle password visibility" aria-label="Toggle password visibility">Show</button>
+          </div>
+          <div class="pwd-checklist" style="margin-top:5px">
+            <span class="pwd-check-item" id="forgotChkLen">○ Min. 8 characters (numbers, letters, symbols accepted)</span>
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:10px">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="forgotPasswordConfirm" style="margin:0">Confirm New Password</label>
+            <span id="forgotPwdMatchStatus" style="font-size:0.75rem; font-weight:700;"></span>
+          </div>
+          <div class="auth-input-wrap" style="margin-top:4px">
+            <span class="auth-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="forgotPasswordConfirm" placeholder="Re-type new password" minlength="8" autocomplete="new-password">
+            <button type="button" class="auth-toggle-pwd" data-target="forgotPasswordConfirm" title="Toggle password visibility" aria-label="Toggle password visibility">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="btnSubmitForgot" style="margin-top:16px; width:100%;">
+          <span>Reset Password &amp; Sign In →</span>
+        </button>
+
+        <div style="text-align:center; margin-top:12px; font-size:0.82rem;">
+          <button type="button" class="btn-link" id="linkBackToLoginFromForgot" style="color:var(--forest,#631e2a); font-weight:700; background:none; border:none; cursor:pointer; text-decoration:underline; padding:0;">← Back to Sign In</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/harvest-market.js"></script>
+<script src="/js/app.js"></script>
+<script>
+/* ── Messenger scroll-hide ── */
+(function () {
+  var bubble = document.getElementById('messengerBubble');
+  if (!bubble) return;
+  var scrollTimer;
+  window.addEventListener('scroll', function () {
+    bubble.classList.add('hidden');
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () { bubble.classList.remove('hidden'); }, 800);
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>

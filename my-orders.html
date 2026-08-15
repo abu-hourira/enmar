@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — ENMAR</title>
+<link rel="stylesheet" href="/css/harvest-market.css">
+<script src="/js/devtools-guard.js"></script>
+<script src="/js/theme.js"></script>
+<style>
+/* ── shell ── */
+.account-shell {
+  display: flex;
+  max-width: 1100px;
+  margin: 40px auto 80px;
+  padding: 0 24px;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* ── visibility toggles (JS reveals these) ── */
+#authGate { display: none; max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+#accountShell { display: none; }
+
+/* ── sidebar ── */
+.account-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  background: var(--paper-alt);
+  position: sticky;
+  top: 90px;
+}
+.account-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 18px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+.account-avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+.account-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.account-avatar-name {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  color: var(--forest);
+  word-break: break-word;
+}
+.account-avatar-email {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  color: var(--ink-soft);
+  margin-top: 3px;
+  word-break: break-all;
+}
+.account-nav {
+  padding: 8px 0;
+}
+.account-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 18px;
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s, color .15s;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+}
+.account-nav-item:hover { background: rgba(0,0,0,.04); color: var(--forest); }
+.account-nav-item.active { color: var(--forest); border-left-color: var(--forest); background: rgba(99,30,42,.06); }
+.account-nav-item.signout { color: var(--tomato); margin-top: 4px; border-top: 1px solid var(--line); }
+.account-nav-item.signout:hover { background: rgba(174,59,42,.06); }
+.account-nav-item svg { flex-shrink: 0; opacity: .7; }
+.account-nav-item.active svg, .account-nav-item:hover svg { opacity: 1; }
+
+/* ── main panel ── */
+.account-main {
+  flex: 1;
+  min-width: 0;
+}
+.account-panel { display: none; }
+.account-panel.active { display: block; }
+.account-panel-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--forest);
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── profile / password forms ── */
+.acct-form {
+  background: var(--paper-alt);
+  border: 1px solid var(--line);
+  padding: 24px;
+  max-width: 500px;
+}
+.acct-form .field { margin-bottom: 14px; }
+.acct-form label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+}
+.acct-form input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-family: var(--font-body);
+  font-size: .88rem;
+  color: var(--ink);
+}
+.acct-form input:focus { outline: 2px solid var(--forest); outline-offset: 1px; }
+.acct-form .form-actions { margin-top: 18px; }
+.form-msg { margin-bottom: 12px; }
+
+/* ── orders ── */
+.order-card {
+  border: 1px solid var(--line);
+  background: var(--paper-alt);
+  margin-bottom: 16px;
+}
+.order-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.order-card-head:hover { background: var(--paper); }
+.order-card-head-left {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.order-number-tag {
+  font-family: var(--font-mono); font-size: .78rem;
+  color: var(--forest); font-weight: 700;
+}
+.order-meta {
+  font-family: var(--font-mono); font-size: .62rem;
+  color: var(--ink-soft); text-transform: uppercase;
+}
+.order-card-head-right {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.order-total-tag { font-family: var(--font-mono); font-size: .82rem; }
+.status-pill {
+  display: inline-block; padding: 3px 10px;
+  font-family: var(--font-mono); font-size: .6rem;
+  text-transform: uppercase; letter-spacing: .06em; border-radius: 20px;
+}
+.status-pill--pending   { background:#fff3cd; color:#856404; }
+.status-pill--confirmed { background:#cfe2ff; color:#084298; }
+.status-pill--shipped   { background:#d1ecf1; color:#0c5460; }
+.status-pill--delivered { background:#d4edda; color:#155724; }
+.status-pill--cancelled { background:#f8d7da; color:#721c24; }
+.chevron { font-size:.75rem; color:var(--ink-soft); transition:transform .2s; display:inline-block; }
+.order-card.open .chevron { transform:rotate(180deg); }
+
+.order-card-body {
+  display: none;
+  padding: 16px;
+}
+.order-card.open .order-card-body { display: block; }
+
+.order-info-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px 18px; font-size: .83rem; margin-bottom: 14px;
+}
+.info-label {
+  font-family: var(--font-mono); font-size: .58rem;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--ink-soft); display: block; margin-bottom: 2px;
+}
+.order-items-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .82rem; margin-bottom: 14px;
+}
+.order-items-table th {
+  font-family: var(--font-mono); font-size: .6rem;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--ink-soft); padding: 6px 8px;
+  border-bottom: 2px solid var(--line); text-align: left;
+}
+.order-items-table td {
+  padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle;
+}
+.order-items-table tr:last-child td { border-bottom: none; }
+.order-totals {
+  display: flex; justify-content: flex-end; flex-direction: column;
+  align-items: flex-end; gap: 3px; margin-bottom: 14px;
+  font-family: var(--font-mono); font-size: .76rem; color: var(--ink-soft);
+}
+.order-totals .grand-total {
+  font-size: .92rem; color: var(--forest); font-weight: 700;
+  border-top: 1px solid var(--line); padding-top: 5px; margin-top: 2px;
+}
+.order-note {
+  background: var(--paper); border-left: 3px solid var(--gold);
+  padding: 8px 12px; font-size: .82rem; color: var(--ink-soft); margin-bottom: 12px;
+}
+.order-note strong {
+  font-family: var(--font-mono); font-size: .6rem; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--gold); display: block; margin-bottom: 2px;
+}
+
+/* delivery countdown */
+.ucd-chip {
+  display: inline-flex; flex-direction: column; gap: 1px;
+  padding: 6px 10px; background: var(--paper);
+  border: 1px solid var(--forest); border-left: 3px solid var(--forest);
+}
+.ucd-chip--due { border-color: var(--gold); border-left-color: var(--gold); }
+.ucd-label { font-family:var(--font-mono); font-size:.55rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); }
+.ucd-time  { font-family:var(--font-mono); font-size:.82rem; color:var(--forest); font-weight:700; }
+.ucd-chip--due .ucd-time { color: var(--gold); }
+.ucd-date  { font-family:var(--font-mono); font-size:.62rem; color:var(--ink-soft); margin-top:2px; }
+.order-delivery-section { margin-bottom: 12px; }
+.delivery-label { font-family:var(--font-mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:5px; }
+
+/* edit delivery form */
+.edit-delivery-wrap { background:var(--paper); border:1px solid var(--line); padding:14px; margin-top:10px; display:none; }
+.edit-delivery-wrap.open { display: block; }
+.edit-delivery-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.edit-delivery-grid .field label { font-family:var(--font-mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); display:block; margin-bottom:4px; }
+.edit-delivery-grid .field input { width:100%; padding:8px 10px; border:1px solid var(--line); font-family:var(--font-body); font-size:.85rem; }
+.edit-delivery-actions { display:flex; gap:8px; }
+
+/* empty / loading */
+.orders-empty { text-align:center; padding:48px 24px; color:var(--ink-soft); }
+.orders-empty p { margin-bottom:18px; }
+.orders-loading { text-align:center; padding:40px; font-family:var(--font-mono); font-size:.76rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
+
+/* auth gate */
+.orders-auth-gate { text-align:center; padding:60px 24px; }
+.orders-auth-gate h2 { font-family:var(--font-display); color:var(--forest); margin-bottom:12px; }
+.orders-auth-gate p { color:var(--ink-soft); margin-bottom:24px; }
+
+/* notice */
+.notice-box { padding:10px 14px; font-size:.83rem; border-left:3px solid var(--forest); background:var(--paper-alt); margin-bottom:12px; }
+.notice-box.error { border-left-color:var(--tomato); color:var(--tomato); }
+
+/* Order Message Thread & Comments */
+.order-thread-box {
+  background: var(--paper-alt, #fafaf9);
+  border: 1px solid var(--line, #e7e5e4);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.order-thread-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line, #e7e5e4);
+  padding-bottom: 6px;
+}
+.order-thread-title {
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--forest, #15803d);
+  letter-spacing: 0.02em;
+}
+.order-thread-count {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  color: var(--ink-soft, #78716c);
+}
+.order-thread-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding-right: 4px;
+}
+.thread-bubble {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.thread-bubble--store {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 3.5px solid var(--forest, #16a34a);
+  align-self: flex-start;
+  max-width: 90%;
+}
+.thread-bubble--customer {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-right: 3.5px solid #3b82f6;
+  align-self: flex-end;
+  max-width: 90%;
+  text-align: left;
+}
+.thread-bubble-author {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+  font-size: 0.68rem;
+}
+.thread-author-badge {
+  font-weight: 700;
+  color: var(--ink, #1c1917);
+}
+.thread-bubble--store .thread-author-badge {
+  color: var(--forest, #15803d);
+}
+.thread-bubble--customer .thread-author-badge {
+  color: #1d4ed8;
+}
+.thread-time {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  color: var(--ink-soft, #94a3b8);
+}
+.thread-text {
+  color: var(--ink, #1e293b);
+  font-size: 0.84rem;
+  white-space: pre-wrap;
+}
+.order-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.order-reply-input {
+  flex: 1;
+  border: 1px solid var(--line, #cbd5e1);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  background: #fff;
+  color: var(--ink, #1e293b);
+  outline: none;
+}
+.order-reply-input:focus {
+  border-color: var(--forest, #16a34a);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+.order-reply-btn {
+  background: var(--forest, #16a34a);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.order-reply-btn:hover {
+  background: #15803d;
+}
+.order-reply-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.order-reply-msg {
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+
+/* mobile */
+@media (max-width: 700px) {
+  .account-shell { flex-direction: column; }
+  .account-sidebar { width: 100%; position: static; }
+  .order-info-grid { grid-template-columns: 1fr; }
+  .edit-delivery-grid { grid-template-columns: 1fr; }
+  .order-reply-form { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a href="/" class="logo">
+    <span id="logoIcon">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/>
+    </svg>
+    </span>
+    <span id="brandName">ENMAR</span>
+  </a>
+  <div class="header-right">
+    <a href="/" class="account-btn">← Shop</a>
+  </div>
+</header>
+
+<!-- AUTH GATE (shown while loading / not signed in) -->
+<div id="authGate" class="orders-shell">
+  <div class="orders-auth-gate">
+    <h2>Sign in to see your account</h2>
+    <p>You need an ENMAR account to continue.</p>
+    <a href="/" class="btn-primary">Go to the shop</a>
+  </div>
+</div>
+
+<!-- ACCOUNT SHELL -->
+<div class="account-shell" id="accountShell">
+
+  <!-- SIDEBAR -->
+  <aside class="account-sidebar">
+    <div class="account-avatar">
+      <div class="account-avatar-circle" id="avatarCircle">?</div>
+      <div class="account-avatar-name" id="avatarName">—</div>
+      <div class="account-avatar-email" id="avatarEmail">—</div>
+    </div>
+    <nav class="account-nav">
+      <button class="account-nav-item active" data-panel="orders">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>
+        My Orders
+      </button>
+      <button class="account-nav-item" data-panel="profile">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>
+        Profile &amp; Address
+      </button>
+      <button class="account-nav-item" data-panel="reviews">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        My Reviews
+      </button>
+       <button class="account-nav-item" data-panel="password">
+         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+         Change Password
+       </button>
+       <button class="account-nav-item" data-panel="bmi">
+         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+         BMI Calculator
+       </button>
+       <button class="account-nav-item signout" id="signOutBtn">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="account-main">
+
+    <!-- ── ORDERS PANEL ── -->
+    <div class="account-panel active" id="panel-orders">
+      <h2 class="account-panel-title">My Orders</h2>
+      <div id="pageMessage"></div>
+      <div id="ordersContainer"><div class="orders-loading">Loading…</div></div>
+    </div>
+
+    <!-- ── PROFILE & ADDRESS PANEL ── -->
+    <div class="account-panel" id="panel-profile">
+      <h2 class="account-panel-title">Profile &amp; Default Delivery Address</h2>
+
+      <!-- Profile Picture Card -->
+      <div style="background:var(--paper);border:1px solid var(--line);padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div style="position:relative">
+          <div class="account-avatar-circle" id="profileAvatarPreview" style="width:84px;height:84px;font-size:2rem;margin:0;box-shadow:0 2px 8px rgba(0,0,0,0.08)">?</div>
+        </div>
+        <div style="flex:1;min-width:220px">
+          <h4 style="margin:0 0 4px;font-family:var(--font-display);font-size:1.05rem;color:var(--ink)">Profile Picture</h4>
+          <p style="margin:0 0 12px;font-size:.8rem;color:var(--ink-soft)">Upload your profile picture (JPG, PNG, WebP or GIF, up to 5MB).</p>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <label class="btn-primary" style="padding:8px 16px;font-size:.74rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span>Upload Photo</span>
+              <input type="file" id="profileAvatarInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+            </label>
+            <button type="button" class="btn-danger" id="profileAvatarRemoveBtn" style="padding:8px 14px;font-size:.74rem;display:none">Remove Photo</button>
+            <span id="avatarUploadStatus" style="font-size:.78rem;font-family:var(--font-mono);color:var(--forest);font-weight:600"></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Current Address Preview Box -->
+      <div style="background:var(--paper);border:1px solid var(--line);padding:18px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:14px;font-size:.88rem">
+        <div><span class="info-label">Full Name</span><strong id="prevName">—</strong></div>
+        <div><span class="info-label">Email Address</span><span id="prevEmail">—</span></div>
+        <div><span class="info-label">Mobile Number</span><strong id="prevPhone">—</strong></div>
+        <div><span class="info-label">Default Address</span><span id="prevAddress">No address set yet</span></div>
+        <div><span class="info-label">District / City</span><span id="prevCity">—</span></div>
+        <div><span class="info-label">Postal Code</span><span id="prevZip">—</span></div>
+        <div style="grid-column:1/-1"><span class="info-label">Delivery Notes / Landmark</span><span id="prevNotes">—</span></div>
+      </div>
+
+      <div class="acct-form" style="max-width:640px">
+        <h3 style="font-family:var(--font-display);font-size:1.05rem;margin:0 0 16px;color:var(--forest)">Edit Profile &amp; Default Address</h3>
+        <div class="form-msg" id="profileMsg"></div>
+        <form id="profileForm" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="profileName" required minlength="2" placeholder="Your name">
+            </div>
+            <div class="field">
+              <label>Email Address</label>
+              <input type="email" id="profileEmail" required placeholder="you@example.com">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Mobile Number (01XXXXXXXXX)</label>
+              <input type="tel" id="profilePhone" required placeholder="01XXXXXXXXX" pattern="01[0-9]{9}">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Default House / Road / Area Address</label>
+              <input type="text" id="profileAddress" placeholder="e.g. House 12, Road 4, Sector 7, Uttara">
+            </div>
+            <div class="field">
+              <label>District / City</label>
+              <input type="text" id="profileCity" placeholder="e.g. Dhaka">
+            </div>
+            <div class="field">
+              <label>Postal Code</label>
+              <input type="text" id="profileZip" placeholder="e.g. 1230">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Delivery Notes / Landmark (Optional)</label>
+              <input type="text" id="profileNotes" placeholder="e.g. Near Mascot Plaza, 4th floor">
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top:16px">
+            <button type="submit" class="btn-primary" style="padding:10px 22px">Save Profile &amp; Address</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── REVIEWS PANEL ── -->
+    <div class="account-panel" id="panel-reviews">
+      <h2 class="account-panel-title">My Product Reviews</h2>
+      <div id="reviewsMessage"></div>
+      <div id="reviewsContainer"><div class="orders-loading">Loading reviews…</div></div>
+    </div>
+
+    <!-- ── PASSWORD PANEL ── -->
+    <div class="account-panel" id="panel-password">
+      <h2 class="account-panel-title">Account Security &amp; Password</h2>
+      <div class="acct-form" style="max-width:540px">
+        <div class="form-msg" id="passwordMsg"></div>
+
+        <!-- Mode selector -->
+        <div style="display:flex;gap:8px;margin-bottom:18px;background:#f1f5f9;padding:4px;border-radius:8px;border:1px solid #cbd5e1">
+          <button type="button" id="pwdModeCurrentBtn" class="btn-primary" style="flex:1;padding:9px 12px;font-size:0.78rem;font-weight:700;border-radius:6px">Know Current Password</button>
+          <button type="button" id="pwdModeOtpBtn" class="btn-soft" style="flex:1;padding:9px 12px;font-size:0.78rem;font-weight:700;border-radius:6px">Forgot? Reset via Email</button>
+        </div>
+
+        <form id="passwordForm" novalidate>
+          <!-- Current Password Mode -->
+          <div id="pwdCurrentGroup" class="field">
+            <label for="currentPassword">Current Password *</label>
+            <div style="position:relative;display:flex;align-items:center">
+              <input type="password" id="currentPassword" placeholder="••••••••" style="padding-right:65px" autocomplete="current-password">
+              <button type="button" class="pwd-toggle-btn" data-target="currentPassword" style="position:absolute;right:8px;background:none;border:none;color:var(--forest);font-size:0.75rem;font-weight:700;cursor:pointer;padding:4px">Show</button>
+            </div>
+          </div>
+
+          <!-- OTP Mode -->
+          <div id="pwdOtpGroup" style="display:none;margin-bottom:14px">
+            <div class="field">
+              <label>Send Reset Code to Email</label>
+              <div style="display:flex;gap:8px">
+                <input type="email" id="pwdOtpEmail" readonly style="background:#f8fafc;color:var(--ink);font-weight:600;cursor:default;">
+                <button type="button" id="pwdSendOtpBtn" class="btn-primary" style="white-space:nowrap;padding:8px 14px;font-size:0.75rem">Send Code</button>
+              </div>
+              <small style="color:var(--ink-soft);font-size:0.72rem;margin-top:4px;display:block">A 6-digit verification code will be sent to your registered email.</small>
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label for="pwdOtpCode">6-Digit Reset Code *</label>
+              <input type="text" id="pwdOtpCode" placeholder="Enter 6-digit code" inputmode="numeric" maxlength="6" style="letter-spacing:4px;font-weight:700;font-family:var(--font-mono)">
+            </div>
+          </div>
+
+          <!-- New Password Fields (Shared) -->
+          <div class="field">
+            <label for="newPassword">New Password (min 8 chars) *</label>
+            <div style="position:relative;display:flex;align-items:center">
+              <input type="password" id="newPassword" required minlength="8" placeholder="Min. 8 characters (any type)" style="padding-right:65px" autocomplete="new-password">
+              <button type="button" class="pwd-toggle-btn" data-target="newPassword" style="position:absolute;right:8px;background:none;border:none;color:var(--forest);font-size:0.75rem;font-weight:700;cursor:pointer;padding:4px">Show</button>
+            </div>
+            <div id="pwdChkLen" style="font-size:0.75rem;color:var(--ink-soft);margin-top:4px">
+              ○ Min. 8 characters (numbers, letters, symbols accepted)
+            </div>
+          </div>
+
+          <div class="field">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label for="confirmPassword" style="margin:0">Confirm New Password *</label>
+              <span id="pwdMatchStatus" style="font-size:0.75rem;font-weight:700"></span>
+            </div>
+            <div style="position:relative;display:flex;align-items:center;margin-top:4px">
+              <input type="password" id="confirmPassword" required placeholder="Repeat new password" style="padding-right:65px" autocomplete="new-password">
+              <button type="button" class="pwd-toggle-btn" data-target="confirmPassword" style="position:absolute;right:8px;background:none;border:none;color:var(--forest);font-size:0.75rem;font-weight:700;cursor:pointer;padding:4px">Show</button>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top:18px">
+            <button type="submit" id="pwdSubmitBtn" class="btn-primary" style="padding:10px 22px;font-size:0.82rem;font-weight:700">Update Password →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── BMI CALCULATOR PANEL ── -->
+    <div class="account-panel" id="panel-bmi">
+      <h2 class="account-panel-title">BMI Calculator</h2>
+      <div class="acct-form" style="max-width:540px">
+        <div class="form-msg" id="bmiMsg"></div>
+        <form id="bmiForm" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field">
+              <label>Height (Feet & Inches) *</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <input type="number" id="bmiFeet" required min="3" max="8" placeholder="Feet" step="1">
+                  <span style="font-size:0.65rem;color:var(--ink-soft);display:block;margin-top:2px">Feet</span>
+                </div>
+                <div>
+                  <input type="number" id="bmiInches" required min="0" max="11" placeholder="Inches" step="0.1">
+                  <span style="font-size:0.65rem;color:var(--ink-soft);display:block;margin-top:2px">Inches</span>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="bmiWeight">Weight (kg) *</label>
+              <input type="number" id="bmiWeight" required min="20" max="500" placeholder="e.g. 70" step="0.1">
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top:18px">
+            <button type="submit" class="btn-primary" style="padding:10px 22px">Calculate BMI</button>
+          </div>
+        </form>
+        <div id="bmiResult" style="margin-top:24px;display:none">
+          <div style="background:var(--paper);border:1px solid var(--line);padding:18px;border-radius:6px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div>
+                <span class="info-label">Your BMI</span>
+                <div style="font-size:2.2rem;font-weight:700;color:var(--forest);margin:6px 0" id="bmiValue">—</div>
+              </div>
+              <div>
+                <span class="info-label">Category</span>
+                <div style="font-size:1.1rem;font-weight:700;margin:6px 0" id="bmiCategory">—</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+              <span class="info-label">What does this mean?</span>
+              <p id="bmiExplanation" style="font-size:.85rem;color:var(--ink);margin:6px 0 0;line-height:1.5">—</p>
+            </div>
+            <div style="margin-top:16px;background:var(--paper-alt);padding:12px;border-radius:4px;border-left:3px solid var(--gold)">
+              <span class="info-label">BMI Scale</span>
+              <div style="font-size:.78rem;color:var(--ink-soft);margin-top:6px;line-height:1.6">
+                <div>🟢 Underweight: BMI < 18.5</div>
+                <div>🟡 Normal: 18.5 - 24.9</div>
+                <div>🟠 Overweight: 25 - 29.9</div>
+                <div>🔴 Obese: BMI ≥ 30</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+'use strict';
+const taka = v => `৳${Number(v || 0).toFixed(2)}`;
+const esc  = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+/* ── Smart Confirm Dialog ── */
+function smartConfirm(options = {}) {
+  return new Promise(resolve => {
+    const config = {
+      title: options.title || 'Confirm',
+      message: options.message || 'Are you sure?',
+      confirmText: options.confirmText || 'Confirm',
+      cancelText: options.cancelText || 'Cancel',
+      danger: options.danger || false,
+      variant: options.variant || 'default'
+    };
+
+    // Remove any existing overlay
+    const existing = document.getElementById('_scOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = '_scOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)';
+
+    const btnColor = config.danger
+      ? 'background:#dc2626;color:#fff;border:none'
+      : 'background:var(--forest,#2d6a4f);color:#fff;border:none';
+
+    overlay.innerHTML = `
+      <div style="background:var(--paper,#fff);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.22);max-width:420px;width:100%;padding:28px 24px;font-family:var(--font-body,system-ui,sans-serif)">
+        <h3 style="margin:0 0 10px;font-size:1.05rem;color:var(--ink,#1a1a1a);font-family:var(--font-display,inherit)">${esc(config.title)}</h3>
+        <p style="margin:0 0 22px;font-size:.88rem;color:var(--ink-soft,#555);white-space:pre-line;line-height:1.55">${esc(config.message)}</p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+          <button id="_scCancel" style="padding:8px 16px;font-size:.8rem;border:1px solid var(--line,#ddd);background:transparent;color:var(--ink,#333);border-radius:6px;cursor:pointer">${esc(config.cancelText)}</button>
+          <button id="_scOk" style="padding:8px 18px;font-size:.8rem;border-radius:6px;cursor:pointer;font-weight:600;${btnColor}">${esc(config.confirmText)}</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+
+    const cleanup = (result) => {
+      overlay.remove();
+      resolve(result);
+    };
+
+    overlay.querySelector('#_scOk').addEventListener('click', () => cleanup(true));
+    overlay.querySelector('#_scCancel').addEventListener('click', () => cleanup(false));
+    overlay.addEventListener('click', e => { if (e.target === overlay) cleanup(false); });
+    const onKey = e => { if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); cleanup(false); } };
+    document.addEventListener('keydown', onKey);
+  });
+}
+
+/* ── API ── */
+async function req(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+
+/* ── Notice ── */
+function notice(el, text, ok = false) {
+  if (!el) return;
+  if (!text) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="notice-box${ok ? '' : ' error'}">${esc(text)}</div>`;
+}
+
+/* ── Panel switching ── */
+document.querySelectorAll('.account-nav-item[data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.account-nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.account-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+/* ── Countdown ── */
+const DELIVERY_WINDOW_MS = 48 * 60 * 60 * 1000;
+let _cdTimer = null;
+function fmtCountdown(ms) {
+  if (ms <= 0) return 'Arriving soon';
+  const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const pad = n => String(n).padStart(2, '0');
+  if (h >= 24) { const d = Math.floor(h / 24); return `${d}d ${pad(h%24)}h ${pad(m)}m`; }
+  return `${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+}
+function startCountdowns() {
+  if (_cdTimer) clearInterval(_cdTimer);
+  _cdTimer = setInterval(() => {
+    document.querySelectorAll('.ucd-chip').forEach(chip => {
+      const rem = Number(chip.dataset.target) - Date.now();
+      const t = chip.querySelector('.ucd-time');
+      if (!t) return;
+      t.textContent = rem <= 0 ? 'Arriving soon' : fmtCountdown(rem);
+      chip.classList.toggle('ucd-chip--due', rem <= 0);
+    });
+  }, 1000);
+}
+function deliveryChipHTML(o) {
+  if (['Delivered','Cancelled','Pending'].includes(o.status)) return '';
+  let target;
+  if (o.estimatedDelivery) target = new Date(o.estimatedDelivery).getTime();
+  else if (o.confirmedAt)  target = new Date(o.confirmedAt).getTime() + DELIVERY_WINDOW_MS;
+  else return '';
+  const rem = target - Date.now(), due = rem <= 0;
+  const dateStr = new Date(target).toLocaleString('en-BD', { dateStyle:'medium', timeStyle:'short' });
+  return `<div class="order-delivery-section">
+    <div class="delivery-label">Est. Delivery</div>
+    <div class="ucd-chip${due?' ucd-chip--due':''}" data-target="${target}">
+      <span class="ucd-label">Arriving in</span>
+      <span class="ucd-time">${due?'Arriving soon':fmtCountdown(rem)}</span>
+      <span class="ucd-date">${dateStr}</span>
+    </div>
+  </div>`;
+}
+
+/* ── Status pill ── */
+let _siteSettings = null;
+function statusPill(o) {
+  const s = (typeof o === 'object' && o !== null) ? (o.status || 'Pending') : String(o || 'Pending');
+  const cancelledBy = (typeof o === 'object' && o !== null) ? o.cancelledBy : '';
+  const siteName = (_siteSettings && _siteSettings.brandName) || 'ENMAR';
+
+  if (s === 'Cancelled') {
+    let label = 'Cancelled';
+    if (cancelledBy === 'customer') {
+      const custName = (typeof o === 'object' && o !== null)
+        ? (o.cancelledByName || (o.customer && o.customer.name) || (_currentUser && _currentUser.name) || 'Customer')
+        : ((_currentUser && _currentUser.name) || 'Customer');
+      label = `Cancelled by ${custName}`;
+    } else if (cancelledBy === 'admin' || cancelledBy === 'store') {
+      label = `Cancelled by ${siteName}`;
+    }
+    return `<span class="status-pill status-pill--cancelled">${esc(label)}</span>`;
+  }
+
+  return `<span class="status-pill status-pill--${s.toLowerCase()}">${esc(s)}</span>`;
+}
+
+/* ── Products cache ── */
+let _products = [];
+async function getProducts() {
+  if (_products.length) return _products;
+  _products = await req('/api/products');
+  return _products;
+}
+function productName(id) {
+  const p = _products.find(x => x.id === Number(id));
+  return p ? p.name : `Product #${id}`;
+}
+
+/* ── Order Conversation & Comments Thread ── */
+function buildOrderConversationHTML(o) {
+  const brandName = (_siteSettings && _siteSettings.brandName) || 'ENMAR';
+  let msgs = Array.isArray(o.messages) && o.messages.length ? o.messages : [];
+  if (!msgs.length) {
+    msgs = [{
+      id: 1,
+      sender: 'store',
+      senderName: brandName,
+      text: o.customerMessage || o.note || 'Thank you',
+      createdAt: o.createdAt || new Date().toISOString()
+    }];
+  }
+
+  return `
+    <div class="order-thread-box" id="thread-box-${o.id}">
+      <div class="order-thread-header">
+        <span class="order-thread-title">💌 Order Message & Comments</span>
+        <span class="order-thread-count">${msgs.length} ${msgs.length === 1 ? 'message' : 'messages'}</span>
+      </div>
+      <div class="order-thread-list" id="thread-list-${o.id}">
+        ${msgs.map(m => {
+          const isStore = m.sender === 'store';
+          const timeStr = m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' }) : '';
+          return `
+            <div class="thread-bubble ${isStore ? 'thread-bubble--store' : 'thread-bubble--customer'}">
+              <div class="thread-bubble-author">
+                <span class="thread-author-badge">${isStore ? `🌾 ${esc(m.senderName || brandName)}` : `👤 ${esc(m.senderName || 'You')}`}</span>
+                <span class="thread-time">${esc(timeStr)}</span>
+              </div>
+              <div class="thread-text">${esc(m.text)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <form class="order-reply-form" data-oid="${o.id}">
+        <input type="text" class="order-reply-input" id="reply-input-${o.id}" placeholder="Write a reply or comment on this order…" required maxlength="1000" autocomplete="off">
+        <button type="submit" class="order-reply-btn" id="reply-btn-${o.id}">Reply 💬</button>
+      </form>
+      <div class="order-reply-msg" id="reply-msg-${o.id}"></div>
+    </div>
+  `;
+}
+
+/* ── Render orders ── */
+async function renderOrders(orders) {
+  const container = document.getElementById('ordersContainer');
+  if (!orders.length) {
+    const emptyMsg = (_siteSettings && _siteSettings.myOrdersEmptyMessage) || "You haven't placed any orders yet.";
+    const btnText = (_siteSettings && _siteSettings.shopHarvestButtonText) || "Shop This Week's Foods";
+    container.innerHTML = `<div class="orders-empty">
+      <p>${esc(emptyMsg)}</p>
+      <a href="/" class="btn-primary">${esc(btnText)}</a>
+    </div>`;
+    return;
+  }
+  container.innerHTML = orders.map(o => {
+    const canCancel = o.status === 'Pending';
+    const canEdit = o.status === 'Pending';
+    const canDeleteHistory = ['Delivered', 'Cancelled'].includes(o.status);
+    const subtotal = o.subtotal ?? (o.total - (o.shipping ?? 0));
+    return `<div class="order-card" id="card-${o.id}">
+      <div class="order-card-head" data-oid="${o.id}">
+        <div class="order-card-head-left">
+          <span class="order-number-tag">${esc(o.number)}</span>
+          <span class="order-meta">${new Date(o.createdAt).toLocaleString('en-BD',{dateStyle:'medium',timeStyle:'short'})}</span>
+          <span class="order-meta">${esc(o.paymentMethod)}</span>
+        </div>
+        <div class="order-card-head-right">
+          <span class="order-total-tag">${taka(o.total)}</span>
+          ${statusPill(o)}
+          <span class="chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="order-card-body">
+        ${buildOrderConversationHTML(o)}
+        ${deliveryChipHTML(o)}
+        <div class="order-info-grid">
+          <div><span class="info-label">Name</span>${esc(o.customer?.name)}</div>
+          <div><span class="info-label">Phone</span>${esc(o.customer?.phone)}</div>
+          <div><span class="info-label">Address</span>${esc(o.customer?.address)}</div>
+          <div><span class="info-label">City</span>${esc(o.customer?.city)}</div>
+        </div>
+        <table class="order-items-table">
+          <thead><tr><th>Product</th><th>Qty</th><th style="text-align:right">Price</th></tr></thead>
+          <tbody>
+            ${o.items.map(item => {
+              const p = _products.find(x => x.id === Number(item.id));
+              return `<tr>
+                <td>${esc(productName(item.id))}</td>
+                <td>${item.qty}</td>
+                <td style="text-align:right;font-family:var(--font-mono);font-size:.78rem">${taka((p ? p.price : 0) * item.qty)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="order-totals">
+          <div>Subtotal: ${taka(subtotal)}</div>
+          <div>Shipping: ${taka(o.shipping ?? 0)}</div>
+          <div class="grand-total">Total: ${taka(o.total)}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:10px;border-top:1px dashed var(--line,#e7e5e4)">
+          <a href="/receipt.html?id=${o.id}" target="_blank" class="btn-order-receipt" title="Download &amp; print official money receipt with site name"
+            style="border:1px solid #86efac;color:#15803d;background:#f0fdf4;padding:6px 12px;font-size:.68rem;cursor:pointer;border-radius:4px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:700">
+            🧾 Money Receipt
+          </a>
+          ${canEdit ? `
+          <button type="button" class="btn-muted btn-toggle-edit" data-oid="${o.id}"
+            style="border:1px solid var(--line);padding:6px 12px;font-size:.68rem;cursor:pointer">
+            ✎ Edit Delivery Info
+          </button>` : ''}
+          ${canCancel ? `
+          <button type="button" class="btn-cancel-order" data-oid="${o.id}" data-onum="${esc(o.number)}" title="Cancel this order before admin confirmation">
+            ✕ Cancel Order
+          </button>` : ''}
+          ${canDeleteHistory ? `
+          <button type="button" class="btn-delete-history" data-oid="${o.id}" data-onum="${esc(o.number)}" title="Remove this completed/cancelled order from your personal order history list"
+            style="border:1px solid #fecaca;color:#b91c1c;background:#fff5f5;padding:6px 12px;font-size:.68rem;cursor:pointer;border-radius:4px;display:inline-flex;align-items:center;gap:4px;margin-left:auto">
+            🗑️ Delete from History
+          </button>` : ''}
+        </div>
+        ${canEdit ? `
+        <div class="edit-delivery-wrap" id="edit-wrap-${o.id}">
+          <div id="edit-msg-${o.id}"></div>
+          <div class="edit-delivery-grid">
+            <div class="field"><label>Full Name</label><input type="text" id="ed-name-${o.id}" value="${esc(o.customer?.name??'')}"></div>
+            <div class="field"><label>Phone</label><input type="tel" id="ed-phone-${o.id}" value="${esc(o.customer?.phone??'')}"></div>
+            <div class="field"><label>Address</label><input type="text" id="ed-address-${o.id}" value="${esc(o.customer?.address??'')}"></div>
+            <div class="field"><label>City</label><input type="text" id="ed-city-${o.id}" value="${esc(o.customer?.city??'')}"></div>
+          </div>
+          <div class="edit-delivery-actions">
+            <button type="button" class="btn-primary btn-save-edit" data-oid="${o.id}" style="padding:8px 16px;font-size:.72rem">Save</button>
+            <button type="button" class="btn-cancel-edit" data-oid="${o.id}" style="border:1px solid var(--line);background:none;padding:8px 12px;font-size:.72rem;cursor:pointer">Cancel</button>
+          </div>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  /* expand/collapse */
+  document.querySelectorAll('.order-card-head').forEach(h => {
+    h.addEventListener('click', () => document.getElementById('card-'+h.dataset.oid).classList.toggle('open'));
+  });
+  /* edit delivery */
+  document.querySelectorAll('.btn-toggle-edit').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); document.getElementById('edit-wrap-'+btn.dataset.oid).classList.toggle('open'); });
+  });
+  document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+    btn.addEventListener('click', () => document.getElementById('edit-wrap-'+btn.dataset.oid).classList.remove('open'));
+  });
+  document.querySelectorAll('.btn-save-edit').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const oid = btn.dataset.oid;
+      const msgEl = document.getElementById('edit-msg-'+oid);
+      notice(msgEl, '');
+      try {
+        await req(`/api/orders/${oid}`, { method:'PATCH', body: JSON.stringify({
+          name:    document.getElementById('ed-name-'+oid).value.trim(),
+          phone:   document.getElementById('ed-phone-'+oid).value.trim(),
+          address: document.getElementById('ed-address-'+oid).value.trim(),
+          city:    document.getElementById('ed-city-'+oid).value.trim()
+        })});
+        const updated = await req('/api/orders');
+        const openCards = new Set([...document.querySelectorAll('.order-card.open')].map(el => el.id.replace('card-','')));
+        await renderOrders(updated);
+        openCards.forEach(id => { const c = document.getElementById('card-'+id); if(c) c.classList.add('open'); });
+      } catch(err) { notice(msgEl, err.message); }
+    });
+  });
+
+  /* cancel order (only allowed while Pending before admin confirms) */
+  document.querySelectorAll('.btn-cancel-order').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const oid = btn.dataset.oid;
+      const onum = btn.dataset.onum || `#${oid}`;
+      const ok = await smartConfirm({
+        title: 'Cancel Order',
+        message: `Are you sure you want to cancel order ${onum}?\n\nThis order has not yet been confirmed by the store and will be immediately cancelled.`,
+        confirmText: 'Yes, Cancel Order',
+        cancelText: 'Keep Order',
+        danger: true,
+        variant: 'warning'
+      });
+      if (!ok) return;
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Cancelling…';
+        await req(`/api/orders/${oid}/cancel`, { method: 'POST' });
+        const updated = await req('/api/orders');
+        const openCards = new Set([...document.querySelectorAll('.order-card.open')].map(el => el.id.replace('card-','')));
+        await renderOrders(updated);
+        openCards.forEach(id => { const c = document.getElementById('card-'+id); if(c) c.classList.add('open'); });
+      } catch (err) {
+        alert(err.message || 'Failed to cancel order.');
+        btn.disabled = false;
+        btn.textContent = 'Cancel Order';
+      }
+    });
+  });
+
+  /* delete order from customer personal history */
+  document.querySelectorAll('.btn-delete-history').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const oid = btn.dataset.oid;
+      const onum = btn.dataset.onum || `#${oid}`;
+      const ok = await smartConfirm({
+        title: 'Delete Order History',
+        message: `Delete order ${onum} from your personal history?\n\nThis will remove the order from your personal history view.`,
+        confirmText: 'Delete from History',
+        cancelText: 'Keep in History',
+        danger: true,
+        variant: 'delete'
+      });
+      if (!ok) return;
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Removing…';
+        await req(`/api/orders/${oid}/history`, { method: 'DELETE' });
+        const card = document.getElementById('card-' + oid);
+        if (card) {
+          card.style.transition = 'all 0.35s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.96)';
+          setTimeout(async () => {
+            const updated = await req('/api/orders');
+            await renderOrders(updated);
+          }, 320);
+        } else {
+          const updated = await req('/api/orders');
+          await renderOrders(updated);
+        }
+      } catch (err) {
+        alert(err.message || 'Failed to remove order from history.');
+        btn.disabled = false;
+        btn.textContent = 'Delete from History';
+      }
+    });
+  });
+
+  /* order message / comment reply */
+  document.querySelectorAll('.order-reply-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const oid = Number(form.dataset.oid);
+      const input = document.getElementById(`reply-input-${oid}`);
+      const btn = document.getElementById(`reply-btn-${oid}`);
+      const msgDiv = document.getElementById(`reply-msg-${oid}`);
+      const text = (input ? input.value : '').trim();
+      if (!text) return;
+
+      if (msgDiv) msgDiv.textContent = '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+      try {
+        const res = await req(`/api/orders/${oid}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ text })
+        });
+        const o = orders.find(x => x.id === oid);
+        if (o) o.messages = res.messages;
+        if (input) input.value = '';
+        if (btn) { btn.disabled = false; btn.textContent = 'Reply 💬'; }
+
+        // Update list in real time
+        const listEl = document.getElementById(`thread-list-${oid}`);
+        if (listEl && res.messages) {
+          const brandName = (_siteSettings && _siteSettings.brandName) || 'ENMAR';
+          listEl.innerHTML = res.messages.map(m => {
+            const isStore = m.sender === 'store';
+            const timeStr = m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' }) : '';
+            return `
+              <div class="thread-bubble ${isStore ? 'thread-bubble--store' : 'thread-bubble--customer'}">
+                <div class="thread-bubble-author">
+                  <span class="thread-author-badge">${isStore ? `🌾 ${esc(m.senderName || brandName)}` : `👤 ${esc(m.senderName || 'You')}`}</span>
+                  <span class="thread-time">${esc(timeStr)}</span>
+                </div>
+                <div class="thread-text">${esc(m.text)}</div>
+              </div>
+            `;
+          }).join('');
+          listEl.scrollTop = listEl.scrollHeight;
+        }
+        // update counter
+        const box = document.getElementById(`thread-box-${oid}`);
+        if (box) {
+          const cnt = box.querySelector('.order-thread-count');
+          if (cnt && res.messages) {
+            cnt.textContent = `${res.messages.length} ${res.messages.length === 1 ? 'message' : 'messages'}`;
+          }
+        }
+      } catch (err) {
+        if (msgDiv) {
+          msgDiv.textContent = err.message || 'Failed to send reply.';
+          msgDiv.style.color = 'var(--tomato, #dc2626)';
+        }
+        if (btn) { btn.disabled = false; btn.textContent = 'Reply 💬'; }
+      }
+    });
+  });
+
+  startCountdowns();
+}
+
+/* ── BOOT ── */
+let _currentUser = null;
+
+(async () => {
+  try {
+    const [meData, products, settings] = await Promise.all([
+      req('/api/auth/me'),
+      req('/api/products'),
+      req('/api/settings').catch(() => ({}))
+    ]);
+    _products = products;
+    _siteSettings = settings;
+    const user = meData.user;
+
+    if (!user) {
+      document.getElementById('authGate').style.display = 'block';
+      return;
+    }
+    if (['superadmin','admin','manager','moderator'].includes(user.role)) {
+      window.location.href = '/admin/dashboard.html'; return;
+    }
+
+    _currentUser = user;
+    updateSidebar(user);
+    renderProfileData(user);
+    document.getElementById('accountShell').style.display = 'flex';
+
+    /* load orders */
+    let prevStatuses = {};
+    async function loadOrders(isRefresh = false) {
+      const orders = await req('/api/orders');
+      if (isRefresh) {
+        const changed = orders.filter(o => prevStatuses[o.id] && prevStatuses[o.id] !== o.status);
+        if (changed.length) {
+          const msgEl = document.getElementById('pageMessage');
+          msgEl.innerHTML = `<div class="notice-box">✓ Status updated: ${changed.map(o => `${esc(o.number)} → ${esc(o.status)}`).join(', ')}</div>`;
+          setTimeout(() => { msgEl.innerHTML = ''; }, 5000);
+        }
+      }
+      orders.forEach(o => { prevStatuses[o.id] = o.status; });
+      const openCards = new Set([...document.querySelectorAll('.order-card.open')].map(el => el.id.replace('card-','')));
+      await renderOrders(orders);
+      openCards.forEach(id => { const c = document.getElementById('card-'+id); if(c) c.classList.add('open'); });
+    }
+    await loadOrders(false);
+    setInterval(() => loadOrders(true), 15000);
+
+    /* load reviews */
+    loadMyReviews();
+
+  } catch(err) {
+    document.getElementById('authGate').style.display = 'block';
+    document.getElementById('authGate').querySelector('p').textContent = err.message;
+  }
+})();
+
+function updateSidebar(user) {
+  if (!user) return;
+  const initials = user.name ? user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() : '?';
+  const circle = document.getElementById('avatarCircle');
+  if (circle) {
+    if (user.avatar) {
+      circle.innerHTML = `<img src="${esc(user.avatar)}" alt="${esc(user.name)}">`;
+    } else {
+      circle.textContent = initials;
+    }
+  }
+  document.getElementById('avatarName').textContent   = user.name || '—';
+  document.getElementById('avatarEmail').textContent  = user.email || '—';
+}
+
+function renderProfileData(user) {
+  if (!user) return;
+  const initials = user.name ? user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() : '?';
+  const preview = document.getElementById('profileAvatarPreview');
+  const removeBtn = document.getElementById('profileAvatarRemoveBtn');
+  if (preview) {
+    if (user.avatar) {
+      preview.innerHTML = `<img src="${esc(user.avatar)}" alt="${esc(user.name)}">`;
+    } else {
+      preview.textContent = initials;
+    }
+  }
+  if (removeBtn) {
+    removeBtn.style.display = user.avatar ? 'inline-block' : 'none';
+  }
+
+  document.getElementById('profileName').value    = user.name || '';
+  document.getElementById('profileEmail').value   = user.email || '';
+  document.getElementById('profilePhone').value   = user.phone || '';
+  document.getElementById('profileAddress').value = user.address || '';
+  document.getElementById('profileCity').value    = user.city || '';
+  document.getElementById('profileZip').value     = user.zip || '';
+  document.getElementById('profileNotes').value   = user.notes || '';
+  if (document.getElementById('pwdOtpEmail')) {
+    document.getElementById('pwdOtpEmail').value  = user.email || '';
+  }
+
+  const el = id => document.getElementById(id);
+  if (el('prevName')) el('prevName').textContent       = user.name || '—';
+  if (el('prevEmail')) el('prevEmail').textContent     = user.email || '—';
+  if (el('prevPhone')) el('prevPhone').textContent     = user.phone || 'Not set';
+  if (el('prevAddress')) el('prevAddress').textContent = user.address || 'No address set yet';
+  if (el('prevCity')) el('prevCity').textContent       = user.city || '—';
+  if (el('prevZip')) el('prevZip').textContent         = user.zip || '—';
+  if (el('prevNotes')) el('prevNotes').textContent     = user.notes || '—';
+}
+
+/* ── Profile avatar upload & remove ── */
+const avatarInput = document.getElementById('profileAvatarInput');
+const avatarStatus = document.getElementById('avatarUploadStatus');
+const avatarRemoveBtn = document.getElementById('profileAvatarRemoveBtn');
+
+if (avatarInput) {
+  avatarInput.addEventListener('change', async () => {
+    const file = avatarInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      if (avatarStatus) avatarStatus.textContent = 'Please choose an image file (PNG, JPG, WebP).';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      if (avatarStatus) avatarStatus.textContent = 'Image is too large (max 5MB).';
+      return;
+    }
+    if (avatarStatus) avatarStatus.textContent = 'Uploading…';
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const dataUrl = reader.result;
+        const res = await req('/api/profile', {
+          method: 'PATCH',
+          body: JSON.stringify({ avatar: dataUrl })
+        });
+        _currentUser = res.user;
+        updateSidebar(res.user);
+        renderProfileData(res.user);
+        if (avatarStatus) {
+          avatarStatus.textContent = '✓ Profile photo updated!';
+          setTimeout(() => { avatarStatus.textContent = ''; }, 4000);
+        }
+      } catch (err) {
+        if (avatarStatus) avatarStatus.textContent = 'Upload failed: ' + err.message;
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (avatarRemoveBtn) {
+  avatarRemoveBtn.addEventListener('click', async () => {
+    const ok = await smartConfirm({
+      title: 'Remove Profile Photo',
+      message: 'Are you sure you want to remove your profile picture? Your default name initial avatar will be displayed instead.',
+      confirmText: 'Remove Photo',
+      cancelText: 'Keep Photo',
+      danger: true,
+      variant: 'delete'
+    });
+    if (!ok) return;
+
+    if (avatarStatus) avatarStatus.textContent = 'Removing…';
+    try {
+      const res = await req('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ avatar: '' })
+      });
+      _currentUser = res.user;
+      updateSidebar(res.user);
+      renderProfileData(res.user);
+      if (avatarStatus) {
+        avatarStatus.textContent = '✓ Profile photo removed.';
+        setTimeout(() => { avatarStatus.textContent = ''; }, 4000);
+      }
+    } catch (err) {
+      if (avatarStatus) avatarStatus.textContent = 'Failed to remove: ' + err.message;
+    }
+  });
+}
+
+/* ── Profile form ── */
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('profileMsg');
+  notice(msg, '');
+
+  const phone = document.getElementById('profilePhone').value.trim();
+  if (phone && !/^01[0-9]{9}$/.test(phone)) {
+    notice(msg, 'Please enter a valid Bangladesh phone number (01XXXXXXXXX).');
+    return;
+  }
+
+  try {
+    const data = await req('/api/profile', { method:'PATCH', body: JSON.stringify({
+      name:    document.getElementById('profileName').value.trim(),
+      email:   document.getElementById('profileEmail').value.trim(),
+      phone:   phone,
+      address: document.getElementById('profileAddress').value.trim(),
+      city:    document.getElementById('profileCity').value.trim(),
+      zip:     document.getElementById('profileZip').value.trim(),
+      notes:   document.getElementById('profileNotes').value.trim()
+    })});
+    _currentUser = data.user;
+    updateSidebar(data.user);
+    renderProfileData(data.user);
+    notice(msg, 'Profile and default delivery address updated successfully.', true);
+  } catch(err) { notice(msg, err.message); }
+});
+
+/* ── My Reviews ── */
+async function loadMyReviews() {
+  const container = document.getElementById('reviewsContainer');
+  if (!container) return;
+  try {
+    const reviews = await req('/api/my-reviews');
+    if (!reviews || !reviews.length) {
+      container.innerHTML = '<p style="color:var(--ink-soft);font-size:.9rem;padding:12px 0">You haven\'t reviewed any products yet.</p>';
+      return;
+    }
+    container.innerHTML = `<div style="display:flex;flex-direction:column;gap:14px">` + reviews.map(r => `
+      <div style="background:var(--paper-alt);border:1px solid var(--line);padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div>
+            <strong style="font-family:var(--font-display);font-size:1rem;color:var(--forest)"><a href="/product.html?id=${r.productId}" style="color:inherit;text-decoration:none">${esc(r.productName || 'Product #' + r.productId)}</a></strong>
+            <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--ink-soft);margin-left:8px">${new Date(r.createdAt).toLocaleDateString('en-BD')}</span>
+          </div>
+          <span style="color:#f59e0b;font-size:1rem">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
+        </div>
+        <p style="margin:6px 0;font-size:.88rem;color:var(--ink)">${esc(r.comment || '')}</p>
+        ${r.images && r.images.length ? `<div style="display:flex;gap:8px;margin-top:10px">${r.images.map(img => `<img src="${esc(img)}" style="width:54px;height:54px;object-fit:cover;border:1px solid var(--line);border-radius:4px" />`).join('')}</div>` : ''}
+        <div style="margin-top:10px">
+          <a href="/product.html?id=${r.productId}#reviews" class="btn-soft" style="font-size:.65rem;padding:4px 10px;text-decoration:none;display:inline-block">View on Product Page</a>
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--tomato);font-size:.88rem">Failed to load reviews.</p>`;
+  }
+}
+
+/* ── Password form & Security ── */
+let _pwdMode = 'current'; // 'current' or 'otp'
+
+function updatePwdUI() {
+  const p1 = (document.getElementById('newPassword') || {}).value || '';
+  const p2 = (document.getElementById('confirmPassword') || {}).value || '';
+  const chkLen = document.getElementById('pwdChkLen');
+  const matchStatus = document.getElementById('pwdMatchStatus');
+
+  if (chkLen) {
+    const met = p1.length >= 8;
+    chkLen.textContent = (met ? '✓' : '○') + ' Min. 8 characters (numbers, letters, symbols accepted)';
+    chkLen.style.color = met ? '#2a9d8f' : 'var(--ink-soft)';
+    chkLen.style.fontWeight = met ? '700' : 'normal';
+  }
+
+  if (matchStatus) {
+    if (!p2) matchStatus.textContent = '';
+    else if (p1 === p2) matchStatus.innerHTML = '<span style="color:#2a9d8f;font-weight:700">✓ Passwords match</span>';
+    else matchStatus.innerHTML = '<span style="color:#e63946;font-weight:700">✗ Mismatch</span>';
+  }
+}
+
+document.querySelectorAll('#panel-password .pwd-toggle-btn').forEach(btn => {
+  btn.onclick = () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const isPass = target.type === 'password';
+    target.type = isPass ? 'text' : 'password';
+    btn.textContent = isPass ? 'Hide' : 'Show';
+  };
+});
+
+const modeCurrentBtn = document.getElementById('pwdModeCurrentBtn');
+const modeOtpBtn = document.getElementById('pwdModeOtpBtn');
+const pwdCurrentGroup = document.getElementById('pwdCurrentGroup');
+const pwdOtpGroup = document.getElementById('pwdOtpGroup');
+
+function setPwdMode(mode) {
+  _pwdMode = mode;
+  if (mode === 'otp') {
+    if (modeCurrentBtn) {
+      modeCurrentBtn.className = 'btn-soft';
+      modeCurrentBtn.style.background = 'transparent';
+      modeCurrentBtn.style.color = 'var(--ink-soft)';
+    }
+    if (modeOtpBtn) {
+      modeOtpBtn.className = 'btn-primary';
+      modeOtpBtn.style.background = 'var(--forest)';
+      modeOtpBtn.style.color = '#ffffff';
+    }
+    if (pwdCurrentGroup) pwdCurrentGroup.style.display = 'none';
+    if (pwdOtpGroup) pwdOtpGroup.style.display = 'block';
+    if (_currentUser && _currentUser.email) {
+      const emailField = document.getElementById('pwdOtpEmail');
+      if (emailField) emailField.value = _currentUser.email;
+    }
+  } else {
+    if (modeCurrentBtn) {
+      modeCurrentBtn.className = 'btn-primary';
+      modeCurrentBtn.style.background = 'var(--forest)';
+      modeCurrentBtn.style.color = '#ffffff';
+    }
+    if (modeOtpBtn) {
+      modeOtpBtn.className = 'btn-soft';
+      modeOtpBtn.style.background = 'transparent';
+      modeOtpBtn.style.color = 'var(--ink-soft)';
+    }
+    if (pwdCurrentGroup) pwdCurrentGroup.style.display = 'block';
+    if (pwdOtpGroup) pwdOtpGroup.style.display = 'none';
+  }
+  notice(document.getElementById('passwordMsg'), '');
+}
+
+if (modeCurrentBtn && modeOtpBtn) {
+  modeCurrentBtn.onclick = () => setPwdMode('current');
+  modeOtpBtn.onclick = () => setPwdMode('otp');
+}
+
+const otpCodeInput = document.getElementById('pwdOtpCode');
+if (otpCodeInput) {
+  otpCodeInput.addEventListener('input', () => {
+    otpCodeInput.value = otpCodeInput.value.replace(/[^0-9]/g, '').slice(0, 6);
+  });
+}
+
+const newPwdInput = document.getElementById('newPassword');
+if (newPwdInput) newPwdInput.addEventListener('input', updatePwdUI);
+const confirmPwdInput = document.getElementById('confirmPassword');
+if (confirmPwdInput) confirmPwdInput.addEventListener('input', updatePwdUI);
+
+const sendOtpBtn = document.getElementById('pwdSendOtpBtn');
+if (sendOtpBtn) {
+  sendOtpBtn.onclick = async () => {
+    const msg = document.getElementById('passwordMsg');
+    const email = (_currentUser && _currentUser.email) || (document.getElementById('pwdOtpEmail') && document.getElementById('pwdOtpEmail').value) || (document.getElementById('profileEmail') && document.getElementById('profileEmail').value) || '';
+    if (!email) { notice(msg, 'Unable to identify account email. Please sign in again.'); return; }
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = 'Sending…';
+    notice(msg, '');
+    try {
+      const res = await req('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+      notice(msg, res.message || '6-digit verification code sent to your email. Check your inbox and spam folder.', true);
+      const otpInput = document.getElementById('pwdOtpCode');
+      if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+      let left = res.cooldown || 60;
+      const interval = setInterval(() => {
+        left--;
+        if (left <= 0) {
+          clearInterval(interval);
+          sendOtpBtn.disabled = false;
+          sendOtpBtn.textContent = 'Resend Code';
+        } else {
+          sendOtpBtn.textContent = `Wait ${left}s`;
+        }
+      }, 1000);
+    } catch (err) {
+      notice(msg, err.message);
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = 'Send Code';
+    }
+  };
+}
+
+document.getElementById('passwordForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('passwordMsg');
+  notice(msg, '');
+  const np = (document.getElementById('newPassword') || {}).value || '';
+  const cp = (document.getElementById('confirmPassword') || {}).value || '';
+  const submitBtn = document.getElementById('pwdSubmitBtn');
+
+  if (np.length < 8) {
+    notice(msg, 'New password must be at least 8 characters long (numbers, letters, or symbols accepted).');
+    return;
+  }
+  if (np !== cp) {
+    notice(msg, 'New passwords do not match. Please re-enter.');
+    return;
+  }
+
+  const payload = { newPassword: np };
+  const rawOtp = (document.getElementById('pwdOtpCode') ? document.getElementById('pwdOtpCode').value : '').replace(/\s+/g, '');
+  const rawCurrPass = (document.getElementById('currentPassword') ? document.getElementById('currentPassword').value : '');
+  const isOtpMode = _pwdMode === 'otp' || (pwdOtpGroup && pwdOtpGroup.style.display !== 'none');
+
+  if (isOtpMode) {
+    if (!rawOtp || rawOtp.length < 6) {
+      notice(msg, 'Please click "Send Code" and enter the 6-digit verification code received in your email.');
+      return;
+    }
+    payload.otp = rawOtp;
+    payload.email = (_currentUser && _currentUser.email) || (document.getElementById('pwdOtpEmail') && document.getElementById('pwdOtpEmail').value) || '';
+  } else {
+    if (!rawCurrPass) {
+      notice(msg, 'Please enter your current password, or switch to "Forgot? Reset via Email".');
+      return;
+    }
+    payload.currentPassword = rawCurrPass;
+  }
+
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Updating Password…'; }
+  try {
+    const res = await req('/api/change-password', { method:'POST', body: JSON.stringify(payload) });
+    notice(msg, res.message || 'Password updated successfully.', true);
+    document.getElementById('passwordForm').reset();
+    updatePwdUI();
+    const effectiveEmail = (_currentUser && _currentUser.email) || (document.getElementById('profileEmail') && document.getElementById('profileEmail').value) || '';
+    if (document.getElementById('pwdOtpEmail')) {
+      document.getElementById('pwdOtpEmail').value = effectiveEmail;
+    }
+  } catch(err) {
+    notice(msg, err.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Update Password →'; }
+  }
+});
+
+/* ── Sign out ── */
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {});
+  window.location.href = '/';
+});
+
+/* ── BMI Calculator ── */
+document.getElementById('bmiForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const feetInput = document.getElementById('bmiFeet');
+  const inchesInput = document.getElementById('bmiInches');
+  const weightInput = document.getElementById('bmiWeight');
+  const msg = document.getElementById('bmiMsg');
+  const resultDiv = document.getElementById('bmiResult');
+  const bmiValue = document.getElementById('bmiValue');
+  const bmiCategory = document.getElementById('bmiCategory');
+  const bmiExplanation = document.getElementById('bmiExplanation');
+
+  notice(msg, '');
+
+  const feet = Number(feetInput.value);
+  const inches = Number(inchesInput.value);
+  const weight = Number(weightInput.value);
+
+  if (!feet || feet < 3 || feet > 8) {
+    notice(msg, 'Please enter a valid height in feet (3-8 feet).');
+    return;
+  }
+  if (inches < 0 || inches > 11.9) {
+    notice(msg, 'Please enter valid inches (0-11).');
+    return;
+  }
+  if (!weight || weight < 20 || weight > 500) {
+    notice(msg, 'Please enter a valid weight between 20-500 kg.');
+    return;
+  }
+
+  const totalInches = feet * 12 + inches;
+  const heightInMeters = totalInches * 0.0254;
+  const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+  let category = '';
+  let categoryColor = '';
+  let explanation = '';
+
+  if (bmi < 18.5) {
+    category = 'Underweight';
+    categoryColor = '#10b981';
+    explanation = 'You are underweight. Consider consulting with a healthcare provider for personalized nutrition guidance to maintain a healthy weight.';
+  } else if (bmi < 25) {
+    category = 'Normal Weight';
+    categoryColor = '#059669';
+    explanation = 'You are at a healthy weight! Continue maintaining balanced nutrition and regular physical activity for optimal wellness.';
+  } else if (bmi < 30) {
+    category = 'Overweight';
+    categoryColor = '#f97316';
+    explanation = 'You are overweight. Consider incorporating more physical activity and mindful eating habits. A healthcare provider can offer personalized guidance.';
+  } else {
+    category = 'Obese';
+    categoryColor = '#dc2626';
+    explanation = 'You are obese. It\'s recommended to consult with a healthcare provider or dietitian for a personalized wellness plan.';
+  }
+
+  bmiValue.textContent = bmi;
+  bmiCategory.textContent = category;
+  bmiCategory.style.color = categoryColor;
+  bmiExplanation.textContent = explanation;
+  resultDiv.style.display = 'block';
+
+  notice(msg, 'BMI calculated successfully!', true);
+});
+</script>
+<script src="/js/branding.js"></script>
+</body>
+</html>

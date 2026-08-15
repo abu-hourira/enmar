@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Money Receipt &amp; Tax Invoice — ENMAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Playfair+Display:ital,wght@0,500..800;1,500..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --paper: #ffffff;
+      --ink: #111827;
+      --ink-muted: #4b5563;
+      --ink-soft: #6b7280;
+      --primary: #15803d;
+      --primary-dark: #14532d;
+      --primary-soft: #f0fdf4;
+      --primary-border: #bbf7d0;
+      --border: #e5e7eb;
+      --border-dark: #cbd5e1;
+      --accent: #d97706;
+      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      padding: 24px 16px 48px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top Action Bar (hidden in print) */
+    .action-bar {
+      width: 100%;
+      max-width: 820px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--ink-muted);
+      border-color: var(--border-dark);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .btn-back:hover {
+      background: #f9fafb;
+      color: var(--ink);
+      border-color: #9ca3af;
+    }
+
+    .btn-print {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+    }
+    .btn-print:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--primary);
+      border-color: var(--primary-border);
+    }
+    .btn-outline:hover {
+      background: var(--primary-soft);
+    }
+
+    /* Main Receipt Card */
+    .receipt-container {
+      width: 100%;
+      max-width: 820px;
+      background: var(--paper);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top decorative border strip */
+    .receipt-top-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #15803d 0%, #16a34a 35%, #ca8a04 70%, #15803d 100%);
+    }
+
+    .receipt-body {
+      padding: 36px 44px 40px;
+    }
+
+    /* Header */
+    .receipt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 24px;
+      border-bottom: 2px dashed var(--border-dark);
+      gap: 24px;
+    }
+
+    .brand-section {
+      flex: 1;
+    }
+
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .brand-logo-img {
+      max-height: 48px;
+      max-width: 160px;
+      object-fit: contain;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-tagline {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .brand-meta {
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+      line-height: 1.45;
+    }
+
+    .invoice-title-block {
+      text-align: right;
+      min-width: 240px;
+    }
+
+    .invoice-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .receipt-number {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .receipt-date-item {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      margin-bottom: 2px;
+    }
+
+    .receipt-date-item span {
+      font-family: var(--font-mono);
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Meta Grid (Customer & Order Info) */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-card {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .meta-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .customer-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .customer-detail {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      padding: 3px 0;
+      border-bottom: 1px dashed #f0f0f0;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-row dt {
+      color: var(--ink-soft);
+    }
+    .info-row dd {
+      font-weight: 600;
+      color: var(--ink);
+      text-align: right;
+    }
+
+    /* Status Pill */
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-Pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .status-Confirmed { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .status-Shipped { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .status-Delivered { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .status-Cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* Items Table */
+    .table-section {
+      padding: 24px 0 16px;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    .receipt-table th {
+      background: #f8fafc;
+      color: var(--ink-muted);
+      font-weight: 700;
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border-dark);
+      border-bottom: 2px solid var(--border-dark);
+      text-align: left;
+    }
+
+    .receipt-table th.text-right,
+    .receipt-table td.text-right {
+      text-align: right;
+    }
+
+    .receipt-table th.text-center,
+    .receipt-table td.text-center {
+      text-align: center;
+    }
+
+    .receipt-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+
+    .receipt-table tbody tr:last-child td {
+      border-bottom: 2px solid var(--border-dark);
+    }
+
+    .item-title {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .item-origin {
+      font-size: 0.72rem;
+      color: var(--ink-soft);
+      margin-top: 1px;
+    }
+
+    .money-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    /* Financial Summary & Stamp */
+    .calc-section {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      padding: 16px 0 24px;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+
+    .words-stamp-block {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .amount-words-box {
+      background: #fafaf9;
+      border: 1px dashed var(--border-dark);
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .words-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .words-content {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-style: italic;
+    }
+
+    .payment-badge-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
+      color: var(--primary-dark);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .totals-box {
+      width: 100%;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+
+    .totals-row.grand-total {
+      border-top: 2px solid var(--primary);
+      margin-top: 8px;
+      padding-top: 10px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .totals-row.grand-total .money-val {
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    /* Signatures & Seal Section */
+    .sign-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 36px 0 16px;
+      gap: 20px;
+    }
+
+    .sign-box {
+      text-align: center;
+      width: 190px;
+    }
+
+    .sign-line {
+      height: 1px;
+      background: var(--ink-soft);
+      margin-bottom: 6px;
+    }
+
+    .sign-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .official-seal {
+      width: 110px;
+      height: 110px;
+      border: 3px double var(--primary);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--primary);
+      padding: 4px;
+      transform: rotate(-10deg);
+      opacity: 0.9;
+      user-select: none;
+    }
+
+    .seal-inner {
+      border: 1px solid var(--primary-border);
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .seal-text-top {
+      font-size: 0.55rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .seal-star {
+      font-size: 0.7rem;
+      margin: 1px 0;
+    }
+
+    .seal-text-mid {
+      font-size: 0.65rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .seal-text-bot {
+      font-size: 0.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Receipt Footer */
+    .receipt-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.72rem;
+      color: var(--ink-soft);
+    }
+
+    .barcode-sim {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    /* Loading & Error States */
+    #loadingState {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+
+    #errorState {
+      display: none;
+      padding: 40px 24px;
+      text-align: center;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      color: #991b1b;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: #000000 !important;
+      }
+
+      .action-bar {
+        display: none !important;
+      }
+
+      .receipt-container {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+      }
+
+      .receipt-top-bar {
+        display: block !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .receipt-body {
+        padding: 16px 20px !important;
+      }
+
+      .meta-card, .amount-words-box, .payment-badge-box, .receipt-table th {
+        background-color: #f9fafb !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .official-seal {
+        opacity: 1 !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 12mm 10mm 12mm 10mm;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .receipt-body {
+        padding: 20px 16px;
+      }
+      .receipt-header {
+        flex-direction: column;
+        gap: 16px;
+      }
+      .invoice-title-block {
+        text-align: left;
+      }
+      .meta-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .calc-section {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .sign-section {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+      }
+      .sign-box {
+        width: 100%;
+        max-width: 240px;
+      }
+      .receipt-footer {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Navigation (Screen Only) -->
+  <div class="action-bar" id="actionBar">
+    <a href="/my-orders.html" class="btn btn-back">
+      ← Back to My Orders
+    </a>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" class="btn btn-outline" onclick="copyReceiptLink()">
+        🔗 Copy Link
+      </button>
+      <button type="button" class="btn btn-print" onclick="window.print()">
+        🖨️ Print / Download PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading View -->
+  <div id="loadingState">
+    <div style="font-size:2rem;margin-bottom:12px">🧾</div>
+    <strong>Generating official money receipt…</strong>
+  </div>
+
+  <!-- Error View -->
+  <div id="errorState">
+    <h3 style="font-size:1.1rem;margin-bottom:6px">Could Not Load Receipt</h3>
+    <p id="errorMessage" style="font-size:0.88rem;margin-bottom:14px">Order record not found or access denied.</p>
+    <a href="/my-orders.html" class="btn btn-back">Return to My Orders</a>
+  </div>
+
+  <!-- Main Receipt Card -->
+  <div class="receipt-container" id="receiptCard" style="display:none">
+    <div class="receipt-top-bar"></div>
+    <div class="receipt-body">
+
+      <!-- Header: Store Branding & Invoice Metadata -->
+      <div class="receipt-header">
+        <div class="brand-section">
+          <div class="brand-logo-wrap">
+            <div id="brandLogoContainer"></div>
+            <h1 class="brand-title" id="storeBrandName">ENMAR</h1>
+          </div>
+          <div class="brand-tagline" id="storeTagline">100% Organic &amp; Farm Fresh Market</div>
+          <div class="brand-meta" id="storeAddress">Plot 15, Block B, Bashundhara R/A, Dhaka-1229</div>
+          <div class="brand-meta">
+            Hotline: <strong id="storePhone">01898765432</strong> &bull; Email: <span id="storeEmail">support@enmar.bd</span>
+          </div>
+          <div class="brand-meta">
+            Website: <a id="storeWebsite" href="/" style="color:var(--primary);text-decoration:none;font-weight:600">www.enmar.bd</a>
+          </div>
+        </div>
+
+        <div class="invoice-title-block">
+          <div class="invoice-badge">Official Money Receipt</div>
+          <div class="receipt-number" id="receiptNumberText">REC-000000-2026</div>
+          <div class="receipt-date-item">Order Ref: <span id="orderNumberText">#HMBD-000000</span></div>
+          <div class="receipt-date-item">Order Date: <span id="orderDateText">—</span></div>
+          <div class="receipt-date-item">Print Date: <span id="printDateText">—</span></div>
+          <div class="receipt-date-item">Payment Mode: <span id="paymentMethodText">Cash on Delivery</span></div>
+        </div>
+      </div>
+
+      <!-- Customer & Delivery Meta Grid -->
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="meta-title">👤 Bill To / Delivered To</div>
+          <div class="customer-name" id="custName">—</div>
+          <div class="customer-detail"><strong>Mobile:</strong> <span id="custPhone">—</span></div>
+          <div class="customer-detail"><strong>Delivery Address:</strong> <span id="custAddress">—</span></div>
+          <div class="customer-detail"><strong>City &amp; Zip:</strong> <span id="custCityZip">—</span></div>
+          <div class="customer-detail" id="custNotesRow" style="display:none;margin-top:4px">
+            <strong>Notes:</strong> <span id="custNotes">—</span>
+          </div>
+        </div>
+
+        <div class="meta-card">
+          <div class="meta-title">📦 Order Summary &amp; Status</div>
+          <dl>
+            <div class="info-row">
+              <dt>Order Status</dt>
+              <dd id="orderStatusPill"><span class="status-tag status-Pending">Pending</span></dd>
+            </div>
+            <div class="info-row">
+              <dt>Total Items</dt>
+              <dd id="orderTotalItemsCount">0 Items</dd>
+            </div>
+            <div class="info-row">
+              <dt>Estimated Delivery</dt>
+              <dd id="orderEstDeliveryText">Standard Delivery (24-48h)</dd>
+            </div>
+            <div class="info-row">
+              <dt>Payment Status</dt>
+              <dd id="orderPaymentStatusText">Collect on Delivery</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Product Items Table -->
+      <div class="table-section">
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th class="text-center" style="width:38px">#</th>
+              <th>Product Description &amp; Origin</th>
+              <th class="text-right" style="width:110px">Unit Price</th>
+              <th class="text-center" style="width:80px">Qty</th>
+              <th class="text-right" style="width:120px">Total (BDT)</th>
+            </tr>
+          </thead>
+          <tbody id="receiptItemsBody">
+            <!-- Dynamic Items -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Financial Calculation & Stamp -->
+      <div class="calc-section">
+        <div class="words-stamp-block">
+          <div class="amount-words-box">
+            <div class="words-label">Amount in Words</div>
+            <div class="words-content" id="amountInWordsText">Taka Zero Only</div>
+          </div>
+          <div>
+            <div class="payment-badge-box" id="paymentStatusBadge">
+              <span>💳</span>
+              <span id="paymentBadgeMessage">Cash on Delivery &bull; Authorized</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="totals-box">
+          <div class="totals-row">
+            <span>Items Subtotal:</span>
+            <span class="money-val" id="receiptSubtotal">৳0</span>
+          </div>
+          <div class="totals-row">
+            <span>Delivery / Shipping Fee:</span>
+            <span class="money-val" id="receiptShipping">৳0</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>Grand Total:</span>
+            <span class="money-val" id="receiptGrandTotal">৳0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures & Authentic Security Seal -->
+      <div class="sign-section">
+        <div class="sign-box">
+          <div style="height:38px"></div>
+          <div class="sign-line"></div>
+          <div class="sign-title">Customer Signature</div>
+        </div>
+
+        <div class="official-seal">
+          <div class="seal-inner">
+            <div class="seal-text-top" id="sealStoreName">ENMAR</div>
+            <div class="seal-star">★ ★ ★</div>
+            <div class="seal-text-mid">OFFICIAL SEAL</div>
+            <div class="seal-text-bot">VERIFIED</div>
+          </div>
+        </div>
+
+        <div class="sign-box">
+          <div style="height:38px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-family:var(--font-serif);font-style:italic;font-size:1.1rem;font-weight:700">
+            ENMAR Team
+          </div>
+          <div class="sign-line"></div>
+          <div class="sign-title">Authorized Signatory</div>
+        </div>
+      </div>
+
+      <!-- Footer & Verification Barcode -->
+      <div class="receipt-footer">
+        <div>
+          Thank you for choosing <strong id="footerBrand">ENMAR</strong>.<br>
+          For questions or assistance, please contact our support hotline or email.
+        </div>
+        <div style="text-align:right">
+          <div class="barcode-sim" id="barcodeText">||||||||||||||||||||||||||||||</div>
+          <div style="font-size:0.65rem;color:var(--ink-soft);margin-top:2px">Official Digital Sales Voucher</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function taka(num) {
+      return '৳' + Number(num || 0).toLocaleString('en-BD');
+    }
+
+    function esc(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+
+    function numberToWordsBD(num) {
+      num = Math.round(Number(num) || 0);
+      if (num <= 0) return 'Zero Taka Only';
+      const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+      const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+      function convertSection(n) {
+        if (n === 0) return '';
+        if (n < 20) return ones[n] + ' ';
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '') + ' ';
+        return ones[Math.floor(n / 100)] + ' Hundred ' + convertSection(n % 100);
+      }
+
+      let words = '';
+      const crore = Math.floor(num / 10000000);
+      num %= 10000000;
+      const lakh = Math.floor(num / 100000);
+      num %= 100000;
+      const thousand = Math.floor(num / 1000);
+      num %= 1000;
+      const remaining = num;
+
+      if (crore > 0) words += convertSection(crore).trim() + ' Crore ';
+      if (lakh > 0) words += convertSection(lakh).trim() + ' Lakh ';
+      if (thousand > 0) words += convertSection(thousand).trim() + ' Thousand ';
+      if (remaining > 0) words += convertSection(remaining).trim() + ' ';
+
+      return words.trim() + ' Taka Only';
+    }
+
+    function copyReceiptLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Receipt link copied to clipboard!');
+      }).catch(() => {
+        prompt('Copy receipt URL:', window.location.href);
+      });
+    }
+
+    async function loadReceipt() {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('id') || params.get('order');
+
+      if (!orderId) {
+        showError('No order reference specified in URL.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/orders/${orderId}/receipt`, { credentials: 'include' });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          if (res.status === 401) {
+            window.location.href = `/?login=1&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            return;
+          }
+          throw new Error(errData.error || `HTTP ${res.status}: Failed to load receipt`);
+        }
+
+        const data = await res.json();
+        renderReceipt(data);
+      } catch (err) {
+        showError(err.message || 'Could not load the receipt. Please make sure you are signed in to your account.');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('receiptCard').style.display = 'none';
+      document.getElementById('errorMessage').textContent = msg;
+      document.getElementById('errorState').style.display = 'block';
+    }
+
+    function renderReceipt(data) {
+      const order = data.order || {};
+      const store = data.store || {};
+      const brandName = store.brandName || 'ENMAR';
+
+      document.title = `Receipt ${data.receiptNumber || order.number || ''} — ${brandName}`;
+
+      // Store Meta
+      document.getElementById('storeBrandName').textContent = brandName;
+      document.getElementById('sealStoreName').textContent = brandName.slice(0, 16);
+      document.getElementById('footerBrand').textContent = brandName;
+      if (store.tagline) document.getElementById('storeTagline').textContent = store.tagline;
+      if (store.address) document.getElementById('storeAddress').textContent = store.address;
+      if (store.phone) document.getElementById('storePhone').textContent = store.phone;
+      if (store.email) document.getElementById('storeEmail').textContent = store.email;
+      if (store.website) {
+        const webEl = document.getElementById('storeWebsite');
+        webEl.textContent = store.website.replace(/^https?:\/\//, '');
+        webEl.href = store.website;
+      }
+
+      if (store.brandLogo) {
+        document.getElementById('brandLogoContainer').innerHTML = `<img src="${esc(store.brandLogo)}" alt="${esc(brandName)}" class="brand-logo-img">`;
+      }
+
+      // Receipt Meta
+      document.getElementById('receiptNumberText').textContent = data.receiptNumber || `REC-${order.id}`;
+      document.getElementById('orderNumberText').textContent = order.number ? `#${order.number}` : `#${order.id}`;
+      document.getElementById('orderDateText').textContent = new Date(order.createdAt).toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('printDateText').textContent = new Date().toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('paymentMethodText').textContent = order.paymentMethod || 'Cash on Delivery';
+
+      // Customer Meta
+      const cust = order.customer || {};
+      document.getElementById('custName').textContent = cust.name || 'Valued Customer';
+      document.getElementById('custPhone').textContent = cust.phone || '—';
+      document.getElementById('custAddress').textContent = cust.address || '—';
+      document.getElementById('custCityZip').textContent = `${cust.city || 'Dhaka'}${cust.zip ? ' - ' + cust.zip : ''}`;
+      if (cust.notes) {
+        document.getElementById('custNotesRow').style.display = 'block';
+        document.getElementById('custNotes').textContent = cust.notes;
+      }
+
+      // Status
+      const status = order.status || 'Pending';
+      const statusPill = document.getElementById('orderStatusPill');
+      statusPill.innerHTML = `<span class="status-tag status-${status}">${esc(status)}</span>`;
+
+      // Items Count & Delivery Estimate
+      const items = order.items || [];
+      const totalUnits = items.reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
+      document.getElementById('orderTotalItemsCount').textContent = `${items.length} Product${items.length === 1 ? '' : 's'} (${totalUnits} unit${totalUnits === 1 ? '' : 's'})`;
+
+      if (order.estimatedDelivery) {
+        document.getElementById('orderEstDeliveryText').textContent = new Date(order.estimatedDelivery).toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' });
+      } else if (order.confirmedAt) {
+        const estDate = new Date(new Date(order.confirmedAt).getTime() + 48 * 3600000);
+        document.getElementById('orderEstDeliveryText').textContent = estDate.toLocaleDateString('en-BD', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      // Payment Status Text
+      const isDelivered = status === 'Delivered';
+      const isOnlinePaid = ['bKash', 'Nagad'].includes(order.paymentMethod);
+      let payStatusDesc = 'Collect on Delivery';
+      if (isDelivered) payStatusDesc = 'Paid & Completed';
+      else if (isOnlinePaid) payStatusDesc = 'Digital Payment Authorized';
+      document.getElementById('orderPaymentStatusText').textContent = payStatusDesc;
+
+      const badgeMsg = isDelivered
+        ? `PAID &amp; DELIVERED &bull; ${order.paymentMethod || 'Cash'}`
+        : (isOnlinePaid ? `${order.paymentMethod} Payment &bull; Authorized` : `Cash on Delivery &bull; Payable: ${taka(order.total)}`);
+      document.getElementById('paymentBadgeMessage').innerHTML = badgeMsg;
+
+      // Table rows
+      const tbody = document.getElementById('receiptItemsBody');
+      tbody.innerHTML = items.map((it, idx) => {
+        const itemTotal = it.lineTotal !== undefined ? it.lineTotal : (it.price * it.qty);
+        return `
+          <tr>
+            <td class="text-center" style="font-family:var(--font-mono);font-size:.78rem;color:var(--ink-soft)">${idx + 1}</td>
+            <td>
+              <div class="item-title">${esc(it.name)}</div>
+              ${it.farm ? `<div class="item-origin">🌱 ${esc(it.farm)}</div>` : ''}
+            </td>
+            <td class="text-right money-val">${taka(it.price)}<span style="font-size:.68rem;color:var(--ink-soft)">/${esc(it.unit || 'unit')}</span></td>
+            <td class="text-center" style="font-weight:700">${it.qty}</td>
+            <td class="text-right money-val">${taka(itemTotal)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // Calculations
+      const subtotal = order.subtotal !== undefined ? order.subtotal : (order.total - (order.shipping || 0));
+      document.getElementById('receiptSubtotal').textContent = taka(subtotal);
+      document.getElementById('receiptShipping').textContent = taka(order.shipping || 0);
+      document.getElementById('receiptGrandTotal').textContent = taka(order.total);
+      document.getElementById('amountInWordsText').textContent = numberToWordsBD(order.total);
+
+      // Barcode simulation
+      const cleanNum = String(order.number || order.id).replace(/\D/g, '') || '000000';
+      document.getElementById('barcodeText').textContent = `*ENMAR-${cleanNum}-${order.id}*`;
+
+      // Show container
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('receiptCard').style.display = 'block';
+
+      // Auto-trigger print if ?print=1 query param is set
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('print') === '1' || urlParams.get('autoprint') === '1') {
+        setTimeout(() => { window.print(); }, 400);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReceipt);
+  </script>
+</body>
+</html>

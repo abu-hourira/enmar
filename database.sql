@@ -1,0 +1,235 @@
+-- ENMAR Organic Market Bangladesh
+-- MySQL 8+ Full Production Relational Schema
+-- Import with: mysql -u root -p < database.sql
+
+CREATE DATABASE IF NOT EXISTS enmar_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE enmar_db;
+
+-- 1. USERS & STAFF
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(30) NOT NULL DEFAULT '',
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('customer', 'moderator', 'manager', 'admin', 'superadmin') NOT NULL DEFAULT 'customer',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  avatar VARCHAR(500) NOT NULL DEFAULT '',
+  designation VARCHAR(120) NOT NULL DEFAULT '',
+  bio TEXT NULL,
+  address VARCHAR(500) NOT NULL DEFAULT '',
+  city VARCHAR(120) NOT NULL DEFAULT '',
+  zip VARCHAR(30) NOT NULL DEFAULT '',
+  notes TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY users_email_unique (email),
+  KEY users_role_active_index (role, active)
+) ENGINE=InnoDB;
+
+-- 2. USER SESSIONS
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY sessions_token_hash_unique (token_hash),
+  KEY sessions_expiry_index (expires_at),
+  CONSTRAINT sessions_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 3. CATEGORIES
+CREATE TABLE IF NOT EXISTS categories (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  icon VARCHAR(80) NOT NULL DEFAULT 'leaf',
+  image VARCHAR(500) NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY categories_name_unique (name)
+) ENGINE=InnoDB;
+
+-- 4. PRODUCTS (Supports unlimited long markdown descriptions & multi-images)
+CREATE TABLE IF NOT EXISTS products (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  farm VARCHAR(200) NOT NULL,
+  price DECIMAL(10,2) UNSIGNED NOT NULL,
+  unit VARCHAR(60) NOT NULL,
+  category VARCHAR(120) NOT NULL,
+  icon VARCHAR(60) NOT NULL DEFAULT 'leaf',
+  tag VARCHAR(100) NOT NULL DEFAULT '',
+  lot VARCHAR(60) NOT NULL DEFAULT '',
+  discount DECIMAL(5,2) UNSIGNED NOT NULL DEFAULT 0.00,
+  description LONGTEXT NULL,
+  images JSON NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY products_category_active_index (category, active)
+) ENGINE=InnoDB;
+
+-- 5. ORDERS
+CREATE TABLE IF NOT EXISTS orders (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_number VARCHAR(40) NOT NULL,
+  user_id BIGINT UNSIGNED NULL,
+  customer_name VARCHAR(120) NOT NULL,
+  customer_phone VARCHAR(30) NOT NULL,
+  delivery_address VARCHAR(500) NOT NULL,
+  delivery_city VARCHAR(120) NOT NULL,
+  delivery_zip VARCHAR(30) NOT NULL DEFAULT '',
+  delivery_notes TEXT NULL,
+  payment_method ENUM('Cash on Delivery', 'bKash', 'Nagad') NOT NULL DEFAULT 'Cash on Delivery',
+  subtotal DECIMAL(10,2) UNSIGNED NOT NULL,
+  shipping DECIMAL(10,2) UNSIGNED NOT NULL,
+  total DECIMAL(10,2) UNSIGNED NOT NULL,
+  status ENUM('Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled') NOT NULL DEFAULT 'Pending',
+  estimated_delivery VARCHAR(120) NOT NULL DEFAULT '24–48 hours',
+  order_message TEXT NULL,
+  conversation JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY orders_number_unique (order_number),
+  KEY orders_user_created_index (user_id, created_at),
+  KEY orders_status_index (status),
+  CONSTRAINT orders_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 6. ORDER ITEMS
+CREATE TABLE IF NOT EXISTS order_items (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_id BIGINT UNSIGNED NOT NULL,
+  product_id BIGINT UNSIGNED NULL,
+  product_name VARCHAR(200) NOT NULL,
+  unit_price DECIMAL(10,2) UNSIGNED NOT NULL,
+  quantity SMALLINT UNSIGNED NOT NULL,
+  unit VARCHAR(60) NOT NULL DEFAULT 'kg',
+  total_price DECIMAL(10,2) UNSIGNED NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT order_items_order_fk FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT order_items_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 7. PRODUCT REVIEWS
+CREATE TABLE IF NOT EXISTS reviews (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  product_id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NULL,
+  author_name VARCHAR(120) NOT NULL,
+  author_email VARCHAR(255) NOT NULL DEFAULT '',
+  rating TINYINT UNSIGNED NOT NULL,
+  comment TEXT NOT NULL,
+  images JSON NULL,
+  hidden BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY reviews_product_hidden_index (product_id, hidden),
+  CONSTRAINT reviews_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT reviews_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 8. COMMUNITY COMMENTS & STAFF REPLIES
+CREATE TABLE IF NOT EXISTS community_comments (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  author_name VARCHAR(120) NOT NULL,
+  author_email VARCHAR(255) NOT NULL DEFAULT '',
+  author_role VARCHAR(60) NOT NULL DEFAULT 'customer',
+  text TEXT NOT NULL,
+  reply JSON NULL,
+  pinned BOOLEAN NOT NULL DEFAULT FALSE,
+  hidden BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY comments_hidden_pinned_index (hidden, pinned),
+  CONSTRAINT comments_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 9. CUSTOM PROMOTIONAL ADS
+CREATE TABLE IF NOT EXISTS ads (
+  id VARCHAR(60) NOT NULL,
+  tag VARCHAR(100) NOT NULL DEFAULT '',
+  title VARCHAR(200) NOT NULL,
+  sub VARCHAR(300) NOT NULL DEFAULT '',
+  badge VARCHAR(100) NOT NULL DEFAULT '',
+  bg VARCHAR(60) NOT NULL DEFAULT '#135412',
+  category_target VARCHAR(120) NOT NULL DEFAULT '',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+-- 10. AD BANNER MEDIA UPLOADS
+CREATE TABLE IF NOT EXISTS ad_media (
+  id VARCHAR(60) NOT NULL,
+  url VARCHAR(500) NOT NULL,
+  type ENUM('image', 'video') NOT NULL DEFAULT 'image',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+-- 11. NEWSLETTER SUBSCRIBERS
+CREATE TABLE IF NOT EXISTS subscribers (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL,
+  subscribed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY subscribers_email_unique (email)
+) ENGINE=InnoDB;
+
+-- 12. STORE SETTINGS & BRANDING (Key-Value configuration)
+CREATE TABLE IF NOT EXISTS store_settings (
+  setting_key VARCHAR(100) NOT NULL,
+  setting_val LONGTEXT NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (setting_key)
+) ENGINE=InnoDB;
+
+-- 13. CUSTOMER NOTIFICATIONS (Product arrivals, order status updates, announcements)
+-- 14. EMAIL GATEWAY CONFIGURATION (Encrypted Credentials)
+CREATE TABLE IF NOT EXISTS email_gateway_config (
+  id TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  provider VARCHAR(60) NOT NULL DEFAULT 'smtp',
+  host VARCHAR(200) NOT NULL,
+  port SMALLINT UNSIGNED NOT NULL DEFAULT 587,
+  username VARCHAR(300) NOT NULL DEFAULT '',
+  password_encrypted LONGTEXT NOT NULL,
+  from_email VARCHAR(255) NOT NULL DEFAULT '',
+  from_name VARCHAR(120) NOT NULL DEFAULT 'ENMAR',
+  use_tls BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by_admin_id BIGINT UNSIGNED NULL,
+  PRIMARY KEY (id),
+  KEY email_config_updated_index (updated_at),
+  CONSTRAINT email_config_admin_fk FOREIGN KEY (created_by_admin_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- 15. CUSTOMER NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS customer_notifications (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL, -- NULL means broadcast to all customers
+  type VARCHAR(60) NOT NULL DEFAULT 'product_arrival',
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  product_id BIGINT UNSIGNED NULL,
+  link VARCHAR(500) NOT NULL DEFAULT '',
+  image VARCHAR(500) NOT NULL DEFAULT '',
+  read_at TIMESTAMP NULL DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY notifications_user_created_index (user_id, created_at),
+  CONSTRAINT notifications_product_fk FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+

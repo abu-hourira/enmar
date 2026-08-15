@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Comments — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<script src="/js/devtools-guard.js"></script>
+<style>
+.customer-spotlight-card {
+  background: var(--paper, #fff);
+  border: 1.5px solid var(--forest, #15803d);
+  border-radius: var(--radius-md, 8px);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.customer-spotlight-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.spotlight-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--forest, #15803d);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spotlight-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink, #1c1917);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spotlight-meta {
+  font-size: .82rem;
+  color: var(--ink-soft, #78716c);
+  margin-top: 2px;
+}
+.spotlight-stats {
+  display: flex;
+  gap: 16px;
+}
+.spotlight-stat-item {
+  background: var(--paper-alt, #fafaf9);
+  border: 1px solid var(--line, #e7e5e4);
+  padding: 6px 14px;
+  border-radius: 6px;
+  text-align: center;
+}
+.spotlight-stat-num {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--forest, #15803d);
+}
+.spotlight-stat-lbl {
+  font-size: .65rem;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  color: var(--ink-soft, #78716c);
+}
+.comment-text-cell {
+  max-width: 380px;
+  line-height: 1.45;
+  color: var(--ink, #1e293b);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.btn-author-filter {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-author-filter:hover .author-filter-name {
+  color: var(--forest, #15803d);
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <nav aria-label="Main navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item active" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Community Comments</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Live</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+        <div class="dot-menu-wrap">
+          <button type="button" class="btn-dot-menu" id="dotMenuBtn" aria-label="More options">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dot-dropdown" id="dotDropdown">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/orders.html">Orders</a>
+            <a href="/admin/products.html">Products</a>
+            <a href="/admin/customers.html">Customers</a>
+            <a href="/admin/staff.html">Staff</a>
+            <a href="/admin/reviews.html">Reviews</a>
+            <a href="/admin/comments.html">Comments</a>
+            <a href="/admin/ads.html">Ads Maker</a>
+            <a href="/admin/subscribers.html">Subscribers</a>
+            <a href="/admin/analytics.html">Analytics</a>
+            <a href="/admin/settings.html">Settings</a>
+            <a href="/admin/apis.html">APIs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-message" id="globalMessage"></div>
+
+    <div class="page-body">
+
+      <!-- Stats Row -->
+      <div class="rev-stat-row">
+        <div class="rev-stat-chip">
+          <div class="stat-num" id="statTotal">—</div>
+          <div class="stat-lbl">Total Comments</div>
+        </div>
+        <div class="rev-stat-chip">
+          <div class="stat-num" id="statCustomers">—</div>
+          <div class="stat-lbl">Individual Commenters</div>
+        </div>
+        <div class="rev-stat-chip">
+          <div class="stat-num" id="statMemberComments">—</div>
+          <div class="stat-lbl">Customer Comments</div>
+        </div>
+        <div class="rev-stat-chip">
+          <div class="stat-num" id="statStaffComments">—</div>
+          <div class="stat-lbl">Staff Announcements</div>
+        </div>
+      </div>
+
+      <!-- INDIVIDUAL CUSTOMER SPOTLIGHT (Dynamic) -->
+      <div id="customerSpotlight" style="display:none"></div>
+
+      <!-- MAIN TABLE CARD -->
+      <div class="panel-card">
+        <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 id="commentsCardTitle">All Community Comments</h2>
+            <p style="font-size:.82rem;color:var(--ink-soft);margin:2px 0 0">Click on any customer name to inspect all comments posted by that individual.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="mono-tag" id="commentsCountTag">—</span>
+            <button type="button" class="btn-primary" id="btnPostAdminComment" style="padding:6px 14px;font-size:.78rem">+ Post Comment</button>
+          </div>
+        </div>
+
+        <div class="rev-filter-bar" style="display:grid;grid-template-columns:2fr 1.5fr 1fr auto;gap:10px;margin-top:14px">
+          <input class="search-input" type="search" id="commentSearch" placeholder="Search by customer name, email, phone, or comment text…">
+          <select class="filter-select" id="customerSelectFilter" aria-label="Filter by individual customer">
+            <option value="all">👥 All Customers &amp; Authors</option>
+          </select>
+          <select class="filter-select" id="roleSelectFilter" aria-label="Filter by role">
+            <option value="all">All Roles</option>
+            <option value="customer">Customers Only</option>
+            <option value="staff">Staff Only</option>
+          </select>
+          <button type="button" class="btn-soft" id="btnResetFilters" style="white-space:nowrap;font-size:.78rem">Reset</button>
+        </div>
+
+        <div id="commentsMessage" style="margin-top:12px"></div>
+        <div class="table-wrap" id="commentsTableWrap" style="margin-top:12px">
+          <div class="empty-state">Loading comments…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- EDIT COMMENT MODAL -->
+<div class="modal-overlay" id="editCommentModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="editModalTitle">Edit Comment</h2>
+      <button type="button" class="btn-muted" id="editCommentCloseBtn">Cancel</button>
+    </div>
+    <div id="editCommentMessage"></div>
+    <form id="editCommentForm" class="modal-grid" novalidate>
+      <input type="hidden" id="editCommentId">
+      <div class="field">
+        <label>Author</label>
+        <input type="text" id="editCommentAuthor" readonly style="background:var(--paper-alt);cursor:not-allowed">
+      </div>
+      <div class="field">
+        <label for="editCommentText">Comment Text</label>
+        <textarea id="editCommentText" rows="5" maxlength="1000" class="textarea-full" required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-muted" id="editCommentCancel2">Cancel</button>
+        <button type="submit" class="btn-primary" id="btnSaveCommentEdit">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- POST ADMIN COMMENT MODAL -->
+<div class="modal-overlay" id="postAdminCommentModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Post Admin / Staff Comment</h2>
+      <button type="button" class="btn-muted" id="postAdminCloseBtn">Cancel</button>
+    </div>
+    <div id="postAdminMessage"></div>
+    <form id="postAdminForm" class="modal-grid" novalidate>
+      <p style="font-size:.82rem;color:var(--ink-soft);margin:0">This comment will appear on the home page with the official <strong>👑 Team ENMAR</strong> badge.</p>
+      <div class="field">
+        <label for="postAdminText">Message / Comment Text</label>
+        <textarea id="postAdminText" rows="4" maxlength="1000" class="textarea-full" placeholder="Type your announcement, greeting or message to the community…" required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-muted" id="postAdminCancel2">Cancel</button>
+        <button type="submit" class="btn-primary" id="btnSubmitAdminPost">Post to Community</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- REPLY TO COMMENT MODAL -->
+<div class="modal-overlay" id="adminReplyModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="replyModalTitle">Reply to Customer Comment</h2>
+      <button type="button" class="btn-muted" id="adminReplyCloseBtn">Cancel</button>
+    </div>
+    <div id="adminReplyModalMsg"></div>
+    <form id="adminReplyForm" class="modal-grid" novalidate>
+      <input type="hidden" id="replyCommentId">
+      <div style="background:var(--paper-alt);border-left:3.5px solid var(--forest);border-radius:6px;padding:10px 14px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px">
+          <strong id="replyQuoteAuthor">—</strong>
+          <span id="replyQuoteDate" style="color:var(--ink-soft);font-family:var(--font-mono)"></span>
+        </div>
+        <div id="replyQuoteText" style="font-size:.85rem;color:var(--ink);white-space:pre-wrap"></div>
+      </div>
+      <div class="field">
+        <label for="adminReplyInputText">Official Store / Staff Reply</label>
+        <textarea id="adminReplyInputText" rows="4" maxlength="1000" class="textarea-full" placeholder="Write your official response to this customer…" required></textarea>
+      </div>
+      <div class="modal-actions" style="display:flex;justify-content:space-between;align-items:center">
+        <button type="button" class="btn-danger" id="btnDeleteExistingReply" style="display:none;font-size:.75rem">Remove Reply</button>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button type="button" class="btn-muted" id="adminReplyCancel2">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSaveAdminReply">Send Reply</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+let allComments = [];
+let siteSettings = {};
+let selectedCustomerKey = 'all'; // 'all' or email/userId
+let canManage = false;
+
+(async () => {
+  const user = await initAdminPage(['superadmin', 'admin', 'manager', 'moderator']);
+  if (!user) return;
+  canManage = ['superadmin', 'admin', 'manager', 'moderator'].includes(user.role);
+
+  await loadComments();
+
+  // Search & Filter listeners
+  $('commentSearch').oninput = renderFilteredComments;
+  $('customerSelectFilter').onchange = (e) => {
+    selectedCustomerKey = e.target.value;
+    renderFilteredComments();
+  };
+  $('roleSelectFilter').onchange = renderFilteredComments;
+  $('btnResetFilters').onclick = () => {
+    $('commentSearch').value = '';
+    $('customerSelectFilter').value = 'all';
+    $('roleSelectFilter').value = 'all';
+    selectedCustomerKey = 'all';
+    renderFilteredComments();
+  };
+
+  // Modals
+  $('btnPostAdminComment').onclick = () => {
+    notice($('postAdminMessage'), '');
+    $('postAdminText').value = '';
+    openModal('postAdminCommentModal');
+  };
+  $('postAdminCloseBtn').onclick = () => closeModal('postAdminCommentModal');
+  $('postAdminCancel2').onclick = () => closeModal('postAdminCommentModal');
+
+  $('editCommentCloseBtn').onclick = () => closeModal('editCommentModal');
+  $('editCommentCancel2').onclick = () => closeModal('editCommentModal');
+
+  $('adminReplyCloseBtn').onclick = () => closeModal('adminReplyModal');
+  $('adminReplyCancel2').onclick = () => closeModal('adminReplyModal');
+
+  // Form Submits
+  $('postAdminForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const text = ($('postAdminText').value || '').trim();
+    if (!text) return;
+    $('btnSubmitAdminPost').disabled = true;
+    try {
+      await api('/api/comments', {
+        method: 'POST',
+        body: JSON.stringify({ text })
+      });
+      closeModal('postAdminCommentModal');
+      await loadComments();
+      notice($('commentsMessage'), 'Comment posted successfully!', true);
+    } catch (err) {
+      notice($('postAdminMessage'), err.message);
+    } finally {
+      $('btnSubmitAdminPost').disabled = false;
+    }
+  };
+
+  $('editCommentForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const cid = Number($('editCommentId').value);
+    const text = ($('editCommentText').value || '').trim();
+    if (!text) return;
+    $('btnSaveCommentEdit').disabled = true;
+    try {
+      await api(`/api/admin/comments/${cid}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ text })
+      });
+      closeModal('editCommentModal');
+      await loadComments();
+      notice($('commentsMessage'), 'Comment updated successfully.', true);
+    } catch (err) {
+      notice($('editCommentMessage'), err.message);
+    } finally {
+      $('btnSaveCommentEdit').disabled = false;
+    }
+  };
+
+  $('adminReplyForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const cid = Number($('replyCommentId').value);
+    const text = ($('adminReplyInputText').value || '').trim();
+    if (!text) return;
+    $('btnSaveAdminReply').disabled = true;
+    try {
+      await api(`/api/admin/comments/${cid}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ text })
+      });
+      closeModal('adminReplyModal');
+      await loadComments();
+      notice($('commentsMessage'), `Reply saved for comment #${cid}.`, true);
+    } catch (err) {
+      notice($('adminReplyModalMsg'), err.message);
+    } finally {
+      $('btnSaveAdminReply').disabled = false;
+    }
+  };
+
+  $('btnDeleteExistingReply').onclick = async () => {
+    const cid = Number($('replyCommentId').value);
+    if (!confirm('Are you sure you want to remove the reply to this comment?')) return;
+    try {
+      await api(`/api/admin/comments/${cid}/reply`, { method: 'DELETE' });
+      closeModal('adminReplyModal');
+      await loadComments();
+      notice($('commentsMessage'), `Reply removed from comment #${cid}.`, true);
+    } catch (err) {
+      notice($('adminReplyModalMsg'), err.message || 'Failed to remove reply.');
+    }
+  };
+})();
+
+async function loadComments() {
+  try {
+    const [comments, settings] = await Promise.all([
+      api('/api/admin/comments'),
+      api('/api/settings').catch(() => ({}))
+    ]);
+    allComments = comments || [];
+    siteSettings = settings || {};
+    updateStats();
+    populateCustomerDropdown();
+    renderFilteredComments();
+  } catch (err) {
+    $('commentsTableWrap').innerHTML = `<div class="empty-state" style="color:var(--tomato)">${esc(err.message)}</div>`;
+  }
+}
+
+function updateStats() {
+  const total = allComments.length;
+  const uniqueAuthors = new Set(allComments.map(c => c.authorEmail || c.userId || c.authorName)).size;
+  const staffCount = allComments.filter(c => ['superadmin', 'admin', 'manager', 'moderator'].includes(c.authorRole)).length;
+  const customerCount = total - staffCount;
+
+  $('statTotal').textContent = total;
+  $('statCustomers').textContent = uniqueAuthors;
+  $('statMemberComments').textContent = customerCount;
+  $('statStaffComments').textContent = staffCount;
+}
+
+function populateCustomerDropdown() {
+  const select = $('customerSelectFilter');
+  const authorsMap = new Map();
+
+  allComments.forEach(c => {
+    const key = c.authorEmail || String(c.userId);
+    if (!authorsMap.has(key)) {
+      authorsMap.set(key, {
+        key: key,
+        name: c.authorName || 'Anonymous Member',
+        email: c.authorEmail || '',
+        count: 0
+      });
+    }
+    authorsMap.get(key).count++;
+  });
+
+  const sortedAuthors = Array.from(authorsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+  select.innerHTML = `<option value="all">👥 All Customers &amp; Authors (${allComments.length})</option>` +
+    sortedAuthors.map(a => `<option value="${esc(a.key)}" ${selectedCustomerKey === a.key ? 'selected' : ''}>👤 ${esc(a.name)} (${a.count} ${a.count === 1 ? 'comment' : 'comments'})${a.email ? ` — ${esc(a.email)}` : ''}</option>`).join('');
+}
+
+function selectIndividualCustomer(key) {
+  selectedCustomerKey = key;
+  $('customerSelectFilter').value = key;
+  renderFilteredComments();
+  const spot = $('customerSpotlight');
+  if (spot) window.scrollTo({ top: spot.offsetTop - 80, behavior: 'smooth' });
+}
+
+function clearIndividualCustomer() {
+  selectedCustomerKey = 'all';
+  $('customerSelectFilter').value = 'all';
+  renderFilteredComments();
+}
+
+function renderCustomerSpotlight(customerComments) {
+  const spotEl = $('customerSpotlight');
+  if (selectedCustomerKey === 'all' || !customerComments.length) {
+    spotEl.style.display = 'none';
+    spotEl.innerHTML = '';
+    $('commentsCardTitle').textContent = 'All Community Comments';
+    return;
+  }
+
+  const first = customerComments[0];
+  const authorName = first.authorName || 'Member';
+  const authorEmail = first.authorEmail || '—';
+  const authorPhone = first.authorPhone || '—';
+  const authorCity = first.authorCity || '';
+  const initial = authorName.charAt(0).toUpperCase();
+  const isStaff = ['superadmin', 'admin', 'manager', 'moderator'].includes(first.authorRole);
+  const totalCustomerComments = customerComments.length;
+
+  $('commentsCardTitle').textContent = `Comments by ${authorName}`;
+
+  spotEl.style.display = 'block';
+  spotEl.innerHTML = `
+    <div class="customer-spotlight-card">
+      <div class="customer-spotlight-left">
+        <div class="spotlight-avatar" style="${isStaff ? 'background:#d97706' : ''}">${esc(initial)}</div>
+        <div>
+          <div class="spotlight-name">
+            ${esc(authorName)}
+            <span class="badge ${isStaff ? 'gold' : ''}" style="font-size:.65rem">${isStaff ? '👑 Staff' : '🌱 Customer'}</span>
+          </div>
+          <div class="spotlight-meta">
+            <span>✉️ ${esc(authorEmail)}</span>
+            ${authorPhone && authorPhone !== '—' ? ` · <span>📞 ${esc(authorPhone)}</span>` : ''}
+            ${authorCity ? ` · <span>📍 ${esc(authorCity)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div class="spotlight-stats">
+          <div class="spotlight-stat-item">
+            <div class="spotlight-stat-num">${totalCustomerComments}</div>
+            <div class="spotlight-stat-lbl">Total Comments</div>
+          </div>
+          <div class="spotlight-stat-item">
+            <div class="spotlight-stat-num">${first.customerOrdersCount || 0}</div>
+            <div class="spotlight-stat-lbl">Store Orders</div>
+          </div>
+        </div>
+        <button type="button" class="btn-soft" onclick="clearIndividualCustomer()" style="font-size:.78rem;padding:7px 12px">✕ Show All Customers</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderFilteredComments() {
+  const query = ($('commentSearch').value || '').trim().toLowerCase();
+  const roleFilter = $('roleSelectFilter').value;
+
+  let list = allComments.slice();
+
+  // Filter by individual customer
+  if (selectedCustomerKey !== 'all') {
+    list = list.filter(c => (c.authorEmail && c.authorEmail === selectedCustomerKey) || String(c.userId) === selectedCustomerKey);
+  }
+
+  // Filter by role
+  if (roleFilter === 'customer') {
+    list = list.filter(c => !['superadmin', 'admin', 'manager', 'moderator'].includes(c.authorRole));
+  } else if (roleFilter === 'staff') {
+    list = list.filter(c => ['superadmin', 'admin', 'manager', 'moderator'].includes(c.authorRole));
+  }
+
+  // Search query
+  if (query) {
+    list = list.filter(c => {
+      const name = (c.authorName || '').toLowerCase();
+      const email = (c.authorEmail || '').toLowerCase();
+      const phone = (c.authorPhone || '').toLowerCase();
+      const text = (c.text || '').toLowerCase();
+      return name.includes(query) || email.includes(query) || phone.includes(query) || text.includes(query);
+    });
+  }
+
+  renderCustomerSpotlight(selectedCustomerKey !== 'all' ? allComments.filter(c => (c.authorEmail && c.authorEmail === selectedCustomerKey) || String(c.userId) === selectedCustomerKey) : []);
+
+  $('commentsCountTag').textContent = `${list.length} ${list.length === 1 ? 'comment' : 'comments'}`;
+
+  const wrap = $('commentsTableWrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state">No comments found matching your filters.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:50px">ID</th>
+          <th>Customer / Author</th>
+          <th>Comment Message</th>
+          <th>Date &amp; Time</th>
+          <th style="width:160px;text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(c => {
+          const isStaff = ['superadmin', 'admin', 'manager', 'moderator'].includes(c.authorRole);
+          const initial = (c.authorName || 'M').charAt(0).toUpperCase();
+          const customerKey = c.authorEmail || String(c.userId);
+          const dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+
+          return `
+            <tr id="comment-row-${c.id}">
+              <td class="mono" style="font-weight:700">#${c.id}</td>
+              <td>
+                <button type="button" class="btn-author-filter" onclick="selectIndividualCustomer('${esc(customerKey)}')" title="Click to view all comments by ${esc(c.authorName)}">
+                  <div class="user-chip-avatar" style="width:32px;height:32px;font-size:.78rem;${isStaff ? 'background:#d97706' : ''}">${esc(initial)}</div>
+                  <div>
+                    <strong class="author-filter-name" style="display:flex;align-items:center;gap:6px">
+                      ${esc(c.authorName || 'Member')}
+                      <span class="badge ${isStaff ? 'gold' : ''}" style="font-size:.6rem;padding:1px 5px">${isStaff ? 'Staff' : 'Customer'}</span>
+                    </strong>
+                    <div style="font-size:.75rem;color:var(--ink-soft)">${esc(c.authorEmail || '')}</div>
+                    ${c.authorPhone ? `<div style="font-size:.72rem;color:var(--forest);font-family:var(--font-mono)">📞 ${esc(c.authorPhone)}</div>` : ''}
+                  </div>
+                </button>
+              </td>
+              <td>
+                <div class="comment-text-cell">${esc(c.text)}</div>
+                ${c.reply ? `
+                  <div style="background:#f0fdf4;border-left:3px solid #16a34a;border-radius:4px;padding:6px 10px;margin-top:8px;font-size:.78rem">
+                    <div style="display:flex;justify-content:space-between;font-size:.65rem;color:#15803d;font-weight:700;margin-bottom:2px">
+                      <span>↳ 🌾 ${esc(c.reply.replierName || 'ENMAR Response')}</span>
+                      <span style="font-family:var(--font-mono);color:var(--ink-soft)">${c.reply.repliedAt ? esc(new Date(c.reply.repliedAt).toLocaleDateString('en-BD', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })) : ''}</span>
+                    </div>
+                    <div style="color:var(--ink);white-space:pre-wrap">${esc(c.reply.text)}</div>
+                  </div>
+                ` : ''}
+              </td>
+              <td class="mono" style="font-size:.78rem;color:var(--ink-soft)">
+                ${esc(dateStr)}
+              </td>
+              <td style="text-align:right">
+                <div style="display:inline-flex;gap:4px">
+                  <button type="button" class="btn-soft" onclick="openReplyModal(${c.id})" style="padding:4px 8px;font-size:.72rem;color:var(--forest);font-weight:600" title="Reply to comment">💬 ${c.reply ? 'Edit Reply' : 'Reply'}</button>
+                  <button type="button" class="btn-soft" onclick="openEditModal(${c.id})" style="padding:4px 8px;font-size:.72rem" title="Edit comment">✏️</button>
+                  <button type="button" class="btn-danger" onclick="deleteComment(${c.id})" style="padding:4px 8px;font-size:.72rem" title="Delete comment">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function openReplyModal(cid) {
+  const c = allComments.find(x => x.id === cid);
+  if (!c) return;
+  $('replyCommentId').value = c.id;
+  $('replyQuoteAuthor').textContent = `${c.authorName || 'Member'} (${c.authorEmail || ''})`;
+  $('replyQuoteDate').textContent = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-BD', { month: 'short', day: 'numeric' }) : '';
+  $('replyQuoteText').textContent = c.text || '';
+  
+  const defaultReply = (siteSettings && siteSettings.defaultCommentReply) || 'Thank you for your valuable feedback! We appreciate you being part of our community.';
+  $('adminReplyInputText').value = (c.reply && c.reply.text) ? c.reply.text : defaultReply;
+  $('replyModalTitle').textContent = c.reply ? `Edit Reply to Comment #${c.id}` : `Reply to Comment #${c.id}`;
+
+  const delReplyBtn = $('btnDeleteExistingReply');
+  if (delReplyBtn) {
+    delReplyBtn.style.display = c.reply ? 'inline-block' : 'none';
+  }
+
+  notice($('adminReplyModalMsg'), '');
+  openModal('adminReplyModal');
+}
+
+function openEditModal(cid) {
+  const c = allComments.find(x => x.id === cid);
+  if (!c) return;
+  $('editCommentId').value = c.id;
+  $('editCommentAuthor').value = `${c.authorName || 'Member'} (${c.authorEmail || 'No email'})`;
+  $('editCommentText').value = c.text || '';
+  $('editModalTitle').textContent = `Edit Comment #${c.id}`;
+  notice($('editCommentMessage'), '');
+  openModal('editCommentModal');
+}
+
+async function deleteComment(cid) {
+  const c = allComments.find(x => x.id === cid);
+  const author = c ? (c.authorName || 'this author') : 'this comment';
+  if (!confirm(`Are you sure you want to delete comment #${cid} by ${author}?`)) return;
+  try {
+    await api(`/api/admin/comments/${cid}`, { method: 'DELETE' });
+    notice($('commentsMessage'), `Comment #${cid} deleted successfully.`, true);
+    await loadComments();
+  } catch (err) {
+    notice($('commentsMessage'), err.message || 'Failed to delete comment.');
+  }
+}
+</script>
+</body>
+</html>

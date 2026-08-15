@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ad Maker — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <p class="sidebar-section-label">Overview</p>
+    <nav aria-label="Overview navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+    </nav>
+    <p class="sidebar-section-label">Manage</p>
+    <nav aria-label="Manage navigation">
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System navigation">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Ads Maker</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Live</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+        <div class="dot-menu-wrap">
+          <button type="button" class="btn-dot-menu" id="dotMenuBtn" aria-label="More options">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dot-dropdown" id="dotDropdown">
+            <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+            <a href="/admin/orders.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/></svg>Orders</a>
+            <a href="/admin/products.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/></svg>Products</a>
+            <a href="/admin/customers.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers</a>
+            <a href="/admin/staff.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff</a>
+            <a href="/admin/reviews.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews</a>
+            <a href="/admin/ads.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Ads Maker</a>
+            <a href="/admin/analytics.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics</a>
+            <a href="/admin/settings.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a>
+            <a href="/admin/apis.html">APIs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-message" id="globalMessage"></div>
+
+    <div class="page-body">
+
+      <!-- AD MAKER -->
+      <div class="ads-maker-grid">
+
+        <!-- CONTROLS -->
+        <div class="panel-card ads-editor-card">
+          <div class="section-head">
+            <h2 id="editorTitle">Create a new ad</h2>
+            <span class="mono-tag">Build once, show on the storefront banner</span>
+          </div>
+          <div id="adEditorMessage"></div>
+
+          <div class="ads-form">
+            <div class="field span2">
+              <label>Ad name <small class="label-note">(internal only)</small></label>
+              <input type="text" id="adName" maxlength="60" placeholder="e.g. Summer Vegetable Sale">
+            </div>
+
+            <div class="field span2">
+              <label>Tag / badge</label>
+              <input type="text" id="adTag" maxlength="40" placeholder="e.g. Special Offer, 20% Off">
+            </div>
+
+            <div class="field span2">
+              <label>Headline — text</label>
+              <textarea id="adHeadline" rows="2" maxlength="200" class="textarea-full" placeholder="Line one&#10;Line two"></textarea>
+            </div>
+
+            <div class="field span2">
+              <label>Body text</label>
+              <input type="text" id="adBody" maxlength="300" placeholder="Short supporting line">
+            </div>
+
+            <!-- BUTTON -->
+            <div class="field">
+              <label>Button label</label>
+              <input type="text" id="adButtonText" maxlength="40" placeholder="Shop Now →">
+            </div>
+            <div class="field">
+              <label for="adButtonCat">Button target category</label>
+              <select id="adButtonCat" title="Button target category"><option value="None">None — no action</option></select>
+              <small class="field-hint">Clicking scrolls to that shop category.</small>
+            </div>
+
+            <!-- COLOR -->
+            <div class="field span2">
+              <label>Background colour / gradient</label>
+              <div class="ams-swatch-row" id="bgSwatches"></div>
+              <input type="color" id="adBgColor" value="#f5a623" title="Custom background colour">
+            </div>
+
+            <div class="field span2">
+              <label>Text colour</label>
+              <div class="ams-swatch-row" id="textSwatches"></div>
+              <input type="color" id="adTextColor" value="#ffffff" title="Custom text colour">
+            </div>
+
+            <!-- IMAGE + RESIZER -->
+            <div class="field span2">
+              <label>Image — upload &amp; resize</label>
+              <label class="ad-upload-label ad-upload-label--compact" id="adImageLabel">
+                <input type="file" id="adFileInput" accept="image/jpeg,image/png,image/webp,image/gif">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <span>Choose an image to resize</span>
+                <small>jpg · png · webp · gif</small>
+              </label>
+              <div id="adFilePreview"></div>
+            </div>
+
+            <div class="field span2">
+              <div class="ams-resize-grid">
+                <div class="field"><label for="resizerWidth">Width (px)</label><input type="number" id="resizerWidth" min="1" max="2000" value="600"></div>
+                <div class="field"><label for="resizerHeight">Height (px)</label><input type="number" id="resizerHeight" min="1" max="2000" value="600"></div>
+                <div class="field"><label for="resizerQuality">Quality (0–1)</label><input type="number" id="resizerQuality" min="0.1" max="1" step="0.05" value="0.85"></div>
+                <div class="ams-resize-actions">
+                  <button type="button" class="btn-soft" id="btnResize">Apply resize</button>
+                  <button type="button" class="btn-muted" id="btnClearImage">Remove</button>
+                </div>
+              </div>
+              <div class="field field--mt">
+                <label for="adImageSize">Image display size <span id="imageSizeLabel" class="mono-tag">130px</span></label>
+                <input type="range" id="adImageSize" min="40" max="400" step="5" value="130" aria-label="Image display size" title="Image display size">
+              </div>
+            </div>
+
+            <div class="field span2">
+              <label class="ams-toggle">
+                <input type="checkbox" id="adActive" checked>
+                <span>Active — show on the storefront</span>
+              </label>
+            </div>
+
+            <div class="span2 ams-actions">
+              <button type="button" class="btn-primary" id="btnSaveAd">Save &amp; Publish</button>
+              <button type="button" class="btn-muted" id="btnReset">Clear</button>
+            </div>
+          </div><!-- /ads-form -->
+        </div><!-- /ads-editor-card -->
+
+        <!-- LIVE PREVIEW -->
+        <div class="panel-card ads-preview-card">
+          <div class="section-head">
+            <h2>Live preview</h2>
+            <span class="mono-tag">Matches storefront banner size</span>
+          </div>
+          <div class="ads-preview-stage" id="adPreviewStage"></div>
+          <p class="ads-preview-note">Active custom ads replace the default banner on the shop page automatically.</p>
+        </div>
+      </div><!-- /ads-maker-grid -->
+
+      <!-- SAVED ADS -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Saved ads <span id="adsCount" class="mono-tag"></span></h2>
+          <span class="mono-tag">Only <b>active</b> ads appear on the storefront</span>
+        </div>
+        <div id="adListMessage"></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th class="col-preview">Preview</th><th>Name</th><th>Tag</th><th>Button</th><th>Status</th><th class="col-actions">Actions</th></tr>
+            </thead>
+            <tbody id="adsList"></tbody>
+          </table>
+        </div>
+        <div id="adsEmpty" class="empty-state">No ads yet — build your first one above.</div>
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /admin-shell -->
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+(function () {
+  let ads = [];
+  let categories = [];
+  let editingId = null;     // id of the ad being edited (null = new)
+  let origImg = null;       // loaded Image for resizing
+  let origMime = 'image/jpeg';
+  let currentImageUrl = ''; // data URL currently applied to the ad
+  let bgValue = 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)';
+
+  // value / fill helpers (local to this page, mirroring settings.html)
+  function val(id) { const el = $(id); return el ? el.value.trim() : ''; }
+  function fill(id, value) {
+    const el = $(id);
+    if (!el) return;
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = value ?? '';
+  }
+
+  const BG_PRESETS = [
+    { label: 'Orange',   v: 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)', c: '#f5a623' },
+    { label: 'Yellow',   v: 'linear-gradient(135deg,#f9c74f 0%,#f8961e 100%)', c: '#f9c74f' },
+    { label: 'Green',    v: 'linear-gradient(135deg,#2d6a4f 0%,#40916c 100%)', c: '#40916c' },
+    { label: 'Blue',     v: 'linear-gradient(135deg,#023e8a 0%,#0077b6 100%)', c: '#0077b6' },
+    { label: 'Purple',   v: 'linear-gradient(135deg,#7b2d8b 0%,#c77dff 100%)', c: '#c77dff' },
+    { label: 'Red',      v: 'linear-gradient(135deg,#e63946 0%,#ff6b6b 100%)', c: '#e63946' },
+    { label: 'Forest',   v: 'linear-gradient(135deg,#5a1120 0%,#631e2a 100%)', c: '#631e2a' },
+    { label: 'Charcoal', v: '#2b2b2b', c: '#2b2b2b' }
+  ];
+  const TEXT_COLORS = ['#ffffff', '#111111', '#f4a01c', '#00e08a'];
+
+  function headHtml(t) {
+    return String(t || '').split('\n').map(esc).join('<br>');
+  }
+
+  function placeholderSvg() {
+    return '<svg viewBox="0 0 120 120" width="110" height="110" fill="none" aria-hidden="true">' +
+      '<circle cx="60" cy="70" r="30" fill="rgba(255,255,255,.15)"/>' +
+      '<circle cx="60" cy="70" r="18" fill="rgba(255,255,255,.35)"/>' +
+      '</svg>';
+  }
+
+  function readForm() {
+    const bc = $('adButtonCat');
+    return {
+      name:       val('adName'),
+      tag:        val('adTag'),
+      headline:   val('adHeadline'),
+      body:       val('adBody'),
+      buttonText: val('adButtonText'),
+      buttonCat:  bc && bc.value === 'None' ? '' : val('adButtonCat'),
+      image:      currentImageUrl,
+      imageSize:  Number($('adImageSize').value) || 130,
+      bg:         bgValue,
+      textColor:  $('adTextColor').value,
+      active:     $('adActive').checked
+    };
+  }
+
+  function renderAd(ad) {
+    const size = Number(ad.imageSize) || 130;
+    const image = ad.image
+      ? `<div class="dummy-ad-img" style="width:${size}px;height:${size}px"><img src="${esc(ad.image)}" alt=""></div>`
+      : `<div class="dummy-ad-img" style="width:${size}px;height:${size}px">${placeholderSvg()}</div>`;
+    const btn = (ad.buttonText && ad.buttonCat)
+      ? `<button type="button" class="dummy-ad-btn" data-ad-cat="${esc(ad.buttonCat)}">${esc(ad.buttonText)}</button>`
+      : '';
+    return `<div class="dummy-ad" style="--ad-text:${esc(ad.textColor || '#ffffff')};background:${esc(ad.bg) || '#f5a623'}">
+      <div class="dummy-ad-text">
+        ${ad.tag ? `<div class="dummy-ad-tag">${esc(ad.tag)}</div>` : ''}
+        ${ad.headline ? `<h2>${headHtml(ad.headline)}</h2>` : ''}
+        ${ad.body ? `<p>${esc(ad.body)}</p>` : ''}
+        ${btn}
+      </div>
+      ${image}
+    </div>`;
+  }
+
+  function renderPreview() {
+    $('adPreviewStage').innerHTML = renderAd(readForm());
+    $('imageSizeLabel').textContent = (Number($('adImageSize').value) || 130) + 'px';
+  }
+
+  function setActiveSwatch(group, value) {
+    document.querySelectorAll('#' + (group === 'bg' ? 'bgSwatches' : 'textSwatches') + ' .ams-swatch')
+      .forEach(s => s.classList.toggle('active', s.dataset.v === value));
+  }
+
+  function renderSwatches() {
+    const bgWrap = $('bgSwatches');   bgWrap.innerHTML = '';
+    const txWrap = $('textSwatches'); txWrap.innerHTML = '';
+    BG_PRESETS.forEach(p => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ams-swatch'; b.title = p.label;
+      b.style.background = p.c; b.dataset.v = p.v;
+      b.onclick = () => { bgValue = p.v; $('adBgColor').value = p.c; setActiveSwatch('bg', p.v); renderPreview(); };
+      bgWrap.appendChild(b);
+    });
+    TEXT_COLORS.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ams-swatch ams-swatch--text';
+      b.style.background = c; b.dataset.v = c;
+      b.onclick = () => { $('adTextColor').value = c; setActiveSwatch('text', c); renderPreview(); };
+      txWrap.appendChild(b);
+    });
+  }
+  async function loadCategories() {
+    try {
+      const cats = await api('/api/categories');
+      categories = Array.isArray(cats) ? cats : [];
+    } catch { categories = []; }
+    const sel = $('adButtonCat');
+    sel.innerHTML = '<option value="None">None — no action</option>' +
+      categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  }
+
+  async function loadAds() {
+    try {
+      const r = await api('/api/ads');
+      ads = Array.isArray(r) ? r : [];
+    } catch (err) {
+      notice($('adListMessage'), 'Could not load ads: ' + err.message);
+      ads = [];
+    }
+    renderList();
+  }
+
+  function renderList() {
+    const tb = $('adsList'); if (!tb) return;
+    $('adsCount').textContent = '(' + ads.length + ')';
+    $('adsEmpty').style.display = ads.length ? 'none' : 'block';
+    tb.innerHTML = ads.map(a => {
+      const img = a.image
+        ? `<img src="${esc(a.image)}" style="width:100%;height:100%;object-fit:cover" alt="">`
+        : '<span style="font-size:.7rem;color:var(--ink-soft)">no image</span>';
+      const firstLine = a.headline ? String(a.headline).split('\n')[0] : '—';
+      return `<tr>
+        <td><div class="ads-list-thumb" style="background:${esc(a.bg) || '#f5a623'}">${img}</div></td>
+        <td><b>${esc(a.name)}</b><br><small>${esc(a.tag) || '—'}</small></td>
+        <td>${esc(firstLine)}</td>
+        <td>${a.buttonCat ? esc(a.buttonText) + ' → ' + esc(a.buttonCat) : '—'}</td>
+        <td><button type="button" class="btn-soft" data-toggle="${esc(a.id)}">${a.active ? 'Active' : 'Inactive'}</button></td>
+        <td style="white-space:nowrap">
+          <button type="button" class="btn-soft" data-edit="${esc(a.id)}">Edit</button>
+          <button type="button" class="btn-soft" data-dup="${esc(a.id)}">Duplicate</button>
+          <button type="button" class="btn-danger" data-del="${esc(a.id)}">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    tb.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => toggleAd(b.dataset.toggle));
+    tb.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editAd(b.dataset.edit));
+    tb.querySelectorAll('[data-dup]').forEach(b => b.onclick = () => duplicateAd(b.dataset.dup));
+    tb.querySelectorAll('[data-del]').forEach(b => b.onclick = () => delAd(b.dataset.del));
+  }
+  function resetForm() {
+    editingId = null; origImg = null; currentImageUrl = '';
+    bgValue = BG_PRESETS[0].v;
+    $('editorTitle').textContent = 'Create a new ad';
+    fill('adName', ''); fill('adTag', ''); fill('adHeadline', ''); fill('adBody', '');
+    fill('adButtonText', 'Shop Now →');
+    $('adButtonCat').value = 'None';
+    $('adBgColor').value = BG_PRESETS[0].c;
+    $('adTextColor').value = '#ffffff';
+    $('adImageSize').value = 130;
+    $('adActive').checked = true;
+    $('adFilePreview').innerHTML = '';
+    fill('resizerWidth', '600'); fill('resizerHeight', '600');
+    $('resizerQuality').value = '0.85';
+    setActiveSwatch('bg', bgValue);
+    setActiveSwatch('text', '#ffffff');
+    renderPreview();
+  }
+
+  function fillAdForm(a) {
+    editingId = a.id;
+    $('editorTitle').textContent = 'Editing — ' + a.name;
+    fill('adName', a.name); fill('adTag', a.tag || ''); fill('adHeadline', a.headline || ''); fill('adBody', a.body || '');
+    fill('adButtonText', a.buttonText || '');
+    $('adButtonCat').value = a.buttonCat ? a.buttonCat : 'None';
+    bgValue = a.bg || BG_PRESETS[0].v;
+    $('adBgColor').value = /^#[0-9a-f]{6}$/i.test(bgValue) ? bgValue : BG_PRESETS[0].c;
+    $('adTextColor').value = a.textColor || '#ffffff';
+    currentImageUrl = a.image || '';
+    $('adImageSize').value = a.imageSize || 130;
+    $('adActive').checked = a.active !== false;
+    $('adFilePreview').innerHTML = a.image ? `<img src="${esc(a.image)}">` : '';
+    setActiveSwatch('bg', bgValue);
+    setActiveSwatch('text', $('adTextColor').value);
+    renderPreview();
+  }
+
+  async function editAd(id) { const a = ads.find(x => x.id === id); if (a) fillAdForm(a); }
+
+  async function duplicateAd(id) {
+    const a = ads.find(x => x.id === id);
+    if (!a) return;
+    fillAdForm({ ...a, id: null });
+    $('editorTitle').textContent = 'Duplicate — ' + a.name;
+    $('adName').value = a.name + ' (copy)';
+    renderPreview();
+    notice($('adEditorMessage'), 'Editing a copy — press Save & Publish to create it.', true);
+  }
+
+  async function toggleAd(id) {
+    const a = ads.find(x => x.id === id);
+    if (!a) return;
+    try {
+      const upd = await api(`/api/admin/ads/${id}`, { method: 'PATCH', body: JSON.stringify({ active: !a.active }) });
+      Object.assign(a, upd);
+      renderList();
+      notice($('adListMessage'), `Ad "${a.name}" is now ${a.active ? 'active' : 'inactive'}.`, true);
+    } catch (err) { notice($('adListMessage'), err.message); }
+  }
+
+  async function delAd(id) {
+    const a = ads.find(x => x.id === id);
+    if (!a) return;
+    if (!confirm(`Delete ad "${a.name}"?`)) return;
+    try {
+      await api(`/api/admin/ads/${id}`, { method: 'DELETE' });
+      if (editingId === id) resetForm();
+      await loadAds();
+      notice($('adListMessage'), 'Ad deleted.', true);
+    } catch (err) { notice($('adListMessage'), err.message); }
+  }
+
+  async function saveAd() {
+    const msg = $('adEditorMessage');
+    notice(msg, '');
+    const payload = readForm();
+    if (!payload.name.trim()) { notice(msg, 'Please give the ad a name.'); return; }
+    if (!payload.headline && !payload.tag && !payload.image) {
+      notice(msg, 'Add at least some text or an image so the ad has content.');
+      return;
+    }
+    try {
+      if (editingId) {
+        const upd = await api(`/api/admin/ads/${editingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        const i = ads.findIndex(x => x.id === editingId);
+        if (i !== -1) ads[i] = upd;
+        await loadAds();
+        resetForm();
+        notice(msg, 'Ad updated.', true);
+      } else {
+        const created = await api('/api/admin/ads', { method: 'POST', body: JSON.stringify(payload) });
+        ads.push(created);
+        await loadAds();
+        resetForm();
+        notice(msg, 'Ad published!', true);
+      }
+    } catch (err) { notice(msg, err.message); }
+  }
+  // ---- image resizer ----
+  function doResize() {
+    if (!origImg) return null;
+    const w = Math.min(2000, Math.max(1, parseInt($('resizerWidth').value, 10) || origImg.naturalWidth));
+    const h = Math.min(2000, Math.max(1, parseInt($('resizerHeight').value, 10) || origImg.naturalHeight));
+    const q = Math.min(1, Math.max(0.1, Number($('resizerQuality').value) || 0.85));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (origMime === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+    ctx.drawImage(origImg, 0, 0, w, h);
+    const mime = ['image/png', 'image/webp', 'image/gif'].includes(origMime) ? origMime : 'image/jpeg';
+    currentImageUrl = canvas.toDataURL(mime, q);
+    $('adFilePreview').innerHTML = `<img src="${esc(currentImageUrl)}">`;
+    renderPreview();
+    return w + '×' + h;
+  }
+
+  $('adFileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    origMime = file.type || 'image/jpeg';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        origImg = img;
+        // Auto-scale very large images down so the saved data-URL stays small.
+        const MAX = 1600;
+        let tw = img.naturalWidth, th = img.naturalHeight;
+        if (Math.max(tw, th) > MAX) {
+          const k = MAX / Math.max(tw, th);
+          tw = Math.round(tw * k); th = Math.round(th * k);
+        }
+        fill('resizerWidth', tw);
+        fill('resizerHeight', th);
+        $('resizerQuality').value = '0.85';
+        const resizedText = doResize();
+        notice($('adEditorMessage'), 'Image loaded & auto-resized to ' + (resizedText ? resizedText + ' px' : '') + ' — tweak dimensions and press Apply resize if needed.', true);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('btnResize').onclick = () => {
+    const msg = $('adEditorMessage');
+    if (!origImg) { notice(msg, 'Choose an image to resize first.'); return; }
+    const t = doResize();
+    notice(msg, 'Resized to ' + (t || '?') + ' px and applied to the ad.', true);
+  };
+
+  $('btnClearImage').onclick = () => {
+    origImg = null; currentImageUrl = '';
+    $('adFileInput').value = '';
+    $('adFilePreview').innerHTML = '';
+    renderPreview();
+    notice($('adEditorMessage'), 'Image removed.', true);
+  };
+
+  // ---- wiring ----
+  ['adName', 'adTag', 'adHeadline', 'adBody', 'adButtonText', 'adButtonCat', 'adImageSize'].forEach(id =>
+    $(id).addEventListener('input', renderPreview));
+  $('adActive').addEventListener('change', renderPreview);
+  $('adTextColor').addEventListener('input', () => { setActiveSwatch('text', $('adTextColor').value); renderPreview(); });
+  $('adBgColor').addEventListener('input', () => {
+    bgValue = $('adBgColor').value;
+    setActiveSwatch('bg', bgValue);
+    renderPreview();
+  });
+  $('btnSaveAd').onclick = saveAd;
+  $('btnReset').onclick = () => { if (confirm('Clear the editor? Unsaved changes will be lost.')) resetForm(); };
+
+  // initialise
+  (async () => {
+    const user = await initAdminPage(['superadmin', 'admin', 'manager']);
+    if (!user) return;
+    renderSwatches();
+    await loadCategories();
+    await loadAds();
+    resetForm();
+  })();
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Recycle Bin — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.bin-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.bin-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bin-banner-icon {
+  width: 40px;
+  height: 40px;
+  background: #dcfce7;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: #166534;
+}
+.bin-banner-title {
+  font-weight: 700;
+  color: #14532d;
+  font-size: .95rem;
+}
+.bin-banner-sub {
+  font-size: .8rem;
+  color: #166534;
+}
+.bin-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.type-order { background: #e0e7ff; color: #3730a3; }
+.type-product { background: #ecfdf5; color: #065f46; }
+.type-user { background: #fef3c7; color: #92400e; }
+.type-comment { background: #f3e8ff; color: #6b21a8; }
+.type-review { background: #ffedd5; color: #9a3412; }
+.type-subscriber { background: #e0f2fe; color: #075985; }
+.type-ad { background: #fce7f3; color: #9d174d; }
+
+.bin-expiry-tag {
+  font-size: .68rem;
+  font-family: var(--font-mono, monospace);
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-inspect-pre {
+  background: #18181b;
+  color: #f4f4f5;
+  font-family: var(--font-mono, monospace);
+  font-size: .75rem;
+  padding: 14px;
+  border-radius: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <p class="sidebar-section-label">Overview</p>
+    <nav aria-label="Overview navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+    </nav>
+    <p class="sidebar-section-label">Manage</p>
+    <nav aria-label="Manage navigation">
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System navigation">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+      <a href="/admin/bin.html" class="nav-item active" data-page="bin">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Recycle Bin
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Recycle Bin (Safety Store)</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Safe Mode</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <!-- SAFETY BANNER -->
+      <div class="bin-banner">
+        <div class="bin-banner-left">
+          <div class="bin-banner-icon">🛡️</div>
+          <div>
+            <div class="bin-banner-title">Data Loss Prevention &amp; Safety Bin</div>
+            <div class="bin-banner-sub">Deleted orders, products, accounts, and comments are protected here for 30 days before permanent deletion. You can safely restore any item at any time.</div>
+          </div>
+        </div>
+        <div>
+          <button type="button" class="btn-danger" id="btnEmptyBin" style="display:inline-flex;align-items:center;gap:6px">
+            <span>🧹 Empty Bin</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- METRIC CARDS -->
+      <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-label">Total in Bin</div>
+          <div class="stat-val" id="cntAll">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Orders</div>
+          <div class="stat-val" id="cntOrders">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Products</div>
+          <div class="stat-val" id="cntProducts">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Customers/Users</div>
+          <div class="stat-val" id="cntUsers">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Comments/Reviews</div>
+          <div class="stat-val" id="cntVoices">0</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS & SEARCH -->
+      <div class="table-card">
+        <div class="table-card-head" style="gap:12px;flex-wrap:wrap">
+          <div class="filter-tabs" id="filterTabs">
+            <button type="button" class="filter-tab active" data-type="all">All Items (<span id="tabCntAll">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="order">Orders (<span id="tabCntOrders">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="product">Products (<span id="tabCntProducts">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="user">Users (<span id="tabCntUsers">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="comment">Comments (<span id="tabCntComments">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="review">Reviews (<span id="tabCntReviews">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="subscriber">Subscribers (<span id="tabCntSubscribers">0</span>)</button>
+            <button type="button" class="filter-tab" data-type="ad">Ads (<span id="tabCntAds">0</span>)</button>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <input type="search" id="binSearch" placeholder="Search deleted items…" style="font-size:.78rem;padding:6px 12px;border:1px solid var(--line);border-radius:4px;width:200px">
+          </div>
+        </div>
+
+        <div id="binNotice" style="padding:0 16px 8px"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Item &amp; Details</th>
+                <th>Deleted By</th>
+                <th>Deleted Date</th>
+                <th>Auto-Purge In</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="binTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--ink-soft)">Loading recycle bin items…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM INSPECTION MODAL -->
+<div class="modal-overlay" id="binItemModal">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalItemTitle">Inspect Deleted Item</h2>
+        <span class="mono-tag" id="modalItemTypeBadge" style="margin-top:2px;display:inline-block">TYPE</span>
+      </div>
+      <button type="button" class="btn-muted" onclick="closeModal('binItemModal')">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="margin-bottom:12px;font-size:.85rem;color:var(--ink-soft)" id="modalItemMeta"></div>
+      <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px">Raw Snapshot Data</label>
+      <pre class="item-inspect-pre" id="modalItemJson"></pre>
+    </div>
+    <div class="modal-foot" style="display:flex;justify-content:space-between;gap:10px">
+      <button type="button" class="btn-muted" onclick="closeModal('binItemModal')">Close</button>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn-danger" id="modalPurgeBtn">🔥 Purge Forever</button>
+        <button type="button" class="btn-primary" id="modalRestoreBtn">♻️ Restore Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+let _binItems = [];
+let _activeType = 'all';
+let _selectedBinItem = null;
+
+function typeBadge(type) {
+  const t = String(type || 'item').toLowerCase();
+  let icon = '📦';
+  if (t === 'order') icon = '🧾';
+  else if (t === 'product') icon = '🥕';
+  else if (t === 'user') icon = '👤';
+  else if (t === 'comment') icon = '💬';
+  else if (t === 'review') icon = '⭐';
+  else if (t === 'subscriber') icon = '📰';
+  else if (t === 'ad') icon = '📢';
+
+  return `<span class="bin-type-pill type-${t}">${icon} ${esc(t)}</span>`;
+}
+
+function daysRemaining(expiresAt) {
+  if (!expiresAt) return '30 days';
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) return 'Expiring now';
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `${days} day${days === 1 ? '' : 's'} left`;
+}
+
+async function loadBin() {
+  try {
+    const data = await api('/api/admin/bin');
+    _binItems = data.bin || [];
+    const counts = data.counts || {};
+
+    // Update count displays
+    $('cntAll').textContent = counts.all || 0;
+    $('cntOrders').textContent = counts.order || 0;
+    $('cntProducts').textContent = counts.product || 0;
+    $('cntUsers').textContent = counts.user || 0;
+    $('cntVoices').textContent = (counts.comment || 0) + (counts.review || 0);
+
+    $('tabCntAll').textContent = counts.all || 0;
+    $('tabCntOrders').textContent = counts.order || 0;
+    $('tabCntProducts').textContent = counts.product || 0;
+    $('tabCntUsers').textContent = counts.user || 0;
+    $('tabCntComments').textContent = counts.comment || 0;
+    $('tabCntReviews').textContent = counts.review || 0;
+    $('tabCntSubscribers').textContent = counts.subscriber || 0;
+    $('tabCntAds').textContent = counts.ad || 0;
+
+    renderBinTable();
+  } catch (err) {
+    notice($('binNotice'), err.message || 'Failed to load recycle bin.');
+  }
+}
+
+function renderBinTable() {
+  const tbody = $('binTableBody');
+  const q = ($('binSearch').value || '').trim().toLowerCase();
+
+  let items = _binItems;
+  if (_activeType !== 'all') {
+    items = items.filter(b => b.type === _activeType);
+  }
+  if (q) {
+    items = items.filter(b => 
+      (b.title && b.title.toLowerCase().includes(q)) ||
+      (b.details && b.details.toLowerCase().includes(q)) ||
+      (b.deletedBy && b.deletedBy.toLowerCase().includes(q)) ||
+      (b.originalId && String(b.originalId).toLowerCase().includes(q))
+    );
+  }
+
+  if (!items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;padding:50px 20px">
+          <div style="font-size:2.4rem;margin-bottom:8px">🗑️</div>
+          <div style="font-weight:700;color:var(--forest);font-size:1rem;margin-bottom:4px">Recycle Bin is Empty</div>
+          <div style="font-size:.82rem;color:var(--ink-soft);max-width:400px;margin:0 auto">
+            ${_activeType !== 'all' ? `No deleted ${_activeType}s found in the recycle bin.` : 'No deleted items. Whenever orders, products, customers, or comments are deleted, they will be safely preserved here.'}
+          </div>
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(b => {
+    return `
+      <tr id="row-${b.id}">
+        <td>${typeBadge(b.type)}</td>
+        <td>
+          <div style="font-weight:700;color:var(--ink);font-size:.86rem">${esc(b.title)}</div>
+          <div style="font-size:.76rem;color:var(--ink-soft);margin-top:2px">${esc(b.details)}</div>
+        </td>
+        <td>
+          <div style="font-size:.78rem;font-weight:600">${esc(b.deletedBy || 'System')}</div>
+          ${b.deletedByEmail ? `<div style="font-size:.68rem;color:var(--ink-soft)">${esc(b.deletedByEmail)}</div>` : ''}
+        </td>
+        <td>
+          <div style="font-size:.78rem">${new Date(b.deletedAt).toLocaleDateString('en-BD', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div style="font-size:.68rem;color:var(--ink-soft)">${new Date(b.deletedAt).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+        </td>
+        <td>
+          <span class="bin-expiry-tag">⏳ ${daysRemaining(b.expiresAt)}</span>
+        </td>
+        <td style="text-align:right">
+          <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center">
+            <button type="button" class="btn-soft btn-inspect-item" data-id="${b.id}" style="font-size:.68rem;padding:4px 8px" title="Inspect full data snapshot">👁️ Inspect</button>
+            <button type="button" class="btn-primary btn-restore-item" data-id="${b.id}" style="font-size:.68rem;padding:4px 10px;background:#15803d" title="Restore item back to live store">♻️ Restore</button>
+            <button type="button" class="btn-danger btn-purge-item" data-id="${b.id}" style="font-size:.68rem;padding:4px 8px" title="Permanently delete from database">🔥 Purge</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Wire inspect buttons
+  document.querySelectorAll('.btn-inspect-item').forEach(btn => {
+    btn.onclick = () => {
+      const item = _binItems.find(b => b.id === btn.dataset.id);
+      if (!item) return;
+      _selectedBinItem = item;
+      $('modalItemTitle').textContent = item.title;
+      $('modalItemTypeBadge').textContent = `${item.type.toUpperCase()} #${item.originalId || ''}`;
+      $('modalItemMeta').innerHTML = `<strong>Deleted by:</strong> ${esc(item.deletedBy)} on ${new Date(item.deletedAt).toLocaleString('en-BD')} · <strong>Retention:</strong> ${daysRemaining(item.expiresAt)}`;
+      $('modalItemJson').textContent = JSON.stringify(item.data, null, 2);
+      openModal('binItemModal');
+    };
+  });
+
+  // Wire restore buttons
+  document.querySelectorAll('.btn-restore-item').forEach(btn => {
+    btn.onclick = () => restoreItem(btn.dataset.id);
+  });
+
+  // Wire purge buttons
+  document.querySelectorAll('.btn-purge-item').forEach(btn => {
+    btn.onclick = () => purgeItem(btn.dataset.id);
+  });
+}
+
+async function restoreItem(binId) {
+  const item = _binItems.find(b => b.id === binId);
+  const name = item ? item.title : 'this item';
+  const ok = typeof smartConfirm === 'function' ? await smartConfirm({
+    title: 'Restore Item',
+    message: `Restore "${name}" back to the active database?\n\nIt will immediately reappear on the live storefront and admin panel.`,
+    confirmText: 'Restore Item',
+    cancelText: 'Cancel',
+    danger: false,
+    variant: 'info'
+  }) : confirm(`Restore "${name}" back to the active database?`);
+  if (!ok) return;
+
+  try {
+    notice($('binNotice'), '');
+    const res = await api(`/api/admin/bin/${binId}/restore`, { method: 'POST' });
+    notice($('binNotice'), res.message || 'Item restored successfully!', true);
+    if ($('binItemModal').classList.contains('open')) closeModal('binItemModal');
+    await loadBin();
+  } catch (err) {
+    notice($('binNotice'), err.message || 'Failed to restore item.');
+  }
+}
+
+async function purgeItem(binId) {
+  const item = _binItems.find(b => b.id === binId);
+  const name = item ? item.title : 'this item';
+  const ok = typeof smartConfirm === 'function' ? await smartConfirm({
+    title: 'Permanent Deletion',
+    message: `Are you sure you want to permanently delete "${name}"?\n\nThis action cannot be undone.`,
+    confirmText: 'Permanently Delete',
+    cancelText: 'Keep in Bin',
+    danger: true,
+    variant: 'delete'
+  }) : confirm(`Permanently delete "${name}"?`);
+  if (!ok) return;
+
+  try {
+    notice($('binNotice'), '');
+    const res = await api(`/api/admin/bin/${binId}`, { method: 'DELETE' });
+    notice($('binNotice'), res.message || 'Item permanently purged.', true);
+    if ($('binItemModal').classList.contains('open')) closeModal('binItemModal');
+    await loadBin();
+  } catch (err) {
+    notice($('binNotice'), err.message || 'Failed to purge item.');
+  }
+}
+
+async function emptyBin() {
+  const label = _activeType === 'all' ? 'all items in the recycle bin' : `all deleted ${_activeType}s`;
+  const ok = typeof smartConfirm === 'function' ? await smartConfirm({
+    title: 'Empty Recycle Bin',
+    message: `Are you sure you want to permanently destroy ${label}?\n\nThis action cannot be recovered.`,
+    confirmText: 'Empty Bin Permanently',
+    cancelText: 'Cancel',
+    danger: true,
+    variant: 'delete'
+  }) : confirm(`Empty bin: permanently destroy ${label}?`);
+  if (!ok) return;
+
+  try {
+    notice($('binNotice'), '');
+    const res = await api('/api/admin/bin/empty', {
+      method: 'POST',
+      body: JSON.stringify({ type: _activeType })
+    });
+    notice($('binNotice'), res.message || 'Bin emptied successfully.', true);
+    await loadBin();
+  } catch (err) {
+    notice($('binNotice'), err.message || 'Failed to empty bin.');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await initAdminPage(['superadmin', 'admin', 'manager', 'moderator']);
+  if (!user) return;
+
+  // Filter tabs click
+  $('filterTabs').querySelectorAll('.filter-tab').forEach(tab => {
+    tab.onclick = () => {
+      $('filterTabs').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      _activeType = tab.dataset.type || 'all';
+      renderBinTable();
+    };
+  });
+
+  // Search input
+  $('binSearch').oninput = () => renderBinTable();
+
+  // Empty bin button
+  $('btnEmptyBin').onclick = () => emptyBin();
+
+  // Modal action buttons
+  $('modalRestoreBtn').onclick = () => {
+    if (_selectedBinItem) restoreItem(_selectedBinItem.id);
+  };
+  $('modalPurgeBtn').onclick = () => {
+    if (_selectedBinItem) purgeItem(_selectedBinItem.id);
+  };
+
+  await loadBin();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Staff — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <p class="sidebar-section-label">Overview</p>
+    <nav aria-label="Overview navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+    </nav>
+    <p class="sidebar-section-label">Manage</p>
+    <nav aria-label="Manage navigation">
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System navigation">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Staff</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Live</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+        <div class="dot-menu-wrap">
+          <button type="button" class="btn-dot-menu" id="dotMenuBtn" aria-label="More options">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dot-dropdown" id="dotDropdown">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/orders.html">Orders</a>
+            <a href="/admin/products.html">Products</a>
+            <a href="/admin/customers.html">Customers</a>
+            <a href="/admin/staff.html">Staff</a>
+            <a href="/admin/reviews.html">Reviews</a>
+            <a href="/admin/subscribers.html">Subscribers</a>
+            <a href="/admin/analytics.html">Analytics</a>
+            <a href="/admin/settings.html">Settings</a>
+            <a href="/admin/apis.html">APIs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-message" id="globalMessage"></div>
+
+    <div class="page-body">
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Staff Accounts</h2>
+          <span class="mono-tag">Superadmin only</span>
+        </div>
+        <div id="staffMessage"></div>
+        <div class="table-wrap" id="staffTable"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <!-- ADD STAFF FORM (superadmin only) -->
+      <div class="panel-card" id="addStaffCard">
+        <div class="section-head"><h2>Invite Staff Member</h2></div>
+        <form class="product-form" id="addStaffForm" novalidate>
+          <div class="field"><label>Full Name</label><input type="text" id="staffName" placeholder="Jane Doe" required minlength="2"></div>
+          <div class="field"><label>Email Address</label><input type="email" id="staffEmail" placeholder="jane@enmar.bd" required></div>
+          <div class="field"><label>Password (min 8 chars)</label><input type="password" id="staffPassword" placeholder="••••••••" required minlength="8" autocomplete="new-password"></div>
+          <div class="field">
+            <label for="staffRole">Role</label>
+            <select id="staffRole">
+              <option value="moderator">Moderator</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="span2" id="addStaffMessage"></div>
+          <div class="span2"><button type="submit" class="btn-primary">Create Staff Account</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESET STAFF PASSWORD MODAL -->
+<div class="modal-overlay" id="resetStaffPwModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Reset Staff Password</h2>
+      <button type="button" class="btn-muted" id="resetStaffPwCancel">Cancel</button>
+    </div>
+    <p id="resetStaffPwTarget" class="modal-hint" style="font-weight:600;color:var(--forest)"></p>
+    <div id="resetStaffPwMessage"></div>
+    <form id="resetStaffPwForm" class="modal-grid" novalidate>
+      <input type="hidden" id="resetStaffPwUserId">
+      <div class="field">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <label for="resetStaffPwValue" style="margin:0">New Password (min 8 chars) *</label>
+          <div style="display:flex;gap:6px">
+            <button type="button" id="resetStaffPwGenerateBtn" class="btn-soft" style="font-size:0.68rem;padding:3px 8px" title="Generate random password">🎲 Generate</button>
+            <button type="button" id="resetStaffPwCopyBtn" class="btn-soft" style="font-size:0.68rem;padding:3px 8px" title="Copy to clipboard">📋 Copy</button>
+          </div>
+        </div>
+        <div style="position:relative;display:flex;align-items:center">
+          <input type="text" id="resetStaffPwValue" minlength="8" required placeholder="Enter or generate password" style="padding-right:60px" autocomplete="new-password">
+          <button type="button" id="resetStaffPwToggleBtn" style="position:absolute;right:8px;background:none;border:none;color:var(--forest);font-size:0.75rem;font-weight:700;cursor:pointer;padding:4px">Hide</button>
+        </div>
+        <div id="resetStaffPwChk" style="font-size:0.75rem;color:var(--ink-soft);margin-top:4px">
+          ○ Min. 8 characters (numbers, letters, symbols accepted)
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" id="resetStaffPwSubmitBtn" class="btn-danger">Reset Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+let allUsers = [];
+
+(async () => {
+  // Staff page is superadmin-only
+  const user = await initAdminPage(['superadmin']);
+  if (!user) return;
+
+  try {
+    allUsers = await api('/api/admin/users');
+    renderTable();
+  } catch (err) {
+    notice($('globalMessage'), err.message);
+  }
+})();
+
+function renderTable() {
+  const staff = allUsers.filter(u => u.role !== 'customer');
+  $('staffTable').innerHTML = staff.length ? `
+    <table class="data-table"><thead><tr>
+      <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>
+    ${staff.map(u => `<tr>
+      <td><strong>${esc(u.name)}</strong></td>
+      <td>${esc(u.email)}</td>
+      <td>${u.role === 'superadmin'
+        ? `<span class="pill pill-confirmed">superadmin</span>`
+        : `<select class="inline-select roleSelect" data-uid="${u.id}">
+            ${['moderator','manager','admin'].map(r => `<option${r === u.role ? ' selected' : ''}>${r}</option>`).join('')}
+           </select>`
+      }</td>
+      <td><span class="pill ${u.active ? 'pill-delivered' : 'pill-cancelled'}">${u.active ? 'Active' : 'Disabled'}</span></td>
+      <td style="white-space:nowrap">
+        ${u.role !== 'superadmin' ? `
+          <button type="button" class="btn-soft btn-toggle-staff" data-uid="${u.id}" data-active="${u.active}" style="margin-right:3px">
+            ${u.active ? 'Disable' : 'Enable'}
+          </button>
+          <button type="button" class="btn-soft btn-reset-staff-pw" data-uid="${u.id}" data-uname="${esc(u.name)}" style="margin-right:3px">
+            Reset PW
+          </button>
+          <button type="button" class="btn-danger btn-delete-staff" data-uid="${u.id}">Delete</button>
+        ` : '<button type="button" class="btn-soft btn-edit-superadmin-profile" style="font-size:.65rem;padding:4px 8px">✎ Edit Profile</button>'}
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`
+    : '<div class="empty-state">No staff accounts found.</div>';
+
+  document.querySelectorAll('.btn-edit-superadmin-profile').forEach(btn => {
+    btn.onclick = () => {
+      if (typeof openAdminProfileModal === 'function') openAdminProfileModal();
+    };
+  });
+
+  document.querySelectorAll('.btn-reset-staff-pw').forEach(btn => {
+    btn.onclick = () => {
+      const u = allUsers.find(x => x.id === Number(btn.dataset.uid));
+      $('resetStaffPwUserId').value = btn.dataset.uid;
+      $('resetStaffPwTarget').textContent = `Staff: ${btn.dataset.uname} (${u ? u.email : ''})`;
+      $('resetStaffPwValue').value = '';
+      $('resetStaffPwValue').type = 'text';
+      $('resetStaffPwToggleBtn').textContent = 'Hide';
+      updateResetStaffPwChk();
+      notice($('resetStaffPwMessage'), '');
+      openModal('resetStaffPwModal');
+      setTimeout(() => $('resetStaffPwValue').focus(), 100);
+    };
+  });
+
+  document.querySelectorAll('.roleSelect').forEach(sel => {
+    sel.onchange = async () => {
+      try {
+        await api(`/api/admin/users/${sel.dataset.uid}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role: sel.value })
+        });
+        allUsers = await api('/api/admin/users');
+        renderTable();
+      } catch (err) {
+        notice($('staffMessage'), err.message);
+      }
+    };
+  });
+
+  document.querySelectorAll('.btn-toggle-staff').forEach(btn => {
+    btn.onclick = async () => {
+      try {
+        await api(`/api/admin/users/${btn.dataset.uid}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ active: btn.dataset.active !== 'true' })
+        });
+        allUsers = await api('/api/admin/users');
+        renderTable();
+      } catch (err) {
+        notice($('staffMessage'), err.message);
+      }
+    };
+  });
+
+  document.querySelectorAll('.btn-delete-staff').forEach(btn => {
+    btn.onclick = async () => {
+      const u = allUsers.find(x => x.id === Number(btn.dataset.uid));
+      if (!confirm(`Delete staff account "${u?.name}"? This cannot be undone.`)) return;
+      try {
+        await api(`/api/admin/users/${btn.dataset.uid}`, { method: 'DELETE' });
+        allUsers = await api('/api/admin/users');
+        renderTable();
+      } catch (err) {
+        notice($('staffMessage'), err.message);
+      }
+    };
+  });
+}
+
+function updateResetStaffPwChk() {
+  const val = ($('resetStaffPwValue') || {}).value || '';
+  const chk = $('resetStaffPwChk');
+  if (chk) {
+    const ok = val.length >= 8;
+    chk.textContent = (ok ? '✓' : '○') + ' Min. 8 characters (numbers, letters, symbols accepted)';
+    chk.style.color = ok ? '#2a9d8f' : 'var(--ink-soft)';
+    chk.style.fontWeight = ok ? '700' : 'normal';
+  }
+}
+
+$('resetStaffPwValue').addEventListener('input', updateResetStaffPwChk);
+
+$('resetStaffPwToggleBtn').onclick = () => {
+  const isText = $('resetStaffPwValue').type === 'text';
+  $('resetStaffPwValue').type = isText ? 'password' : 'text';
+  $('resetStaffPwToggleBtn').textContent = isText ? 'Show' : 'Hide';
+};
+
+$('resetStaffPwGenerateBtn').onclick = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+  let pass = '';
+  for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  $('resetStaffPwValue').value = pass;
+  $('resetStaffPwValue').type = 'text';
+  $('resetStaffPwToggleBtn').textContent = 'Hide';
+  updateResetStaffPwChk();
+  notice($('resetStaffPwMessage'), 'Generated random 10-char password. Click Copy to share.', true);
+};
+
+$('resetStaffPwCopyBtn').onclick = async () => {
+  const val = $('resetStaffPwValue').value;
+  if (!val) { notice($('resetStaffPwMessage'), 'No password to copy yet.'); return; }
+  try {
+    await navigator.clipboard.writeText(val);
+    notice($('resetStaffPwMessage'), '✓ Password copied to clipboard!', true);
+  } catch {
+    $('resetStaffPwValue').select();
+    document.execCommand('copy');
+    notice($('resetStaffPwMessage'), '✓ Password copied!', true);
+  }
+};
+
+$('resetStaffPwCancel').onclick = () => closeModal('resetStaffPwModal');
+$('resetStaffPwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('resetStaffPwMessage');
+  notice(msg, '');
+  const pass = $('resetStaffPwValue').value;
+  if (pass.length < 8) {
+    notice(msg, 'New password must be at least 8 characters long.');
+    return;
+  }
+  const submitBtn = $('resetStaffPwSubmitBtn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Resetting…'; }
+  try {
+    const res = await api(`/api/admin/users/${$('resetStaffPwUserId').value}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ password: pass })
+    });
+    notice(msg, res.message || 'Password reset successfully.', true);
+    setTimeout(() => closeModal('resetStaffPwModal'), 1000);
+  } catch (err) {
+    notice(msg, err.message);
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Reset Password'; }
+  }
+});
+
+$('addStaffForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('addStaffMessage');
+  notice(msg, '');
+  try {
+    await api('/api/admin/staff', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: $('staffName').value.trim(),
+        email: $('staffEmail').value.trim(),
+        password: $('staffPassword').value,
+        role: $('staffRole').value
+      })
+    });
+    e.target.reset();
+    notice(msg, 'Staff account created successfully.', true);
+    allUsers = await api('/api/admin/users');
+    renderTable();
+  } catch (err) {
+    notice(msg, err.message);
+  }
+});
+</script>
+</body>
+</html>

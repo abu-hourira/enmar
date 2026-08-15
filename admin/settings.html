@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Storefront Settings — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <p class="sidebar-section-label">Overview</p>
+    <nav aria-label="Overview navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+    </nav>
+    <p class="sidebar-section-label">Manage</p>
+    <nav aria-label="Manage navigation">
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System navigation">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Storefront Settings</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Live</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+        <div class="dot-menu-wrap">
+          <button type="button" class="btn-dot-menu" id="dotMenuBtn" aria-label="More options">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dot-dropdown" id="dotDropdown">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/orders.html">Orders</a>
+            <a href="/admin/products.html">Products</a>
+            <a href="/admin/customers.html">Customers</a>
+            <a href="/admin/staff.html">Staff</a>
+            <a href="/admin/reviews.html">Reviews</a>
+            <a href="/admin/ads.html">Ads Maker</a>
+            <a href="/admin/subscribers.html">Subscribers</a>
+            <a href="/admin/analytics.html">Analytics</a>
+            <a href="/admin/settings.html">Settings</a>
+            <a href="/admin/apis.html">APIs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-message" id="globalMessage"></div>
+
+    <div class="page-body">
+
+      <!-- SITE & ADMIN BRANDING -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Storefront &amp; Admin Panel Branding</h2>
+          <span class="mono-tag">Customize store identity and admin panel logo &amp; title</span>
+        </div>
+        <div id="brandingMessage"></div>
+        <form class="product-form" id="brandingForm" novalidate>
+          <div class="span2" style="margin-bottom:6px">
+            <h3 style="font-size:.9rem;font-weight:700;color:var(--forest);margin:0 0 4px">Storefront Identity (Customer View)</h3>
+            <p style="font-size:.75rem;color:var(--ink-soft);margin:0">Displayed on the public website header, footer, invoices, and checkout.</p>
+          </div>
+
+          <div class="field span2">
+            <label for="brandName">Storefront Name</label>
+            <input type="text" id="brandName" maxlength="60" placeholder="ENMAR">
+          </div>
+          <div class="field span2">
+            <label>Storefront Logo</label>
+            <label class="ad-upload-label brand-logo-label" id="brandLogoLabel">
+              <input type="file" id="brandLogoFile" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Upload storefront logo image (png / jpg / webp / svg)</span>
+              <small>Empty = default organic leaf icon</small>
+            </label>
+            <div id="brandLogoPreview" style="margin-top:8px"></div>
+            <input type="hidden" id="brandLogo" value="">
+            <button type="button" class="btn-muted" id="btnBrandLogoRemove" style="margin-top:6px;font-size:.72rem">Remove Storefront Logo</button>
+          </div>
+
+          <div class="span2" style="margin-top:16px;margin-bottom:6px;padding-top:16px;border-top:1px dashed var(--line)">
+            <h3 style="font-size:.9rem;font-weight:700;color:var(--forest);margin:0 0 4px">Admin Panel Identity (Staff View)</h3>
+            <p style="font-size:.75rem;color:var(--ink-soft);margin:0">Displayed on the Admin Panel sidebar header, topbar, browser tab titles, and staff portals.</p>
+          </div>
+
+          <div class="field span2">
+            <label for="adminBrandName">Admin Panel Name / Title</label>
+            <input type="text" id="adminBrandName" maxlength="60" placeholder="e.g. ENMAR Admin or HQ Management">
+            <small class="field-hint">Leave blank to automatically use "[Storefront Name] Admin".</small>
+          </div>
+
+          <div class="field span2">
+            <label>Admin Panel Logo</label>
+            <label class="ad-upload-label brand-logo-label" id="adminLogoLabel">
+              <input type="file" id="adminLogoFile" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Upload custom Admin Panel logo (png / jpg / webp / svg)</span>
+              <small>Empty = uses Storefront Logo or default leaf icon</small>
+            </label>
+            <div id="adminLogoPreview" style="margin-top:8px"></div>
+            <input type="hidden" id="adminLogo" value="">
+            <button type="button" class="btn-muted" id="btnAdminLogoRemove" style="margin-top:6px;font-size:.72rem">Remove Admin Logo</button>
+          </div>
+
+          <div class="span2" style="margin-top:16px;margin-bottom:6px;padding-top:16px;border-top:1px dashed var(--line)">
+            <h3 style="font-size:.9rem;font-weight:700;color:var(--forest);margin:0 0 4px">Browser Favicon</h3>
+            <p style="font-size:.75rem;color:var(--ink-soft);margin:0">The small icon displayed in browser tabs, bookmarks, and the address bar for all storefront and admin pages.</p>
+          </div>
+
+          <div class="field span2">
+            <label>Favicon Image</label>
+            <label class="ad-upload-label brand-logo-label" id="faviconLabel">
+              <input type="file" id="faviconFile" accept="image/png,image/x-icon,image/svg+xml,image/jpeg,image/webp,image/gif">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>Upload favicon (png / ico / svg / jpg — recommended 32×32 or 64×64 px)</span>
+              <small>Empty = browser default icon</small>
+            </label>
+            <div id="faviconPreview" style="margin-top:8px"></div>
+            <input type="hidden" id="favicon" value="">
+            <button type="button" class="btn-muted" id="btnFaviconRemove" style="margin-top:6px;font-size:.72rem">Remove Favicon</button>
+          </div>
+
+          <div class="span2" style="margin-top:10px">
+            <button type="submit" class="btn-primary" style="padding:10px 24px;font-weight:700">Save All Branding Settings</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- THEME -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Theme</h2>
+          <span class="mono-tag">Main colours for the whole website</span>
+        </div>
+        <div id="themeMessage"></div>
+        <div class="product-form">
+          <div class="field span2">
+            <label>Preset themes</label>
+            <div class="ams-swatch-row" id="themePresets"></div>
+          </div>
+          <div class="field">
+            <label for="themePrimary">Primary colour</label>
+            <input type="color" id="themePrimary" value="#631e2a">
+          </div>
+          <div class="field">
+            <label for="themeAccent">Accent colour</label>
+            <input type="color" id="themeAccent" value="#C0912E">
+          </div>
+          <div class="field span2">
+            <label>Preview</label>
+            <div class="theme-preview" id="themePreview"></div>
+          </div>
+          <div class="span2">
+            <button type="button" class="btn-primary" id="btnSaveTheme">Save Theme</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEWSLETTER -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Newsletter Section</h2>
+          <span class="mono-tag">Signup block at the bottom of the shop page</span>
+        </div>
+        <div id="newsletterMessage"></div>
+        <form class="product-form" id="newsletterForm" novalidate>
+          <div class="field span2">
+            <label for="newsletterHeading">Heading</label>
+            <input type="text" id="newsletterHeading" maxlength="120" required>
+          </div>
+          <div class="field span2">
+            <label for="newsletterBody">Body text</label>
+            <textarea id="newsletterBody" rows="2" class="textarea-full" maxlength="300" required></textarea>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Newsletter</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CONTACT INFO -->
+      <div class="panel-card" id="contactCard">
+        <div class="section-head">
+          <h2>Contact &amp; Footer Info</h2>
+          <span class="mono-tag">Admin &amp; superadmin only</span>
+        </div>
+        <div id="contactMessage"></div>
+        <form class="product-form" id="contactForm" novalidate>
+
+          <div class="field span2 field-section-divider">
+            <div class="field-section-label">Contact Links</div>
+          </div>
+
+          <div class="field">
+            <label for="contactPhone">Phone number</label>
+            <input type="text" id="contactPhone" maxlength="30" placeholder="+880 1700 000000">
+          </div>
+          <div class="field">
+            <label for="contactWhatsapp">WhatsApp URL</label>
+            <input type="url" id="contactWhatsapp" maxlength="200" placeholder="https://wa.me/8801700000000">
+          </div>
+          <div class="field">
+            <label for="contactEmail">Email address</label>
+            <input type="email" id="contactEmail" maxlength="120" placeholder="hello@enmar.bd">
+          </div>
+          <div class="field">
+            <label for="contactFacebook">Facebook page URL</label>
+            <input type="url" id="contactFacebook" maxlength="200" placeholder="https://facebook.com/enmar">
+          </div>
+          <div class="field">
+            <label for="messengerUrl">Messenger chat URL</label>
+            <input type="url" id="messengerUrl" maxlength="200" placeholder="https://m.me/yourpage">
+            <small class="field-hint">Paste your m.me link — a chat button will appear on the storefront.</small>
+          </div>
+          <div class="field span2">
+            <label for="contactAddress">Office / shop address</label>
+            <input type="text" id="contactAddress" maxlength="200" placeholder="House 12, Road 4, Dhaka">
+          </div>
+
+          <div class="field span2 field-section-divider">
+            <div class="field-section-label">Footer Info Panels (shown when user clicks Shipping / Our Farms / Contact)</div>
+          </div>
+
+          <div class="field span2">
+            <label for="footerShippingInfo">Shipping info</label>
+            <textarea id="footerShippingInfo" rows="4" class="textarea-full" maxlength="800"
+              placeholder="We deliver within 48 hours of harvest.&#10;Free shipping on orders over ৳1500.&#10;Delivery available across Bangladesh."></textarea>
+          </div>
+          <div class="field span2">
+            <label for="footerFarmInfo">Our Farms info</label>
+            <textarea id="footerFarmInfo" rows="4" class="textarea-full" maxlength="800"
+              placeholder="We partner with 40+ certified organic farms.&#10;Savar Fresh Farm, Dhaka&#10;Green Valley, Gazipur&#10;Rajshahi Orchard…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="footerContactInfo">Contact section additional text</label>
+            <textarea id="footerContactInfo" rows="3" class="textarea-full" maxlength="500"
+              placeholder="Business hours: Sat–Thu, 9am–6pm"></textarea>
+          </div>
+
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Contact &amp; Footer Info</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- FOOTER & SHIPPING -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Footer &amp; Shipping</h2>
+          <span class="mono-tag">Footer tagline and delivery pricing</span>
+        </div>
+        <div id="footerMessage"></div>
+        <form class="product-form" id="footerForm" novalidate>
+          <div class="field span2">
+            <label for="footerTagline">Footer tagline</label>
+            <input type="text" id="footerTagline" maxlength="120" required>
+          </div>
+          <div class="field">
+            <label for="shippingFlat">Flat shipping fee (৳)</label>
+            <input type="number" id="shippingFlat" min="0" step="1" required>
+          </div>
+          <div class="field">
+            <label for="shippingFreeThreshold">Free shipping threshold (৳)</label>
+            <input type="number" id="shippingFreeThreshold" min="0" step="1" required>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Footer &amp; Shipping</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- INFORMATION PAGES -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Information Pages</h2>
+          <span class="mono-tag">Shown when visitors click footer links</span>
+        </div>
+        <div id="infoMessage"></div>
+        <form class="product-form" id="infoForm" novalidate>
+          <div class="field span2">
+            <label for="pageAboutUs">About Us</label>
+            <textarea id="pageAboutUs" rows="5" class="textarea-full" maxlength="3000" placeholder="Tell customers who you are…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageContactUs">Contact Us</label>
+            <textarea id="pageContactUs" rows="5" class="textarea-full" maxlength="3000" placeholder="How to reach you — phone, email, address, hours…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageCompanyInfo">Company Information</label>
+            <textarea id="pageCompanyInfo" rows="5" class="textarea-full" maxlength="3000" placeholder="Registration, mission, story…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageTerms">Terms &amp; Conditions</label>
+            <textarea id="pageTerms" rows="6" class="textarea-full" maxlength="5000" placeholder="Your terms of service…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pagePrivacyPolicy">Privacy Policy</label>
+            <textarea id="pagePrivacyPolicy" rows="6" class="textarea-full" maxlength="5000" placeholder="How you collect and use data…"></textarea>
+          </div>
+          <div class="span2" id="infoMessage2"></div>
+          <div class="span2"><button type="submit" class="btn-primary">Save Information Pages</button></div>
+        </form>
+      </div>
+
+      <!-- SUPPORT PAGES -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Support Pages</h2>
+          <span class="mono-tag">Shown when visitors click footer links</span>
+        </div>
+        <div id="supportMessage"></div>
+        <form class="product-form" id="supportForm" novalidate>
+          <div class="field span2">
+            <label for="pageSupportCenter">Support Center</label>
+            <textarea id="pageSupportCenter" rows="5" class="textarea-full" maxlength="3000" placeholder="How to get help…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageHowToOrder">How to Order</label>
+            <textarea id="pageHowToOrder" rows="5" class="textarea-full" maxlength="3000" placeholder="Step-by-step ordering guide…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageOrderTracking">Order Tracking</label>
+            <textarea id="pageOrderTracking" rows="4" class="textarea-full" maxlength="3000" placeholder="How to track an order…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pagePaymentInfo">Payment Information</label>
+            <textarea id="pagePaymentInfo" rows="4" class="textarea-full" maxlength="3000" placeholder="Accepted payment methods, bKash, Nagad, COD…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageSupportShipping">Shipping</label>
+            <textarea id="pageSupportShipping" rows="4" class="textarea-full" maxlength="3000" placeholder="Delivery areas, timelines, charges…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageFaq">FAQ</label>
+            <textarea id="pageFaq" rows="6" class="textarea-full" maxlength="5000" placeholder="Q: How fresh are the products?&#10;A: …"></textarea>
+          </div>
+          <div class="span2" id="supportMessage2"></div>
+          <div class="span2"><button type="submit" class="btn-primary">Save Support Pages</button></div>
+        </form>
+      </div>
+
+      <!-- CONSUMER POLICY PAGES -->
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>Consumer Policy Pages</h2>
+          <span class="mono-tag">Shown when visitors click footer links</span>
+        </div>
+        <div id="policyMessage"></div>
+        <form class="product-form" id="policyForm" novalidate>
+          <div class="field span2">
+            <label for="pageHappyReturn">Happy Return</label>
+            <textarea id="pageHappyReturn" rows="5" class="textarea-full" maxlength="3000" placeholder="Return conditions and process…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageRefundPolicy">Refund Policy</label>
+            <textarea id="pageRefundPolicy" rows="5" class="textarea-full" maxlength="3000" placeholder="Refund timeline and conditions…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pageCancellation">Cancellation</label>
+            <textarea id="pageCancellation" rows="4" class="textarea-full" maxlength="3000" placeholder="How to cancel an order…"></textarea>
+          </div>
+          <div class="field span2">
+            <label for="pagePreOrder">Pre-Order</label>
+            <textarea id="pagePreOrder" rows="4" class="textarea-full" maxlength="3000" placeholder="Pre-order terms and conditions…"></textarea>
+          </div>
+          <div class="span2" id="policyMessage2"></div>
+          <div class="span2"><button type="submit" class="btn-primary">Save Consumer Policy Pages</button></div>
+        </form>
+      </div>
+
+      <!-- DEFAULT ORDER & CHECKOUT TEXTS -->
+      <div class="panel-card" id="orderDefaultsCard">
+        <div class="section-head">
+          <h2>Order &amp; Checkout Texts</h2>
+          <span class="mono-tag">Default order note, delivery timelines &amp; checkout messages</span>
+        </div>
+        <div id="orderDefaultsMessage"></div>
+        <form class="product-form" id="orderDefaultsForm" novalidate>
+          <div class="field span2">
+            <label for="defaultOrderMessage">Default Order Message / Note (Sent to customer with new orders)</label>
+            <input type="text" id="defaultOrderMessage" maxlength="250" placeholder="Thank you" required>
+            <small class="field-hint">By default "Thank you". This message can also be edited per order from the Admin Orders panel.</small>
+          </div>
+          <div class="field">
+            <label for="defaultDeliveryEstimate">Default Delivery Estimate</label>
+            <input type="text" id="defaultDeliveryEstimate" maxlength="80" placeholder="24–48 hours" required>
+          </div>
+          <div class="field">
+            <label for="orderSuccessHeading">Order Confirmed Heading</label>
+            <input type="text" id="orderSuccessHeading" maxlength="100" placeholder="Order Placed!" required>
+          </div>
+          <div class="field span2">
+            <label for="orderSuccessMessage">Order Confirmed Subtext</label>
+            <textarea id="orderSuccessMessage" rows="2" class="textarea-full" maxlength="400" placeholder="Your order is pending review. Our team will confirm it shortly."></textarea>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Order &amp; Checkout Texts</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STOREFRONT & CATALOG TEXTS -->
+      <div class="panel-card" id="catalogTextsCard">
+        <div class="section-head">
+          <h2>Catalog &amp; Search Texts</h2>
+          <span class="mono-tag">Category &amp; product section headings and search bar text</span>
+        </div>
+        <div id="catalogTextsMessage"></div>
+        <form class="product-form" id="catalogTextsForm" novalidate>
+          <div class="field">
+            <label for="categorySectionTitle">Categories Section Heading</label>
+            <input type="text" id="categorySectionTitle" maxlength="100" placeholder="Featured Categories" required>
+          </div>
+          <div class="field">
+            <label for="productsSectionTitle">Products Section Heading</label>
+            <input type="text" id="productsSectionTitle" maxlength="100" placeholder="Top Selling Products" required>
+          </div>
+          <div class="field span2">
+            <label for="searchPlaceholder">Search Input Placeholder</label>
+            <input type="text" id="searchPlaceholder" maxlength="150" placeholder="Search fresh harvest by name, variety, category…">
+          </div>
+          <div class="field span2">
+            <label for="cartEmptyMessage">Empty Cart / Basket Message</label>
+            <input type="text" id="cartEmptyMessage" maxlength="150" placeholder="Your harvest basket is empty.">
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Catalog &amp; Search Texts</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- RECENTLY ADDED PRODUCTS SECTION SETTINGS -->
+      <div class="panel-card" id="recentProductsCard">
+        <div class="section-head">
+          <h2>Recently Added Products (Homepage Section)</h2>
+          <span class="mono-tag">Control text, badges, display limits, expiry window &amp; scroll speed</span>
+        </div>
+        <div id="recentSectionMessage"></div>
+        <form class="product-form" id="recentSectionForm" novalidate>
+          <div class="field span2" style="background:var(--paper,#FAF8F5); border:1px solid var(--line-dark,#E0D8CE); border-radius:8px; padding:12px 14px;">
+            <label class="checkbox-label" style="display:flex; align-items:center; gap:10px; font-weight:600; cursor:pointer; margin:0;">
+              <input type="checkbox" id="recentSectionEnabled" value="true" style="width:18px; height:18px; accent-color:var(--forest,#2C4A3E);">
+              <span>Enable "Recently Added Products" auto-scrolling section on homepage</span>
+            </label>
+          </div>
+          <div class="field">
+            <label for="recentSectionBadge">Section Badge / Pill</label>
+            <input type="text" id="recentSectionBadge" maxlength="60" placeholder="🌱 Fresh Arrivals">
+          </div>
+          <div class="field">
+            <label for="recentSectionTitle">Section Title</label>
+            <input type="text" id="recentSectionTitle" maxlength="100" placeholder="Recently Added Products" required>
+          </div>
+          <div class="field span2">
+            <label for="recentSectionSubtitle">Section Subtitle / Description</label>
+            <input type="text" id="recentSectionSubtitle" maxlength="200" placeholder="Freshly added organic picks direct from our partner farms — auto scrolling.">
+          </div>
+          <div class="field">
+            <label for="recentSectionExploreText">Explore Button Text</label>
+            <input type="text" id="recentSectionExploreText" maxlength="60" placeholder="Full Catalog ↓">
+          </div>
+          <div class="field">
+            <label for="recentSectionExploreLink">Explore Button Link / Target</label>
+            <input type="text" id="recentSectionExploreLink" maxlength="100" placeholder="#shop">
+          </div>
+          <div class="field">
+            <label for="recentSectionMaxProducts">Max Products in Carousel (Rotation Limit)</label>
+            <input type="number" id="recentSectionMaxProducts" min="1" max="50" step="1" placeholder="8">
+            <small class="field-hint">Maximum number of recent products to rotate in the carousel (e.g. 8).</small>
+          </div>
+          <div class="field">
+            <label for="recentSectionScrollSpeed">Auto-Scroll Interval (Seconds)</label>
+            <input type="number" id="recentSectionScrollSpeed" min="1" max="30" step="0.5" placeholder="3.8">
+            <small class="field-hint">Time in seconds before smoothly auto-scrolling to the next product (e.g. 3.8s).</small>
+          </div>
+          <div class="field">
+            <label for="recentSectionDaysLimit">Product Expiry Window (Days)</label>
+            <input type="number" id="recentSectionDaysLimit" min="0" max="365" step="1" placeholder="0">
+            <small class="field-hint">Only show products added in the last X days. Enter 0 for no expiry (always show latest products).</small>
+          </div>
+          <div class="field">
+            <label for="recentSectionCardBadge">Card Badge Stamp</label>
+            <input type="text" id="recentSectionCardBadge" maxlength="60" placeholder="🌱 Fresh Arrival">
+            <small class="field-hint">Custom text stamped on top of each recent product card.</small>
+          </div>
+          <div class="field">
+            <label for="recentSectionRatingText">Star Rating Side Message</label>
+            <input type="text" id="recentSectionRatingText" maxlength="60" placeholder="New harvest">
+            <small class="field-hint">Message displayed beside the stars for products (e.g. "New harvest", "Farm Pick", "100% Organic").</small>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Recent Products Settings</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- COMMUNITY & COMMENTS SECTION TEXTS -->
+      <div class="panel-card" id="communityTextsCard">
+        <div class="section-head">
+          <h2>Community Section Texts</h2>
+          <span class="mono-tag">Titles, guest login prompts &amp; comment placeholders on home page</span>
+        </div>
+        <div id="communityTextsMessage"></div>
+        <form class="product-form" id="communityTextsForm" novalidate>
+          <div class="field">
+            <label for="communitySectionPill">Section Pill Badge</label>
+            <input type="text" id="communitySectionPill" maxlength="60" placeholder="💬 Community Voices" required>
+          </div>
+          <div class="field">
+            <label for="communitySectionTitle">Community Section Heading</label>
+            <input type="text" id="communitySectionTitle" maxlength="120" placeholder="Member Discussions &amp; Feedback" required>
+          </div>
+          <div class="field span2">
+            <label for="communitySectionSubtitle">Community Subtitle / Description</label>
+            <input type="text" id="communitySectionSubtitle" maxlength="250" placeholder="Read thoughts from our verified members or sign in to share your experience.">
+          </div>
+          <div class="field span2">
+            <label for="communityPromptGuest">Guest Member Login Prompt</label>
+            <textarea id="communityPromptGuest" rows="2" class="textarea-full" maxlength="400" placeholder="Join our harvest community to leave comments, ask questions, or share feedback."></textarea>
+          </div>
+          <div class="field span2">
+            <label for="communityPlaceholder">Comment Textarea Placeholder</label>
+            <input type="text" id="communityPlaceholder" maxlength="180" placeholder="Share your thoughts, review our seasonal harvest, or ask a question…">
+          </div>
+          <div class="field span2">
+            <label for="communityEmptyMessage">Empty Comments Message</label>
+            <input type="text" id="communityEmptyMessage" maxlength="200" placeholder="No community comments yet. Be the first verified member to share your thoughts!">
+          </div>
+          <div class="field span2">
+            <label for="defaultCommentReply">Default Admin Reply Text (Pre-filled when replying to comments)</label>
+            <textarea id="defaultCommentReply" rows="2" class="textarea-full" maxlength="500" placeholder="Thank you for your valuable feedback! We appreciate you being part of our community."></textarea>
+            <small class="field-hint">Automatically pre-fills the reply box in the Admin Comments panel. Staff can edit or customize it before sending.</small>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Community Section Texts</button>
+          </div>
+        </form>
+      </div>
+
+       <!-- CUSTOMER PORTAL / MY ORDERS TEXTS -->
+       <div class="panel-card" id="portalTextsCard">
+         <div class="section-head">
+           <h2>Customer Portal Texts</h2>
+           <span class="mono-tag">Headings and status prompts in customer accounts</span>
+         </div>
+         <div id="portalTextsMessage"></div>
+         <form class="product-form" id="portalTextsForm" novalidate>
+           <div class="field span2">
+             <label for="myOrdersPageTitle">My Orders Page Heading</label>
+             <input type="text" id="myOrdersPageTitle" maxlength="100" placeholder="My Orders" required>
+           </div>
+           <div class="field span2">
+             <label for="myOrdersEmptyMessage">Empty Orders Message</label>
+             <input type="text" id="myOrdersEmptyMessage" maxlength="250" placeholder="You haven't placed any orders yet.">
+           </div>
+           <div class="field span2">
+             <label for="shopHarvestButtonText">"Shop This Week's Harvest" Button Text</label>
+             <input type="text" id="shopHarvestButtonText" maxlength="100" placeholder="Shop This Week's Harvest" required>
+             <small class="field-hint">The CTA button shown when customer has no orders yet.</small>
+           </div>
+           <div class="span2">
+             <button type="submit" class="btn-primary">Save Customer Portal Texts</button>
+           </div>
+         </form>
+       </div>
+
+      <!-- REGISTRATION INSTRUCTIONS / LOGIN GUIDE -->
+      <div class="panel-card" id="regGuideCard">
+        <div class="section-head">
+          <h2>Registration Instructions (Login &amp; Auth Guide)</h2>
+          <span class="mono-tag">Step-by-step registration help shown in the customer login / sign-in interface</span>
+        </div>
+        <div id="regGuideMessage"></div>
+        <form class="product-form" id="regGuideForm" novalidate>
+          <div class="field span2">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+              <input type="checkbox" id="regGuideEnabled" style="width:18px;height:18px;cursor:pointer">
+              <span style="font-weight:700;font-size:.9rem;color:var(--forest)">Enable "How to Register" Instructions in Login Interface</span>
+            </label>
+            <small class="field-hint">When enabled, customers can expand a helpful step-by-step guide directly inside the sign-in modal.</small>
+          </div>
+          <div class="field span2">
+            <label for="regGuideTitle">Guide Button / Heading Title</label>
+            <input type="text" id="regGuideTitle" maxlength="100" placeholder="How to Register / Create Account" required>
+          </div>
+          <div class="field span2">
+            <label for="regGuideSubtitle">Guide Subtitle / Note</label>
+            <input type="text" id="regGuideSubtitle" maxlength="250" placeholder="New to our shop? Follow these simple steps to create your customer account:">
+          </div>
+          <div class="field span2">
+            <label for="regGuideSteps">Step-by-Step Instructions (One per line)</label>
+            <textarea id="regGuideSteps" rows="6" class="textarea-full" maxlength="5000" placeholder="1. Click the 'Create Account' tab at the top of this window.&#10;2. Enter your Full Name, Email Address, and Mobile Number (01XXXXXXXXX).&#10;3. Click 'Send code' to receive your 6-digit email verification code.&#10;4. Enter the code and choose a secure password (min 8 chars).&#10;5. Click 'Create My Account' to complete registration!"></textarea>
+            <small class="field-hint">Enter steps clearly. Each line will be styled with an easy-to-read numbered badge.</small>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Registration Instructions</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- AD BANNER -->
+      <div class="panel-card" id="adBannerCard">
+        <div class="section-head">
+          <h2>Ad Banner</h2>
+          <span class="mono-tag">Images slide automatically · Videos autoplay</span>
+        </div>
+        <div id="adMessage"></div>
+
+        <!-- current items grid -->
+        <div id="adMediaGrid"></div>
+
+        <!-- upload area -->
+        <label class="ad-upload-label" id="adUploadLabel">
+          <input type="file" id="adFileInput" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="adUploadText">Click or drag to upload image / video</span>
+          <small>Images: jpg, png, webp, gif (max 5 MB) &nbsp;·&nbsp; Video: mp4, webm (max 50 MB) &nbsp;·&nbsp; Max 10 items</small>
+        </label>
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /admin-shell -->
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+(async () => {
+  const user = await initAdminPage(['superadmin', 'admin', 'manager']);
+  if (!user) return;
+
+  // Contact card only for admin / superadmin
+  if (['superadmin', 'admin'].includes(user.role)) {
+    $('contactCard').style.display = 'block';
+  }
+
+  // Load current settings into all form fields
+  try {
+    const s = await api('/api/settings');
+    fill('newsletterHeading',     s.newsletterHeading);
+    fill('newsletterBody',        s.newsletterBody);
+    fill('footerTagline',         s.footerTagline);
+    fill('brandName',             s.brandName || '');
+    if (s.brandLogo) { $('brandLogo').value = s.brandLogo; renderBrandLogoPreview(s.brandLogo); }
+    fill('adminBrandName',        s.adminBrandName || '');
+    if (s.adminLogo) { $('adminLogo').value = s.adminLogo; renderAdminLogoPreview(s.adminLogo); }
+    if (s.favicon) { $('favicon').value = s.favicon; renderFaviconPreview(s.favicon); }
+    $('themePrimary').value = s.themePrimary || '#631e2a';
+    $('themeAccent').value = s.themeAccent || '#C0912E';
+    renderThemePreview();
+    fill('shippingFlat',          s.shippingFlat);
+    fill('shippingFreeThreshold', s.shippingFreeThreshold);
+    fill('contactPhone',          s.contactPhone);
+    fill('contactEmail',          s.contactEmail);
+    fill('contactAddress',        s.contactAddress);
+    fill('contactFacebook',       s.contactFacebook);
+    fill('contactWhatsapp',       s.contactWhatsapp);
+    fill('messengerUrl',          s.messengerUrl);
+    fill('footerShippingInfo',    s.footerShippingInfo);
+    fill('footerFarmInfo',        s.footerFarmInfo);
+    fill('footerContactInfo',     s.footerContactInfo);
+    // Information pages
+    fill('pageAboutUs',         s.pageAboutUs);
+    fill('pageContactUs',       s.pageContactUs);
+    fill('pageCompanyInfo',     s.pageCompanyInfo);
+    fill('pageTerms',           s.pageTerms);
+    fill('pagePrivacyPolicy',   s.pagePrivacyPolicy);
+    // Support pages
+    fill('pageSupportCenter',   s.pageSupportCenter);
+    fill('pageHowToOrder',      s.pageHowToOrder);
+    fill('pageOrderTracking',   s.pageOrderTracking);
+    fill('pagePaymentInfo',     s.pagePaymentInfo);
+    fill('pageSupportShipping', s.footerShippingInfo);
+    fill('pageFaq',             s.pageFaq);
+    // Consumer policy pages
+    fill('pageHappyReturn',     s.pageHappyReturn);
+    fill('pageRefundPolicy',    s.pageRefundPolicy);
+    fill('pageCancellation',    s.pageCancellation);
+    fill('pagePreOrder',        s.pagePreOrder);
+
+    // Default order & delivery texts
+    fill('defaultOrderMessage',     s.defaultOrderMessage);
+    fill('defaultDeliveryEstimate', s.defaultDeliveryEstimate);
+    fill('orderSuccessHeading',     s.orderSuccessHeading);
+    fill('orderSuccessMessage',     s.orderSuccessMessage);
+
+    // Catalog & search texts
+    fill('categorySectionTitle',    s.categorySectionTitle);
+    fill('productsSectionTitle',    s.productsSectionTitle);
+    fill('searchPlaceholder',       s.searchPlaceholder);
+    fill('cartEmptyMessage',        s.cartEmptyMessage);
+
+    // Recently Added Products section
+    if ($('recentSectionEnabled')) $('recentSectionEnabled').checked = s.recentSectionEnabled !== 'false' && s.recentSectionEnabled !== false;
+    fill('recentSectionBadge',        s.recentSectionBadge);
+    fill('recentSectionTitle',        s.recentSectionTitle);
+    fill('recentSectionSubtitle',     s.recentSectionSubtitle);
+    fill('recentSectionExploreText',  s.recentSectionExploreText);
+    fill('recentSectionExploreLink',  s.recentSectionExploreLink);
+    fill('recentSectionMaxProducts',  s.recentSectionMaxProducts);
+    fill('recentSectionScrollSpeed',  s.recentSectionScrollSpeed);
+    fill('recentSectionDaysLimit',    s.recentSectionDaysLimit);
+    fill('recentSectionCardBadge',    s.recentSectionCardBadge);
+    fill('recentSectionRatingText',   s.recentSectionRatingText);
+
+    // Community texts
+    fill('communitySectionPill',    s.communitySectionPill);
+    fill('communitySectionTitle',   s.communitySectionTitle);
+    fill('communitySectionSubtitle',s.communitySectionSubtitle);
+    fill('communityPromptGuest',    s.communityPromptGuest);
+    fill('communityPlaceholder',    s.communityPlaceholder);
+    fill('communityEmptyMessage',   s.communityEmptyMessage);
+    fill('defaultCommentReply',     s.defaultCommentReply);
+
+    // Portal texts
+    fill('myOrdersPageTitle',         s.myOrdersPageTitle);
+    fill('myOrdersEmptyMessage',      s.myOrdersEmptyMessage);
+    fill('shopHarvestButtonText',     s.shopHarvestButtonText || 'Shop This Week\'s Harvest');
+
+    // Registration Instructions Guide
+    if ($('regGuideEnabled')) $('regGuideEnabled').checked = s.regGuideEnabled !== 'false' && s.regGuideEnabled !== false;
+    fill('regGuideTitle',           s.regGuideTitle || 'How to Register / Create Account');
+    fill('regGuideSubtitle',        s.regGuideSubtitle || 'New to our shop? Follow these simple steps to create your customer account:');
+    fill('regGuideSteps',           s.regGuideSteps || '');
+  } catch (err) {
+    notice($('globalMessage'), 'Could not load settings: ' + err.message);
+  }
+
+  // Newsletter form
+  $('newsletterForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('newsletterMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          newsletterHeading: val('newsletterHeading'),
+          newsletterBody:    val('newsletterBody')
+        })
+      });
+      notice(msg, 'Newsletter section saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Footer & shipping form
+  $('footerForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('footerMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          footerTagline:         val('footerTagline'),
+          shippingFlat:          Number(val('shippingFlat')),
+          shippingFreeThreshold: Number(val('shippingFreeThreshold'))
+        })
+      });
+      notice(msg, 'Footer and shipping saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Contact info form (admin/superadmin only)
+  if (['superadmin', 'admin'].includes(user.role)) {
+    $('contactForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = $('contactMessage');
+      notice(msg, '');
+      try {
+        await api('/api/admin/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            contactPhone:       val('contactPhone'),
+            contactEmail:       val('contactEmail'),
+            contactAddress:     val('contactAddress'),
+            contactFacebook:    val('contactFacebook'),
+            contactWhatsapp:    val('contactWhatsapp'),
+            messengerUrl:       val('messengerUrl'),
+            footerShippingInfo: val('footerShippingInfo'),
+            footerFarmInfo:     val('footerFarmInfo'),
+            footerContactInfo:  val('footerContactInfo')
+          })
+        });
+        notice(msg, 'Contact &amp; footer info saved.', true);
+      } catch (err) { notice(msg, err.message); }
+    });
+  }
+  // Information pages form
+  $('infoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('infoMessage2');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          pageAboutUs:       val('pageAboutUs'),
+          pageContactUs:     val('pageContactUs'),
+          pageCompanyInfo:   val('pageCompanyInfo'),
+          pageTerms:         val('pageTerms'),
+          pagePrivacyPolicy: val('pagePrivacyPolicy')
+        })
+      });
+      notice(msg, 'Information pages saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Support pages form
+  $('supportForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('supportMessage2');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          pageSupportCenter:  val('pageSupportCenter'),
+          pageHowToOrder:     val('pageHowToOrder'),
+          pageOrderTracking:  val('pageOrderTracking'),
+          pagePaymentInfo:    val('pagePaymentInfo'),
+          footerShippingInfo: val('pageSupportShipping'),
+          pageFaq:            val('pageFaq')
+        })
+      });
+      notice(msg, 'Support pages saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Consumer policy pages form
+  $('policyForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('policyMessage2');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          pageHappyReturn:   val('pageHappyReturn'),
+          pageRefundPolicy:  val('pageRefundPolicy'),
+          pageCancellation:  val('pageCancellation'),
+          pagePreOrder:      val('pagePreOrder')
+        })
+      });
+      notice(msg, 'Consumer policy pages saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Order defaults form
+  $('orderDefaultsForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('orderDefaultsMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          defaultOrderMessage:     val('defaultOrderMessage'),
+          defaultDeliveryEstimate: val('defaultDeliveryEstimate'),
+          orderSuccessHeading:     val('orderSuccessHeading'),
+          orderSuccessMessage:     val('orderSuccessMessage')
+        })
+      });
+      notice(msg, 'Order & checkout defaults saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Catalog texts form
+  $('catalogTextsForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('catalogTextsMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          categorySectionTitle: val('categorySectionTitle'),
+          productsSectionTitle: val('productsSectionTitle'),
+          searchPlaceholder:    val('searchPlaceholder'),
+          cartEmptyMessage:     val('cartEmptyMessage')
+        })
+      });
+      notice(msg, 'Catalog & search texts saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Recent products section form
+  if ($('recentSectionForm')) {
+    $('recentSectionForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = $('recentSectionMessage');
+      notice(msg, '');
+      try {
+        await api('/api/admin/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            recentSectionEnabled:     $('recentSectionEnabled').checked ? 'true' : 'false',
+            recentSectionBadge:       val('recentSectionBadge'),
+            recentSectionTitle:       val('recentSectionTitle'),
+            recentSectionSubtitle:    val('recentSectionSubtitle'),
+            recentSectionExploreText: val('recentSectionExploreText'),
+            recentSectionExploreLink: val('recentSectionExploreLink'),
+            recentSectionMaxProducts: Number(val('recentSectionMaxProducts')) || 8,
+            recentSectionScrollSpeed: Number(val('recentSectionScrollSpeed')) || 3.8,
+            recentSectionDaysLimit:   Number(val('recentSectionDaysLimit')) || 0,
+            recentSectionCardBadge:   val('recentSectionCardBadge'),
+            recentSectionRatingText:  val('recentSectionRatingText')
+          })
+        });
+        notice(msg, 'Recently Added Products settings saved.', true);
+      } catch (err) { notice(msg, err.message); }
+    });
+  }
+
+  // Community texts form
+  $('communityTextsForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('communityTextsMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          communitySectionPill:     val('communitySectionPill'),
+          communitySectionTitle:    val('communitySectionTitle'),
+          communitySectionSubtitle: val('communitySectionSubtitle'),
+          communityPromptGuest:     val('communityPromptGuest'),
+          communityPlaceholder:     val('communityPlaceholder'),
+          communityEmptyMessage:    val('communityEmptyMessage'),
+          defaultCommentReply:      val('defaultCommentReply')
+        })
+      });
+      notice(msg, 'Community section texts saved.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // Portal texts form
+  if ($('portalTextsForm')) {
+    $('portalTextsForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = $('portalTextsMessage');
+      notice(msg, '');
+      try {
+        await api('/api/admin/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            myOrdersPageTitle:      val('myOrdersPageTitle'),
+            myOrdersEmptyMessage:   val('myOrdersEmptyMessage'),
+            shopHarvestButtonText:  val('shopHarvestButtonText')
+          })
+        });
+        notice(msg, 'Customer portal texts saved.', true);
+      } catch (err) { notice(msg, err.message); }
+    });
+  }
+
+  // Registration guide form
+  if ($('regGuideForm')) {
+    $('regGuideForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = $('regGuideMessage');
+      notice(msg, '');
+      try {
+        await api('/api/admin/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            regGuideEnabled:  $('regGuideEnabled').checked ? 'true' : 'false',
+            regGuideTitle:    val('regGuideTitle'),
+            regGuideSubtitle: val('regGuideSubtitle'),
+            regGuideSteps:    val('regGuideSteps')
+          })
+        });
+        notice(msg, 'Registration instructions saved successfully.', true);
+      } catch (err) { notice(msg, err.message); }
+    });
+  }
+
+})();
+
+function fill(id, value) {
+  const el = $(id);
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = value ?? '';
+}
+
+function val(id) {
+  const el = $(id);
+  return el ? el.value.trim() : '';
+}
+
+/* ── Site & Admin Branding ── */
+  function renderBrandLogoPreview(url) {
+    const box = $('brandLogoPreview');
+    if (!box) return;
+    box.innerHTML = url ? `<img src="${esc(url)}" alt="Storefront Logo preview" style="max-height:48px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
+  }
+  function renderAdminLogoPreview(url) {
+    const box = $('adminLogoPreview');
+    if (!box) return;
+    box.innerHTML = url ? `<img src="${esc(url)}" alt="Admin Logo preview" style="max-height:48px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
+  }
+  function renderFaviconPreview(url) {
+    const box = $('faviconPreview');
+    if (!box) return;
+    box.innerHTML = url ? `<img src="${esc(url)}" alt="Favicon preview" style="width:32px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
+  }
+
+  $('brandLogoFile').addEventListener('change', () => {
+    const file = $('brandLogoFile').files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { notice($('brandingMessage'), 'Storefront Logo must be under 2 MB.'); $('brandLogoFile').value = ''; return; }
+    const r = new FileReader();
+    r.onload = () => { $('brandLogo').value = r.result; renderBrandLogoPreview(r.result); notice($('brandingMessage'), '', true); };
+    r.readAsDataURL(file);
+  });
+  $('btnBrandLogoRemove').addEventListener('click', () => {
+    $('brandLogo').value = ''; $('brandLogoFile').value = ''; renderBrandLogoPreview('');
+    notice($('brandingMessage'), 'Storefront logo cleared — default leaf icon will be shown.', true);
+  });
+
+  $('adminLogoFile').addEventListener('change', () => {
+    const file = $('adminLogoFile').files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { notice($('brandingMessage'), 'Admin Logo must be under 2 MB.'); $('adminLogoFile').value = ''; return; }
+    const r = new FileReader();
+    r.onload = () => { $('adminLogo').value = r.result; renderAdminLogoPreview(r.result); notice($('brandingMessage'), '', true); };
+    r.readAsDataURL(file);
+  });
+  $('btnAdminLogoRemove').addEventListener('click', () => {
+    $('adminLogo').value = ''; $('adminLogoFile').value = ''; renderAdminLogoPreview('');
+    notice($('brandingMessage'), 'Admin logo cleared — default store branding will be used.', true);
+  });
+
+  $('faviconFile').addEventListener('change', () => {
+    const file = $('faviconFile').files[0];
+    if (!file) return;
+    if (file.size > 512 * 1024) { notice($('brandingMessage'), 'Favicon must be under 512 KB.'); $('faviconFile').value = ''; return; }
+    const r = new FileReader();
+    r.onload = () => { $('favicon').value = r.result; renderFaviconPreview(r.result); notice($('brandingMessage'), '', true); };
+    r.readAsDataURL(file);
+  });
+  $('btnFaviconRemove').addEventListener('click', () => {
+    $('favicon').value = ''; $('faviconFile').value = ''; renderFaviconPreview('');
+    notice($('brandingMessage'), 'Favicon cleared — browser default icon will be used.', true);
+  });
+
+  $('brandingForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('brandingMessage'); notice(msg, '');
+    try {
+      const payload = {
+        brandName: val('brandName'),
+        brandLogo: val('brandLogo'),
+        adminBrandName: val('adminBrandName'),
+        adminLogo: val('adminLogo'),
+        favicon: val('favicon')
+      };
+      const updated = await api('/api/admin/settings', { method: 'PATCH', body: JSON.stringify(payload) });
+      if (typeof applyAdminBranding === 'function') {
+        applyAdminBranding(updated);
+      }
+      if (typeof applySiteFavicon === 'function') applySiteFavicon(updated.favicon || '');
+      notice(msg, 'Storefront & Admin Panel branding saved successfully! Live brand name, logo & favicon updated.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  /* ── Theme ── */
+  const THEME_PRESETS = [
+    { name: 'ENMAR Red (default)', p: '#631e2a', a: '#C0912E' },
+    { name: 'Ocean Blue',          p: '#0a4d68', a: '#f4a01c' },
+    { name: 'Emerald',             p: '#1b4332', a: '#e9c46a' },
+    { name: 'Royal Purple',        p: '#4a2c7a', a: '#f0b429' },
+    { name: 'Midnight Navy',       p: '#1e2a4a', a: '#38bdf8' },
+    { name: 'Charcoal & Gold',     p: '#2b2b2b', a: '#d4a017' },
+    { name: 'Forest Green',        p: '#2d4a22', a: '#f5a623' },
+    { name: 'Berry',               p: '#7b2d3d', a: '#00c9a7' }
+  ];
+  function renderThemePresets() {
+    const wrap = $('themePresets'); if (!wrap) return;
+    wrap.innerHTML = '';
+    THEME_PRESETS.forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'theme-preset-btn';
+      b.title = t.name;
+      b.innerHTML = `<span class="tp-dot" style="background:${t.p}"></span><span class="tp-dot" style="background:${t.a}"></span><span class="tp-name">${esc(t.name)}</span>`;
+      b.onclick = () => { $('themePrimary').value = t.p; $('themeAccent').value = t.a; renderThemePreview(); };
+      wrap.appendChild(b);
+    });
+  }
+  function renderThemePreview() {
+    const p = $('themePrimary').value, a = $('themeAccent').value;
+    $('themePreview').innerHTML = `<span class="tp-chip" style="background:${p}">Primary</span><span class="tp-chip" style="background:${a}">Accent</span>`;
+  }
+  $('themePrimary').addEventListener('input', renderThemePreview);
+  $('themeAccent').addEventListener('input', renderThemePreview);
+  $('btnSaveTheme').addEventListener('click', async () => {
+    const msg = $('themeMessage'); notice(msg, '');
+    const p = $('themePrimary').value, a = $('themeAccent').value;
+    const preset = THEME_PRESETS.find(t => t.p === p && t.a === a);
+    try {
+      await api('/api/admin/settings', { method: 'PATCH', body: JSON.stringify({ themeName: preset ? preset.name : 'Custom', themePrimary: p, themeAccent: a }) });
+      notice(msg, 'Theme saved. Refresh the store to see it.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+  renderThemePresets();
+
+  /* ── Ad Banner ── */
+let adMedia = [];
+
+async function loadAdMedia() {
+  try {
+    adMedia = await api('/api/ad-media');
+    renderAdMedia();
+  } catch (err) {
+    notice($('adMessage'), 'Could not load ad media: ' + err.message);
+  }
+}
+
+function renderAdMedia() {
+  const grid = $('adMediaGrid');
+  if (!grid) return;
+  if (!adMedia.length) {
+    grid.innerHTML = '<p style="font-size:.8rem;color:var(--ink-soft)">No ad items yet. Upload an image or video below.</p>';
+    return;
+  }
+  grid.innerHTML = adMedia.map(m => `
+    <div class="ad-thumb" data-id="${esc(m.id)}">
+      ${m.type === 'video'
+        ? `<video src="${esc(m.url)}" muted preload="metadata"></video>`
+        : `<img src="${esc(m.url)}" alt="Ad">`}
+      <span class="ad-type-badge">${m.type}</span>
+      <button type="button" class="btn-ad-delete" data-id="${esc(m.id)}" title="Remove">✕</button>
+    </div>`).join('');
+
+  grid.querySelectorAll('.btn-ad-delete').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Remove this ad item?')) return;
+      try {
+        await api(`/api/admin/ad-media/${btn.dataset.id}`, { method: 'DELETE' });
+        adMedia = adMedia.filter(m => m.id !== btn.dataset.id);
+        renderAdMedia();
+        notice($('adMessage'), 'Removed.', true);
+      } catch (err) {
+        notice($('adMessage'), err.message);
+      }
+    };
+  });
+}
+
+// upload via file input
+$('adFileInput').addEventListener('change', async () => {
+  const file = $('adFileInput').files[0];
+  if (!file) return;
+  await uploadAdFile(file);
+  $('adFileInput').value = '';
+});
+
+// drag & drop onto label
+const adLabel = $('adUploadLabel');
+adLabel.addEventListener('dragover', e => { e.preventDefault(); adLabel.style.borderColor = 'var(--forest)'; });
+adLabel.addEventListener('dragleave', () => { adLabel.style.borderColor = ''; });
+adLabel.addEventListener('drop', async e => {
+  e.preventDefault();
+  adLabel.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) await uploadAdFile(file);
+});
+
+async function uploadAdFile(file) {
+  $('adUploadText').textContent = 'Uploading…';
+  notice($('adMessage'), '');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/admin/ad-media', {
+      method: 'POST',
+      body: fd,
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+    adMedia.push(data);
+    renderAdMedia();
+    notice($('adMessage'), 'Uploaded successfully.', true);
+  } catch (err) {
+    notice($('adMessage'), err.message);
+  } finally {
+    $('adUploadText').textContent = 'Click or drag to upload image / video';
+  }
+}
+
+loadAdMedia();
+</script>
+</body>
+</html>

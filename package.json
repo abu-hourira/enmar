@@ -1,0 +1,30 @@
+{
+  "name": "enmar-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ENMAR — Full-Stack JavaScript Storefront & Admin Suite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js",
+    "test": "node scratch/test-production-suite.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "storefront",
+    "vanilla-js",
+    "nodejs",
+    "bangladesh",
+    "enmar"
+  ],
+  "author": "ENMAR",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "mysql2": "^3.23.3"
+  }
+}

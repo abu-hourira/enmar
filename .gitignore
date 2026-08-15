@@ -1,0 +1,45 @@
+# Environment variables and secrets
+.env
+.env*.local
+!.env.example
+
+# Local runtime data
+data/store.json
+!data/.gitkeep
+
+# Uploaded user/product media
+uploads/*
+!uploads/.gitkeep
+
+# Logs & temporary runtime files
+*.log
+*.err
+.server.err
+cookies.txt
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# One-off maintenance / reset scripts & unused project folders
+enbar_db/
+fix-superadmin-email.js
+reset-superadmin-password.js
+
+# Dependency & scratch directories
+node_modules/
+scratch/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE & Editor files
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace

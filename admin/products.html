@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Products — ENMAR Admin</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>
+        <span>ENMAR Admin</span>
+      </div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Hide sidebar" aria-label="Hide sidebar">◀</button>
+    </div>
+    <p class="sidebar-section-label">Overview</p>
+    <nav aria-label="Overview navigation">
+      <a href="/admin/dashboard.html" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </a>
+    </nav>
+    <p class="sidebar-section-label">Manage</p>
+    <nav aria-label="Manage navigation">
+      <a href="/admin/orders.html" class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>Orders
+      </a>
+      <a href="/admin/products.html" class="nav-item" data-page="products">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/></svg>Products
+      </a>
+      <a href="/admin/customers.html" class="nav-item" data-page="customers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0114 0v1"/></svg>Customers
+      </a>
+      <a href="/admin/staff.html" class="nav-item" id="staffNavLink" data-page="staff">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20v-1a8 8 0 0116 0v1"/></svg>Staff
+      </a>
+      <a href="/admin/subscribers.html" class="nav-item" data-page="subscribers">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Subscribers
+      </a>
+      <a href="/admin/reviews.html" class="nav-item" data-page="reviews">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>Reviews
+      </a>
+      <a href="/admin/comments.html" class="nav-item" data-page="comments">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comments
+      </a>
+      <a href="/admin/ads.html" class="nav-item" data-page="ads">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="14" cy="7.5" r="1.2"/><circle cx="16.5" cy="12.5" r="1.2"/></svg>Ads Maker
+      </a>
+
+    </nav>
+    <p class="sidebar-section-label">System</p>
+    <nav aria-label="System navigation">
+      <a href="/admin/analytics.html" class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analytics
+      </a>
+      <a href="/admin/settings.html" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+      </a>
+      <a href="/admin/apis.html" class="nav-item" data-page="apis">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="6"/><rect x="15" y="14" width="6" height="6"/><path d="M9 7h8a4 4 0 014 4v3M15 17H7a4 4 0 01-4-4v-3"/></svg>APIs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-chip-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-chip-name" id="sidebarName">—</div>
+          <div class="user-chip-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="topbar-title">Products</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge live">● Live</span>
+        <span class="badge" id="topbarRole">—</span>
+        <a href="/" class="badge">← Shop</a>
+        <div class="dot-menu-wrap">
+          <button type="button" class="btn-dot-menu" id="dotMenuBtn" aria-label="More options">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dot-dropdown" id="dotDropdown">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/orders.html">Orders</a>
+            <a href="/admin/products.html">Products</a>
+            <a href="/admin/customers.html">Customers</a>
+            <a href="/admin/staff.html">Staff</a>
+            <a href="/admin/reviews.html">Reviews</a>
+            <a href="/admin/subscribers.html">Subscribers</a>
+            <a href="/admin/analytics.html">Analytics</a>
+            <a href="/admin/settings.html">Settings</a>
+            <a href="/admin/apis.html">APIs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-message" id="globalMessage"></div>
+
+    <div class="page-body">
+
+      <!-- ADD PRODUCT FORM -->
+      <div class="panel-card" id="productFormCard">
+        <div class="section-head"><h2>Add a Product</h2></div>
+        <form class="product-form" id="productForm" novalidate>
+          <div class="field"><label for="pName">Product name</label><input type="text" id="pName" placeholder="e.g. Organic Tomatoes" required></div>
+          <div class="field"><label for="pFarm">Farm / source</label><input type="text" id="pFarm" placeholder="e.g. Savar Fresh Farm" required></div>
+          <div class="field"><label for="pPrice">Price (BDT)</label><input type="number" id="pPrice" placeholder="120" min="1" required></div>
+          <div class="field"><label for="pDiscount">Discount %</label><input type="number" id="pDiscount" placeholder="0" min="0" max="100" value="0"></div>
+          <div class="field"><label for="pUnit">Unit</label><input type="text" id="pUnit" placeholder="kg, bunch, jar…" required></div>
+          <div class="field">
+            <label for="pCategory">Category</label>
+            <select id="pCategory"></select>
+          </div>
+          <div class="field span2">
+            <label for="pImages">Product Images <span class="mono-tag mono-tag--plain">up to 5 · jpg / png / webp</span></label>
+            <input type="file" id="pImages" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="input-hidden">
+            <div id="pImagesPreview" class="img-upload-grid"></div>
+            <button type="button" class="btn-soft" id="pImagesBtn">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="btn-icon"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Images
+            </button>
+          </div>
+          <div class="field"><label for="pTag">Tag (optional)</label><input type="text" id="pTag" placeholder="This Week's Pick, Limited…"></div>
+          <div class="field span2">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+              <label for="pDescription">Description (optional)</label>
+              <span class="desc-hint" id="pDescCount">Markdown &amp; links supported</span>
+            </div>
+            <div class="desc-toolbar" data-for="pDescription">
+              <button type="button" class="desc-tool-btn" data-action="bold" title="Bold text"><strong>B</strong></button>
+              <button type="button" class="desc-tool-btn" data-action="italic" title="Italic text"><em>I</em></button>
+              <button type="button" class="desc-tool-btn" data-action="link" title="Insert clickable link">🔗 Link</button>
+              <button type="button" class="desc-tool-btn" data-action="bullet" title="Bullet list">• List</button>
+              <button type="button" class="desc-tool-btn" data-action="number" title="Numbered list">1. List</button>
+              <button type="button" class="desc-tool-btn" data-action="paragraph" title="New paragraph / Enter">↵ Paragraph</button>
+              <button type="button" class="desc-tool-btn" data-action="preview" title="Toggle live preview">👁️ Preview</button>
+            </div>
+            <textarea id="pDescription" rows="4" class="textarea-full desc-textarea" placeholder="Describe the product — flavour, origin, benefits, or how to use it.&#10;&#10;Key Benefits:&#10;- 100% Organic &amp; pesticide-free&#10;- Sourced directly from local farmers&#10;&#10;Learn more: [Farm Story](https://example.com)"></textarea>
+            <div id="pDescPreview" class="desc-preview-box"></div>
+            <div class="desc-hint">💡 Press <strong>Enter</strong> for new lines, <strong>double Enter</strong> for spaced paragraphs, or click <strong>Link</strong> to add clickable links.</div>
+          </div>
+          <div class="field span2">
+            <label class="ams-toggle" style="display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--forest)">
+              <input type="checkbox" id="pNotifyCustomers" checked>
+              <span>🔔 Broadcast live website notification to store visitors</span>
+            </label>
+          </div>
+          <div class="span2" id="productFormMessage"></div>
+          <div class="span2"><button type="submit" class="btn-primary">Add Product to Store</button></div>
+        </form>
+      </div>
+
+      <!-- CATEGORY MANAGEMENT -->
+      <div class="panel-card" id="categoryCard">
+        <div class="section-head">
+          <h2>Categories &amp; Icons</h2>
+          <span class="mono-tag" id="categoryCount">—</span>
+        </div>
+        <p style="font-size:.82rem;color:var(--ink-soft);margin-top:0;margin-bottom:14px">Upload a custom image/icon for each category. Click the circle or "Upload Icon" to change.</p>
+        <div id="categoryMessage"></div>
+        <div id="categoryList" class="category-list"></div>
+        <form class="inline-form" id="categoryForm" novalidate style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px">
+          <input type="text" id="catName" placeholder="New category name…" required minlength="2" aria-label="New category name" style="flex:1;min-width:180px">
+          <label class="btn-soft" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:.75rem">
+            <input type="file" id="catNewIcon" accept="image/*" style="display:none">
+            <span id="catNewIconLabel">📷 Icon (Optional)</span>
+          </label>
+          <button type="submit" class="btn-primary">Add Category</button>
+        </form>
+      </div>
+
+      <!-- PRODUCT LIST -->
+      <div class="filter-bar">
+        <input class="search-input" type="search" id="productSearch" placeholder="Search by ID (e.g. #5 or 5), name, farm, lot, tag…">
+        <select class="filter-select" id="productCatFilter" aria-label="Filter by category">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <div class="panel-card">
+        <div class="section-head">
+          <h2>All Products</h2>
+          <span class="mono-tag" id="productsCount">—</span>
+        </div>
+        <div class="table-wrap" id="productsTable"><div class="empty-state">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- CROP MODAL -->
+<div class="modal-overlay" id="cropModal">
+  <div class="modal-box modal-box--crop">
+    <div class="modal-head">
+      <h2>Crop Image <span class="mono-tag mono-tag--sm">4 : 3</span></h2>
+      <button type="button" class="btn-muted" id="cropCancel">Cancel</button>
+    </div>
+    <div class="crop-wrap" id="cropWrap">
+      <canvas id="cropCanvas"></canvas>
+      <div class="crop-stage" id="cropStage">
+        <img id="cropSrc" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="crop source" draggable="false">
+        <div class="crop-box" id="cropBox">
+          <div class="crop-grid"></div>
+          <div class="crop-handle crop-handle--nw" data-dir="nw"></div>
+          <div class="crop-handle crop-handle--ne" data-dir="ne"></div>
+          <div class="crop-handle crop-handle--sw" data-dir="sw"></div>
+          <div class="crop-handle crop-handle--se" data-dir="se"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions modal-actions--top">
+      <button type="button" class="btn-primary" id="cropConfirm">Use this crop</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PRODUCT MODAL -->
+<div class="modal-overlay" id="editProductModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="editProductTitle">Edit Product</h2>
+      <button type="button" class="btn-muted" id="editProductCancel">Cancel</button>
+    </div>
+    <div id="editProductMessage"></div>
+    <form id="editProductForm" class="product-form" novalidate>
+      <input type="hidden" id="editProductId">
+      <div class="field"><label for="epName">Name</label><input type="text" id="epName" required></div>
+      <div class="field"><label for="epFarm">Farm</label><input type="text" id="epFarm" required></div>
+      <div class="field"><label for="epPrice">Price (BDT)</label><input type="number" id="epPrice" min="1" required></div>
+      <div class="field"><label for="epDiscount">Discount %</label><input type="number" id="epDiscount" min="0" max="100" value="0"></div>
+      <div class="field"><label for="epUnit">Unit</label><input type="text" id="epUnit" required></div>
+      <div class="field">
+        <label for="epCategory">Category</label>
+        <select id="epCategory"></select>
+      </div>
+      <div class="field span2">
+        <label for="epImages">Images <span class="mono-tag mono-tag--plain">up to 5 · jpg / png / webp</span></label>
+        <div id="epImagesExisting" class="img-upload-grid img-upload-grid--spaced"></div>
+        <input type="file" id="epImages" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="input-hidden">
+        <div id="epImagesPreview" class="img-upload-grid img-upload-grid--spaced"></div>
+        <button type="button" class="btn-soft" id="epImagesBtn">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="btn-icon"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Add Images
+        </button>
+      </div>
+      <div class="field"><label for="epTag">Tag</label><input type="text" id="epTag"></div>
+      <div class="field span2">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+          <label for="epDescription">Description (optional)</label>
+          <span class="desc-hint" id="epDescCount">Markdown &amp; links supported</span>
+        </div>
+        <div class="desc-toolbar" data-for="epDescription">
+          <button type="button" class="desc-tool-btn" data-action="bold" title="Bold text"><strong>B</strong></button>
+          <button type="button" class="desc-tool-btn" data-action="italic" title="Italic text"><em>I</em></button>
+          <button type="button" class="desc-tool-btn" data-action="link" title="Insert clickable link">🔗 Link</button>
+          <button type="button" class="desc-tool-btn" data-action="bullet" title="Bullet list">• List</button>
+          <button type="button" class="desc-tool-btn" data-action="number" title="Numbered list">1. List</button>
+          <button type="button" class="desc-tool-btn" data-action="paragraph" title="New paragraph / Enter">↵ Paragraph</button>
+          <button type="button" class="desc-tool-btn" data-action="preview" title="Toggle live preview">👁️ Preview</button>
+        </div>
+        <textarea id="epDescription" rows="4" class="textarea-full desc-textarea" placeholder="Describe the product — flavour, origin, benefits, or how to use it..."></textarea>
+        <div id="epDescPreview" class="desc-preview-box"></div>
+        <div class="desc-hint">💡 Press <strong>Enter</strong> for new lines, <strong>double Enter</strong> for spaced paragraphs, or click <strong>Link</strong> to add clickable links.</div>
+      </div>
+      <div class="span2" id="editProductMessage2"></div>
+      <div class="span2 modal-actions">
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/admin-core.js"></script>
+<script>
+let allProducts = [], allCategories = [], canManage = false, canAdmin = false;
+let catIcons = {};
+
+/* ── populate all category <select> and filter dropdowns ── */
+function populateCategorySelects(current = '') {
+  const opts = allCategories.map(c => `<option value="${esc(c)}"${c === current ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  $('pCategory').innerHTML = opts;
+  $('epCategory').innerHTML = opts;
+  const filterOpts = `<option value="">All categories</option>` +
+    allCategories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('productCatFilter').innerHTML = filterOpts;
+}
+
+/* ── render category management list ── */
+function renderCategories() {
+  $('categoryCount').textContent = allCategories.length;
+  $('categoryList').innerHTML = allCategories.length
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));gap:10px">` +
+      allCategories.map(c => {
+        const ic = (catIcons && catIcons[c]) || {};
+        const imgUrl = (typeof ic === 'string' && (ic.startsWith('/') || ic.startsWith('http') || ic.startsWith('data:'))) ? ic : (ic.image || '');
+        const hasCustom = !!imgUrl || (typeof ic === 'string' && ic.length > 0) || !!ic.icon;
+        
+        const thumbHTML = imgUrl
+          ? `<img src="${esc(imgUrl)}" style="width:100%;height:100%;object-fit:cover" alt="${esc(c)}">`
+          : (ic.icon || (typeof ic === 'string' && ic) ? `<span style="font-size:1.2rem;line-height:1">${esc(ic.icon || ic)}</span>` : `<span style="font-size:1.1rem;opacity:.55">📷</span>`);
+
+        return `
+        <div class="cat-card-item" style="display:flex;align-items:center;justify-content:space-between;background:var(--paper-alt);border:1px solid var(--line);padding:8px 10px;border-radius:4px;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <label title="Click to upload image" style="cursor:pointer;position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:var(--paper);border:1px dashed var(--line);overflow:hidden;flex-shrink:0">
+              <input type="file" class="cat-file-input" data-cat="${esc(c)}" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" style="display:none">
+              ${thumbHTML}
+            </label>
+            <div style="min-width:0">
+              <strong style="display:block;font-size:.85rem;color:var(--forest);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c)}</strong>
+              <label style="font-size:.65rem;color:var(--ink-soft);cursor:pointer;text-decoration:underline">
+                <input type="file" class="cat-file-input" data-cat="${esc(c)}" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" style="display:none">
+                ${imgUrl ? 'Change Icon' : 'Upload Icon'}
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            ${hasCustom ? `<button type="button" class="btn-cat-clear-icon" data-cat="${esc(c)}" title="Reset to default icon" style="border:none;background:none;color:var(--ink-soft);cursor:pointer;padding:4px 6px;font-size:.85rem;line-height:1">↺</button>` : ''}
+            ${canManage ? `<button type="button" class="btn-cat-del" data-name="${esc(c)}" title="Delete category" style="border:none;background:none;color:var(--tomato);cursor:pointer;padding:4px 6px;font-weight:bold;font-size:.9rem;line-height:1">✕</button>` : ''}
+          </div>
+        </div>
+      `}).join('') + `</div>`
+    : '<div class="empty-state">No categories yet.</div>';
+
+  // Attach icon file upload listeners
+  document.querySelectorAll('.cat-file-input').forEach(input => {
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        notice($('categoryMessage'), 'Icon image must be under 2 MB.');
+        input.value = '';
+        return;
+      }
+      const cat = input.dataset.cat;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const msg = $('categoryMessage');
+        notice(msg, '');
+        try {
+          const res = await api(`/api/admin/categories/${encodeURIComponent(cat)}/icon`, {
+            method: 'PATCH',
+            body: JSON.stringify({ image: reader.result })
+          });
+          catIcons = res.icons || {};
+          renderCategories();
+          populateCategorySelects();
+          notice(msg, `Icon updated for category "${cat}".`, true);
+        } catch (err) {
+          notice(msg, err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+  });
+
+  // Attach clear icon listeners
+  document.querySelectorAll('.btn-cat-clear-icon').forEach(btn => {
+    btn.onclick = async () => {
+      const cat = btn.dataset.cat;
+      const msg = $('categoryMessage');
+      notice(msg, '');
+      try {
+        const res = await api(`/api/admin/categories/${encodeURIComponent(cat)}/icon`, {
+          method: 'DELETE'
+        });
+        catIcons = res.icons || {};
+        renderCategories();
+        populateCategorySelects();
+        notice(msg, `Icon reset for "${cat}".`, true);
+      } catch (err) {
+        notice(msg, err.message);
+      }
+    };
+  });
+
+  // Attach delete category listeners
+  document.querySelectorAll('.btn-cat-del').forEach(btn => {
+    btn.onclick = async () => {
+      const name = btn.dataset.name;
+      if (!confirm(`Delete category "${name}"? Products in it will remain in the store.`)) return;
+      try {
+        const res = await api(`/api/admin/categories/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        allCategories = res.categories;
+        if (catIcons && catIcons[name]) delete catIcons[name];
+        populateCategorySelects();
+        renderCategories();
+        notice($('categoryMessage'), `Category "${name}" deleted.`, true);
+      } catch (err) {
+        notice($('categoryMessage'), err.message);
+      }
+    };
+  });
+}
+
+/* ── boot ── */
+(async () => {
+  const user = await initAdminPage();
+  if (!user) return;
+  canManage = ['superadmin', 'admin', 'manager'].includes(user.role);
+  canAdmin  = ['superadmin', 'admin'].includes(user.role);
+
+  $('productFormCard').style.display = canManage ? '' : 'none';
+  $('categoryCard').style.display = canManage ? 'block' : 'none';
+
+  try {
+    const [catData, prods] = await Promise.all([
+      api('/api/admin/categories').catch(() => api('/api/categories').then(cats => ({ categories: (cats||[]).map(c => (typeof c==='object'&&c!==null)?c:{name:String(c),icon:'leaf',image:''}), icons:{} }))),
+      api('/api/products')
+    ]);
+    allProducts = prods;
+    // allCategories is always name strings for selects/filters
+    allCategories = (catData.categories || []).map(c => (typeof c==='object'&&c!==null) ? String(c.name||'') : String(c)).filter(Boolean);
+    catIcons = catData.icons || {};
+    // Also merge image/icon from catObjects into catIcons for renderCategories
+    (catData.categories || []).forEach(c => {
+      if (typeof c === 'object' && c !== null && c.name) {
+        if (!catIcons[c.name]) catIcons[c.name] = {};
+        if (c.image && !catIcons[c.name].image) catIcons[c.name].image = c.image;
+        if (c.icon && c.icon !== 'leaf' && !catIcons[c.name].icon) catIcons[c.name].icon = c.icon;
+      }
+    });
+    populateCategorySelects();
+    renderCategories();
+    renderTable();
+  } catch (err) {
+    notice($('globalMessage'), err.message);
+  }
+})();
+
+/* ── product table ── */
+function renderTable() {
+  const rawQ = ($('productSearch').value || '').trim().toLowerCase();
+  const cat = $('productCatFilter').value;
+
+  // Clean query for ID matching (e.g. "#12", "id: 12", "id 12", "12")
+  const idQuery = rawQ.replace(/^(id[:\s#]*|#)/i, '').trim();
+
+  const list = allProducts.filter(p => {
+    if (cat && p.cat !== cat) return false;
+    if (!rawQ) return true;
+
+    // Search by ID exact or partial match
+    if (String(p.id) === idQuery || String(p.id) === rawQ || String(p.id).includes(rawQ)) return true;
+
+    // Search by Name
+    if (p.name && p.name.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Farm / Source
+    if (p.farm && p.farm.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Category
+    if (p.cat && p.cat.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Tag
+    if (p.tag && p.tag.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Lot
+    if (p.lot && p.lot.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Unit
+    if (p.unit && p.unit.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Description
+    if (p.description && p.description.toLowerCase().includes(rawQ)) return true;
+
+    // Search by Price
+    if (String(p.price).includes(rawQ)) return true;
+
+    return false;
+  }).sort((a, b) => {
+    if (!rawQ) return 0;
+    // Prioritize exact ID match at the very top
+    if (String(a.id) === idQuery && String(b.id) !== idQuery) return -1;
+    if (String(b.id) === idQuery && String(a.id) !== idQuery) return 1;
+    // Prioritize name prefix matches
+    const aNameStart = (a.name || '').toLowerCase().startsWith(rawQ);
+    const bNameStart = (b.name || '').toLowerCase().startsWith(rawQ);
+    if (aNameStart && !bNameStart) return -1;
+    if (!aNameStart && bNameStart) return 1;
+    return 0;
+  });
+
+  $('productsCount').textContent = `${list.length} / ${allProducts.length}`;
+  $('productsTable').innerHTML = list.length ? `
+    <table class="data-table"><thead><tr>
+      <th style="width:60px">ID</th><th>Name</th><th>Farm</th><th>Category</th><th>Price</th><th>Discount</th><th>Unit</th><th>Lot</th>
+      ${canManage ? '<th></th>' : ''}
+    </tr></thead><tbody>
+    ${list.map(p => `<tr>
+      <td><span class="mono-tag" style="font-weight:700;font-size:.68rem">#${p.id}</span></td>
+      <td><strong>${esc(p.name)}</strong>${p.tag ? ` <span class="pill pill-confirmed" style="font-size:.57rem">${esc(p.tag)}</span>` : ''}</td>
+      <td><small>${esc(p.farm)}</small></td>
+      <td>${esc(p.cat)}</td>
+      <td>${taka(p.price)}</td>
+      <td>${p.discount ? `<span class="pill pill-confirmed" style="font-size:.6rem">${p.discount}% off</span>` : '<span style="color:var(--ink-soft);font-size:.75rem">—</span>'}</td>
+      <td>${esc(p.unit)}</td>
+      <td><small>${esc(p.lot)}</small></td>
+      ${canManage ? `<td style="white-space:nowrap">
+        <button type="button" class="btn-soft btn-edit-product" data-pid="${p.id}" style="margin-right:3px">Edit</button>
+        <button type="button" class="btn-danger btn-del-product" data-pid="${p.id}">Del</button>
+      </td>` : ''}
+    </tr>`).join('')}
+    </tbody></table>`
+    : '<div class="empty-state">No products match your search.</div>';
+
+  document.querySelectorAll('.btn-edit-product').forEach(btn => {
+    btn.onclick = () => {
+      const p = allProducts.find(x => x.id === Number(btn.dataset.pid)); if (!p) return;
+      if ($('editProductTitle')) $('editProductTitle').textContent = `Edit Product #${p.id} — ${p.name}`;
+      $('editProductId').value = p.id;
+      $('epName').value = p.name;
+      $('epFarm').value = p.farm;
+      $('epPrice').value = p.price;
+      $('epDiscount').value = p.discount || 0;
+      $('epUnit').value = p.unit;
+      populateCategorySelects(p.cat);
+      $('epCategory').value = p.cat;
+      $('epTag').value = p.tag || '';
+      $('epDescription').value = p.description || '';
+      $('epDescription').dispatchEvent(new Event('input'));
+      // show existing images
+      epRemovedImages = [];
+      epNewFiles = [];
+      $('epImagesPreview').innerHTML = '';
+      $('epImagesExisting').innerHTML = '';
+      (p.images || []).forEach(url => {
+        const wrap = makeThumbWrap(url, () => epRemovedImages.push(url));
+        $('epImagesExisting').appendChild(wrap);
+      });
+      notice($('editProductMessage'), '');
+      notice($('editProductMessage2'), '');
+      openModal('editProductModal');
+    };
+  });
+
+  document.querySelectorAll('.btn-del-product').forEach(btn => {
+    btn.onclick = async () => {
+      const p = allProducts.find(x => x.id === Number(btn.dataset.pid));
+      if (!confirm(`Remove "${p?.name}"?`)) return;
+      try {
+        await api(`/api/admin/products/${btn.dataset.pid}`, { method: 'DELETE' });
+        allProducts = await api('/api/products');
+        renderTable();
+      } catch (err) {
+        notice($('globalMessage'), err.message);
+      }
+    };
+  });
+}
+
+$('productSearch').addEventListener('input', renderTable);
+$('productCatFilter').addEventListener('change', renderTable);
+
+/* ── add category ── */
+$('catNewIcon').onchange = () => {
+  const f = $('catNewIcon').files[0];
+  $('catNewIconLabel').textContent = f ? `✓ ${f.name.slice(0, 14)}` : '📷 Icon (Optional)';
+};
+
+$('categoryForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('categoryMessage');
+  notice(msg, '');
+  const name = $('catName').value.trim();
+  const iconFile = $('catNewIcon').files[0];
+
+  let imageBase64 = '';
+  if (iconFile) {
+    if (iconFile.size > 2 * 1024 * 1024) {
+      notice(msg, 'Icon image must be under 2 MB.');
+      return;
+    }
+    imageBase64 = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(iconFile);
+    });
+  }
+
+  try {
+    const res = await api('/api/admin/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name, image: imageBase64 })
+    });
+    allCategories = res.categories;
+    catIcons = res.icons || catIcons;
+    e.target.reset();
+    $('catNewIconLabel').textContent = '📷 Icon (Optional)';
+    populateCategorySelects();
+    renderCategories();
+    notice(msg, `Category "${name}" added successfully.`, true);
+  } catch (err) {
+    notice(msg, err.message);
+  }
+});
+
+/* ── image upload helpers ── */
+function makeThumbWrap(src, onDelete) {
+  const wrap = document.createElement('div');
+  wrap.className = 'img-thumb-wrap';
+  const img = document.createElement('img');
+  img.src = src;
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'img-thumb-del';
+  del.title = 'Remove';
+  del.textContent = '✕';
+  del.onclick = () => { onDelete(); wrap.remove(); };
+  wrap.append(img, del);
+  return wrap;
+}
+
+/* ── Add-form image picker ── */
+let addFormFiles = [];   // FileList-derived array
+
+$('pImagesBtn').onclick = () => $('pImages').click();
+$('pImages').addEventListener('change', () => {
+  const incoming = Array.from($('pImages').files);
+  const remaining = Math.max(0, 5 - addFormFiles.length);
+  const added = incoming.slice(0, remaining);
+  added.forEach(file => {
+    addFormFiles.push(file);
+    const url = URL.createObjectURL(file);
+    const wrap = makeThumbWrap(url, () => {
+      addFormFiles = addFormFiles.filter(f => f !== file);
+    });
+    $('pImagesPreview').appendChild(wrap);
+  });
+  if (incoming.length > remaining) notice($('productFormMessage'), `Max 5 images. ${incoming.length - remaining} file(s) skipped.`);
+  $('pImages').value = '';   // reset so same file can be re-added after removal
+});
+
+/* ── add product ── */
+$('productForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('productFormMessage');
+  notice(msg, '');
+  try {
+    const fd = new FormData();
+    fd.append('name',  $('pName').value.trim());
+    fd.append('farm',  $('pFarm').value.trim());
+    fd.append('price', $('pPrice').value);
+    fd.append('discount', $('pDiscount').value || '0');
+    fd.append('unit',  $('pUnit').value.trim());
+    fd.append('cat',   $('pCategory').value);
+    fd.append('tag',   $('pTag').value.trim());
+    fd.append('description', $('pDescription').value.trim());
+    fd.append('notifyCustomers', $('pNotifyCustomers') ? $('pNotifyCustomers').checked : 'true');
+    addFormFiles.forEach(f => fd.append('images', f));
+    const res = await fetch('/api/admin/products', {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    e.target.reset();
+    if ($('pNotifyCustomers')) $('pNotifyCustomers').checked = true;
+    addFormFiles = [];
+    $('pImagesPreview').innerHTML = '';
+    $('pDescription').value = '';
+    notice(msg, 'Product added successfully! Live website notification broadcasted.', true);
+    allProducts = await api('/api/products');
+    renderTable();
+  } catch (err) {
+    notice(msg, err.message);
+  }
+});
+
+/* ── edit product ── */
+$('editProductCancel').onclick = () => closeModal('editProductModal');
+
+/* ── Edit-modal image picker ── */
+let epRemovedImages = [];
+let epNewFiles = [];
+
+$('epImagesBtn').onclick = () => $('epImages').click();
+$('epImages').addEventListener('change', () => {
+  const existingCount = $('epImagesExisting').querySelectorAll('.img-thumb-wrap').length;
+  const previewCount  = epNewFiles.length;
+  const used = existingCount + previewCount - epRemovedImages.filter(u => $('epImagesExisting').innerHTML.includes(u)).length;
+  const remaining = Math.max(0, 5 - used);
+  const incoming = Array.from($('epImages').files);
+  const added = incoming.slice(0, remaining);
+  added.forEach(file => {
+    epNewFiles.push(file);
+    const url = URL.createObjectURL(file);
+    const wrap = makeThumbWrap(url, () => { epNewFiles = epNewFiles.filter(f => f !== file); });
+    $('epImagesPreview').appendChild(wrap);
+  });
+  if (incoming.length > remaining) notice($('editProductMessage'), `Max 5 images total. ${incoming.length - remaining} file(s) skipped.`);
+  $('epImages').value = '';
+});
+
+$('editProductForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('editProductMessage2');
+  notice(msg, '');
+  const id = Number($('editProductId').value);
+  try {
+    const fd = new FormData();
+    fd.append('name',  $('epName').value.trim());
+    fd.append('farm',  $('epFarm').value.trim());
+    fd.append('price', $('epPrice').value);
+    fd.append('discount', $('epDiscount').value || '0');
+    fd.append('unit',  $('epUnit').value.trim());
+    fd.append('cat',   $('epCategory').value);
+    fd.append('tag',   $('epTag').value.trim());
+    fd.append('description', $('epDescription').value.trim()); fd.append('removeImages', JSON.stringify(epRemovedImages));
+    epNewFiles.forEach(f => fd.append('images', f));
+    const res = await fetch(`/api/admin/products/${id}`, {
+      method: 'PATCH',
+      body: fd,
+      credentials: 'same-origin'
+    });
+    const upd = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(upd.error || 'Something went wrong.');
+    const idx = allProducts.findIndex(p => p.id === id);
+    if (idx > -1) allProducts[idx] = upd;
+    notice(msg, 'Saved.', true);
+    renderTable();
+    setTimeout(() => closeModal('editProductModal'), 700);
+  } catch (err) {
+    notice(msg, err.message);
+  }
+});
+
+/* ── Description formatting helpers for admin editor & preview ── */
+function formatDescPreview(text) {
+  if (!text || !String(text).trim()) return '<span style="color:var(--ink-soft);font-style:italic">Preview is empty. Type in the description box above or click toolbar buttons.</span>';
+  const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+  
+  function formatInlinePreview(str) {
+    let s = esc(str);
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)\"\'<>]+)\)/gi, '<a href="$2" target="_blank" rel="noopener noreferrer" class="desc-link">$1</a>');
+    s = s.replace(/(^|[\s(])((https?:\/\/[^\s\)\"\'<>]+))/gi, '$1<a href="$2" target="_blank" rel="noopener noreferrer" class="desc-link">$2</a>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^\*])\*([^\*]+)\*([^\*]|$)/g, '$1<em>$2</em>$3');
+    s = s.replace(/(^|[^_])_([^_]+)_([^_]|$)/g, '$1<em>$2</em>$3');
+    s = s.replace(/`([^`]+)`/g, '<code class="desc-code">$1</code>');
+    return s;
+  }
+
+  const raw = String(text).replace(/\r\n|\r/g, '\n');
+  const blocks = raw.split(/\n{2,}/);
+  const out = [];
+
+  for (let block of blocks) {
+    block = block.trim();
+    if (!block) continue;
+    const lines = block.split('\n');
+
+    let currentList = null;
+    let listItems = [];
+    let textLines = [];
+
+    function flushList() {
+      if (currentList && listItems.length) {
+        const tag = currentList;
+        out.push(`<${tag} class="desc-list">${listItems.map(i => `<li>${formatInlinePreview(i)}</li>`).join('')}</${tag}>`);
+        currentList = null;
+        listItems = [];
+      }
+    }
+
+    function flushText() {
+      if (textLines.length) {
+        out.push(`<p class="desc-p">${textLines.map(l => formatInlinePreview(l)).join('<br>')}</p>`);
+        textLines = [];
+      }
+    }
+
+    for (let l of lines) {
+      const trimmed = l.trim();
+      if (!trimmed) continue;
+
+      if (/^#{1,4}\s+/.test(trimmed)) {
+        flushList();
+        flushText();
+        out.push(`<h4 class="desc-subhead">${formatInlinePreview(trimmed.replace(/^#{1,4}\s+/, ''))}</h4>`);
+      } else if (/^[-*•]\s+/.test(trimmed)) {
+        flushText();
+        if (currentList !== 'ul') {
+          flushList();
+          currentList = 'ul';
+        }
+        listItems.push(trimmed.replace(/^[-*•]\s+/, ''));
+      } else if (/^\d+[\.\)]\s+/.test(trimmed)) {
+        flushText();
+        if (currentList !== 'ol') {
+          flushList();
+          currentList = 'ol';
+        }
+        listItems.push(trimmed.replace(/^\d+[\.\)]\s+/, ''));
+      } else {
+        flushList();
+        textLines.push(l);
+      }
+    }
+    flushList();
+    flushText();
+  }
+  return out.join('');
+}
+
+function setupDescToolbar(textareaId, previewId) {
+  const ta = document.getElementById(textareaId);
+  const prev = document.getElementById(previewId);
+  const toolbar = document.querySelector(`.desc-toolbar[data-for="${textareaId}"]`);
+  const countEl = document.getElementById(textareaId === 'pDescription' ? 'pDescCount' : 'epDescCount');
+  if (!ta || !toolbar) return;
+
+  const updateState = () => {
+    if (prev && prev.classList.contains('open')) {
+      prev.innerHTML = formatDescPreview(ta.value);
+    }
+    if (countEl) {
+      const len = ta.value.length;
+      countEl.textContent = len > 0 ? `${len} characters` : 'Markdown & links supported';
+    }
+  };
+
+  ta.addEventListener('input', updateState);
+  updateState();
+
+  function wrapSelection(before, after, defaultText) {
+    ta.focus();
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const val = ta.value;
+    const sel = val.substring(start, end) || defaultText;
+    const rep = before + sel + after;
+    ta.setRangeText(rep, start, end, 'select');
+    ta.dispatchEvent(new Event('input'));
+  }
+
+  toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.desc-tool-btn');
+    if (!btn) return;
+    const action = btn.dataset.action;
+
+    if (action === 'bold') {
+      wrapSelection('**', '**', 'bold text');
+    } else if (action === 'italic') {
+      wrapSelection('*', '*', 'italic text');
+    } else if (action === 'link') {
+      const url = prompt('Enter website link (URL):', 'https://');
+      if (url && url.trim()) {
+        wrapSelection('[', `](${url.trim()})`, 'Link Text');
+      }
+    } else if (action === 'bullet') {
+      wrapSelection('\n- ', '', 'Item name');
+    } else if (action === 'number') {
+      wrapSelection('\n1. ', '', 'First step');
+    } else if (action === 'paragraph') {
+      wrapSelection('\n\n', '', '');
+    } else if (action === 'preview') {
+      if (prev) {
+        const isOpen = prev.classList.toggle('open');
+        btn.classList.toggle('active', isOpen);
+        if (isOpen) updateState();
+      }
+    }
+  });
+}
+
+// Initialize description toolbars
+setupDescToolbar('pDescription', 'pDescPreview');
+setupDescToolbar('epDescription', 'epDescPreview');
+</script>
+</body>
+</html>
