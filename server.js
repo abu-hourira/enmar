@@ -1764,8 +1764,9 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/admin/apis') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
-        const email = (store.apiConfigs && store.apiConfigs.email) || {};
+        if (!user || !['superadmin', 'admin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const dbEmail = await dbService.getEmailConfig().catch(() => null);
+        const email = dbEmail || (store.apiConfigs && store.apiConfigs.email) || {};
         const sms = (store.apiConfigs && store.apiConfigs.sms) || {};
         return json(res, 200, {
           sms: {
@@ -1780,16 +1781,16 @@ const server = http.createServer(async (req, res) => {
             host: email.host || 'smtp.gmail.com',
             port: Number(email.port) || 465,
             secure: email.secure !== false,
-            user: email.user || '',
-            fromName: email.fromName || 'ENMAR Official',
-            fromEmail: email.fromEmail || email.user || '',
-            passSet: Boolean(email.pass)
+            user: email.user || email.username || '',
+            fromName: email.fromName || email.from_name || 'ENMAR Official',
+            fromEmail: email.fromEmail || email.from_email || email.user || email.username || '',
+            passSet: Boolean(email.pass || email.password)
           }
         });
       }
       if (method === 'PATCH' && pathname === '/api/admin/apis') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['superadmin', 'admin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         if (!store.apiConfigs) store.apiConfigs = {};
         if (body.sms) {
           const existingKey = store.apiConfigs.sms && store.apiConfigs.sms.apiKey;
@@ -1800,29 +1801,32 @@ const server = http.createServer(async (req, res) => {
           };
         }
         if (body.email) {
-          const existingPass = store.apiConfigs.email && store.apiConfigs.email.pass;
+          const dbEmail = await dbService.getEmailConfig().catch(() => null);
+          const existingPass = (dbEmail && (dbEmail.pass || dbEmail.password)) || (store.apiConfigs.email && store.apiConfigs.email.pass);
           store.apiConfigs.email = {
             ...(store.apiConfigs.email || {}),
             ...body.email,
             pass: body.email.pass !== undefined && body.email.pass !== '' ? body.email.pass : existingPass
           };
+          // Persist directly to email_gateway_config table in MySQL
+          await dbService.saveEmailGatewayConfig(store.apiConfigs.email, user.id);
         }
         await dbService.saveAllSettings(null, store.apiConfigs);
         return json(res, 200, { ok: true, message: 'Settings saved successfully' });
       }
       if (method === 'POST' && pathname === '/api/admin/apis/test-email') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['superadmin', 'admin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const to = (body && body.to) || user.email;
         if (!to) return json(res, 400, { error: 'Recipient email required' });
-        const cfg = emailConfig(store);
+        const cfg = await resolveEmailConfig(store);
         if (!cfg.user || !cfg.pass) return json(res, 400, { error: 'SMTP username or App Password not set. Please save them first.' });
         const brand = (store.settings && store.settings.brandName) || 'ENMAR';
         try {
           await smtpSend(cfg, {
             to,
             fromEmail: cfg.fromEmail,
-            fromHeader: `${brand} Official <${cfg.fromEmail}>`,
+            fromName: cfg.fromName || `${brand} Official`,
             subject: `[${brand}] Test Email Verification`,
             text: `Hello,\n\nThis is a test email confirming that your SMTP settings on ${brand} are working perfectly!\n\nTimestamp: ${new Date().toISOString()}`
           });

@@ -1626,23 +1626,79 @@ const dbService = {
 
   async getEmailConfig() {
     try {
+      const [rows] = await pool.query("SELECT * FROM email_gateway_config WHERE id = 1 LIMIT 1");
+      if (rows.length && rows[0].username) {
+        const r = rows[0];
+        return {
+          provider: r.provider || 'gmail',
+          host: r.host || 'smtp.gmail.com',
+          port: Number(r.port) || 465,
+          user: r.username,
+          username: r.username,
+          pass: r.password_encrypted,
+          password: r.password_encrypted,
+          fromEmail: r.from_email || r.username,
+          fromName: r.from_name || 'ENMAR Official',
+          secure: Boolean(r.use_tls)
+        };
+      }
+    } catch {}
+
+    try {
       const [rows] = await pool.query("SELECT setting_val FROM store_settings WHERE setting_key = 'apiConfigs'");
       if (rows.length && rows[0].setting_val) {
         const parsed = safeJsonParse(rows[0].setting_val, {});
-        if (parsed.email && parsed.email.user && parsed.email.pass) {
+        if (parsed.email && parsed.email.user) {
           return {
+            provider: parsed.email.provider || 'gmail',
             host: parsed.email.host || 'smtp.gmail.com',
             port: Number(parsed.email.port) || 465,
+            user: parsed.email.user,
             username: parsed.email.user,
+            pass: parsed.email.pass,
             password: parsed.email.pass,
             fromEmail: parsed.email.fromEmail || parsed.email.user,
-            fromName: parsed.email.fromName || 'ENMAR Official'
+            fromName: parsed.email.fromName || 'ENMAR Official',
+            secure: parsed.email.secure !== false
           };
         }
       }
-      return null;
-    } catch {
-      return null;
+    } catch {}
+
+    return null;
+  },
+
+  async saveEmailGatewayConfig(cfg, adminId = null) {
+    try {
+      await pool.query(
+        `INSERT INTO email_gateway_config (id, provider, host, port, username, password_encrypted, from_email, from_name, use_tls, created_by_admin_id, updated_at)
+         VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE
+           provider = VALUES(provider),
+           host = VALUES(host),
+           port = VALUES(port),
+           username = VALUES(username),
+           password_encrypted = IF(VALUES(password_encrypted) != '', VALUES(password_encrypted), password_encrypted),
+           from_email = VALUES(from_email),
+           from_name = VALUES(from_name),
+           use_tls = VALUES(use_tls),
+           updated_at = NOW()`,
+        [
+          cfg.provider || 'gmail',
+          cfg.host || 'smtp.gmail.com',
+          Number(cfg.port) || 465,
+          String(cfg.user || cfg.username || '').trim(),
+          String(cfg.pass || cfg.password || '').trim(),
+          String(cfg.fromEmail || cfg.from_email || cfg.user || '').trim(),
+          String(cfg.fromName || cfg.from_name || 'ENMAR Official').trim(),
+          cfg.secure !== false ? 1 : 0,
+          adminId ? Number(adminId) : null
+        ]
+      );
+      return true;
+    } catch (err) {
+      console.error('[DB] Failed to save email_gateway_config:', err.message);
+      return false;
     }
   },
 
