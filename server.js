@@ -609,42 +609,43 @@ function ensureStoreLoaded() {
 ensureStoreLoaded();
 
 const server = http.createServer(async (req, res) => {
-  await ensureStoreLoaded();
-    const { method, url } = req;
-    const pathname = url.split('?')[0];
-    let body = '';
+  const { method, url } = req;
+  const pathname = url.split('?')[0];
 
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-    if (method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
-    // Parse body
-    if (['POST', 'PATCH', 'PUT'].includes(method)) {
-      await new Promise((resolve, reject) => {
-        req.on('data', chunk => { body += chunk.toString(); });
-        req.on('end', resolve);
-        req.on('error', reject);
-      });
-      try { body = JSON.parse(body); } catch { body = {}; }
-    }
+  // Security Headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-    try {
-      // ── SECURITY HEADERS ──
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  // ── STATIC FILE SERVING (Instant response for all HTML, CSS, JS, images) ──
+  if (tryServeStatic(req, res, pathname)) return;
+  if (method === 'GET' && pathname === '/') {
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    return res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(html);
+  }
 
-      // ── STATIC FILE SERVING ──
-      if (tryServeStatic(req, res, pathname)) return;
+  // Parse body for API mutations
+  let body = '';
+  if (['POST', 'PATCH', 'PUT'].includes(method)) {
+    await new Promise((resolve, reject) => {
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', resolve);
+      req.on('error', reject);
+    });
+    try { body = JSON.parse(body); } catch { body = {}; }
+  }
 
-      // ── PUBLIC ──
-      if (method === 'GET' && pathname === '/') {
-        const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-        return res.writeHead(200, { 'Content-Type': 'text/html' }).end(html);
-      }
+  // Ensure DB store is loaded before handling API endpoints
+  await ensureStoreLoaded().catch(() => {});
+
+  try {
       if (method === 'GET' && pathname === '/api/settings') {
         const settings = store.settings || {};
         if (!settings.brandName) settings.brandName = 'ENMAR';
