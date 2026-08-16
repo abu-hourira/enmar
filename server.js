@@ -438,6 +438,7 @@ function emailConfig(store) {
   const fromEmail = c.fromEmail || process.env.EMAIL_FROM || user || '';
   return { host, port, user: String(user || '').trim(), pass: String(pass || '').trim(), fromEmail: String(fromEmail || '').trim() };
 }
+const resolveEmailConfig = emailConfig;
 
 function smtpSend(cfg, mail) {
   return new Promise((resolve, reject) => {
@@ -1707,12 +1708,78 @@ async function initializeApp() {
       if (method === 'GET' && pathname === '/api/admin/apis') {
         const user = currentUser(req, store);
         if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
-        return json(res, 200, { sms: {}, email: {} });
+        const email = (store.apiConfigs && store.apiConfigs.email) || {};
+        const sms = (store.apiConfigs && store.apiConfigs.sms) || {};
+        return json(res, 200, {
+          sms: {
+            provider: sms.provider || 'alpha',
+            baseUrl: sms.baseUrl || 'https://api.sms.net.bd/sendsms',
+            senderId: sms.senderId || '',
+            enabled: sms.enabled !== false,
+            apiKeySet: Boolean(sms.apiKey)
+          },
+          email: {
+            provider: email.provider || 'gmail',
+            host: email.host || 'smtp.gmail.com',
+            port: Number(email.port) || 465,
+            secure: email.secure !== false,
+            user: email.user || '',
+            fromName: email.fromName || 'ENMAR Official',
+            fromEmail: email.fromEmail || email.user || '',
+            passSet: Boolean(email.pass)
+          }
+        });
+      }
+      if (method === 'PATCH' && pathname === '/api/admin/apis') {
+        const user = currentUser(req, store);
+        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!store.apiConfigs) store.apiConfigs = {};
+        if (body.sms) {
+          const existingKey = store.apiConfigs.sms && store.apiConfigs.sms.apiKey;
+          store.apiConfigs.sms = {
+            ...(store.apiConfigs.sms || {}),
+            ...body.sms,
+            apiKey: body.sms.apiKey !== undefined && body.sms.apiKey !== '' ? body.sms.apiKey : existingKey
+          };
+        }
+        if (body.email) {
+          const existingPass = store.apiConfigs.email && store.apiConfigs.email.pass;
+          store.apiConfigs.email = {
+            ...(store.apiConfigs.email || {}),
+            ...body.email,
+            pass: body.email.pass !== undefined && body.email.pass !== '' ? body.email.pass : existingPass
+          };
+        }
+        await dbService.saveAllSettings(null, store.apiConfigs);
+        return json(res, 200, { ok: true, message: 'Settings saved successfully' });
       }
       if (method === 'POST' && pathname === '/api/admin/apis/test-email') {
         const user = currentUser(req, store);
         if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
-        return json(res, 200, { ok: true, message: 'SMTP Handshake & TLS Auth Verified' });
+        const to = (body && body.to) || user.email;
+        if (!to) return json(res, 400, { error: 'Recipient email required' });
+        const cfg = emailConfig(store);
+        if (!cfg.user || !cfg.pass) return json(res, 400, { error: 'SMTP username or App Password not set. Please save them first.' });
+        const brand = (store.settings && store.settings.brandName) || 'ENMAR';
+        try {
+          await smtpSend(cfg, {
+            to,
+            fromEmail: cfg.fromEmail,
+            fromHeader: `${brand} Official <${cfg.fromEmail}>`,
+            subject: `[${brand}] Test Email Verification`,
+            text: `Hello,\n\nThis is a test email confirming that your SMTP settings on ${brand} are working perfectly!\n\nTimestamp: ${new Date().toISOString()}`
+          });
+          return json(res, 200, { ok: true, message: 'Test email sent successfully' });
+        } catch (err) {
+          return json(res, 400, { error: `SMTP Error: ${err.message}` });
+        }
+      }
+      if (method === 'POST' && pathname === '/api/admin/apis/test-sms') {
+        const user = currentUser(req, store);
+        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        const to = body && body.to;
+        if (!to) return json(res, 400, { error: 'Recipient phone number required' });
+        return json(res, 200, { ok: true, provider: 'Alpha SMS / SIMULATION (Dev mode active)' });
       }
 
       // ── EVENTS (SSE) ──
