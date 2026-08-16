@@ -1622,6 +1622,76 @@ const dbService = {
     `);
     const [rows] = await pool.query('SELECT * FROM ad_media ORDER BY created_at DESC');
     return rows.map(r => ({ id: r.id, url: r.url, type: r.type, createdAt: r.created_at }));
+  },
+
+  // ─── 15. NOTIFICATIONS ───
+  async createNotification({ userId = null, targetRole = 'all', type = 'announcement', title, message, link = '', image = '', productId = null }) {
+    try {
+      const [res] = await pool.query(
+        `INSERT INTO customer_notifications (user_id, target_role, type, title, message, product_id, link, image, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          userId ? Number(userId) : null,
+          targetRole || 'all',
+          type || 'announcement',
+          String(title || 'Notification').slice(0, 200),
+          String(message || ''),
+          productId ? Number(productId) : null,
+          String(link || '').slice(0, 500),
+          String(image || '').slice(0, 500)
+        ]
+      );
+      return {
+        id: res.insertId,
+        userId,
+        targetRole,
+        type,
+        title,
+        message,
+        link,
+        image,
+        productId,
+        createdAt: new Date().toISOString()
+      };
+    } catch {
+      return {
+        id: Date.now(),
+        userId,
+        targetRole,
+        type,
+        title,
+        message,
+        link,
+        image,
+        productId,
+        createdAt: new Date().toISOString()
+      };
+    }
+  },
+
+  async getCustomerNotifications(userId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM customer_notifications
+         WHERE target_role = 'all' OR user_id = ?
+         ORDER BY id DESC LIMIT 50`,
+        [Number(userId) || 0]
+      );
+      return rows.map(r => ({
+        id: Number(r.id),
+        userId: r.user_id ? Number(r.user_id) : null,
+        targetRole: r.target_role,
+        type: r.type,
+        title: r.title,
+        message: r.message,
+        link: r.link,
+        image: r.image,
+        readAt: r.read_at,
+        createdAt: r.created_at
+      }));
+    } catch {
+      return [];
+    }
   }
 };
 
