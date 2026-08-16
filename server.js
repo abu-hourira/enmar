@@ -133,16 +133,6 @@ function tryServeStatic(req, res, pathname) {
 }
 
 // ── CONFIG ──
-if (IS_PROD && !ENCRYPTION_KEY) {
-  console.warn('\x1b[33m[WARNING] ENCRYPTION_KEY not set. Email configuration will not be encrypted.\x1b[0m');
-}
-if (IS_PROD) {
-  if (!process.env.SUPERADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD === 'Abuhourira97@' || process.env.SUPERADMIN_PASSWORD.length < 8) {
-    console.error('\x1b[31m[FATAL] In production, a strong SUPERADMIN_PASSWORD must be set in .env.\x1b[0m');
-    process.exit(1);
-  }
-}
-
 const PERMANENT_SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
 const RESERVED_ACCOUNTS = [
