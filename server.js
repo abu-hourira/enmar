@@ -609,48 +609,52 @@ function ensureStoreLoaded() {
 ensureStoreLoaded();
 
 const server = http.createServer(async (req, res) => {
-  const { method, url } = req;
-  const pathname = url.split('?')[0];
-
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
-
-  // Security Headers
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-
-  // ── STATIC FILE SERVING (Instant response for all HTML, CSS, JS, images) ──
-  if (tryServeStatic(req, res, pathname)) return;
-  if (method === 'GET' && pathname === '/') {
-    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-    return res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(html);
-  }
-
-  // Parse body for API mutations
-  let body = '';
-  if (['POST', 'PATCH', 'PUT'].includes(method)) {
-    await new Promise((resolve, reject) => {
-      req.on('data', chunk => { body += chunk.toString(); });
-      req.on('end', resolve);
-      req.on('error', reject);
-    });
-    try { body = JSON.parse(body); } catch { body = {}; }
-  }
-
-  // Ensure DB store is loaded before handling API endpoints
-  await ensureStoreLoaded().catch(() => {});
-
   try {
-      if (method === 'GET' && pathname === '/api/settings') {
-        const settings = store.settings || {};
-        if (!settings.brandName) settings.brandName = 'ENMAR';
-        return json(res, 200, settings);
+    const { method, url } = req;
+    const pathname = (url || '/').split('?')[0];
+
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    if (method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
+
+    // Security Headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+    // ── STATIC FILE SERVING (Instant response for all HTML, CSS, JS, images) ──
+    if (tryServeStatic(req, res, pathname)) return;
+    if (method === 'GET' && (pathname === '/' || pathname === '')) {
+      const indexPath = path.join(ROOT, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        const html = fs.readFileSync(indexPath, 'utf8');
+        return res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(html);
       }
+    }
+
+    // Parse body for API mutations
+    let body = {};
+    if (['POST', 'PATCH', 'PUT'].includes(method)) {
+      let rawBody = '';
+      await new Promise((resolve) => {
+        req.on('data', chunk => { rawBody += chunk.toString(); });
+        req.on('end', resolve);
+        req.on('error', () => resolve());
+      });
+      try { body = JSON.parse(rawBody); } catch { body = {}; }
+    }
+
+    // Ensure DB store is loaded before handling API endpoints
+    await ensureStoreLoaded().catch(() => {});
+
+    if (method === 'GET' && pathname === '/api/settings') {
+      const settings = store.settings || {};
+      if (!settings.brandName) settings.brandName = 'ENMAR';
+      return json(res, 200, settings);
+    }
       if (method === 'GET' && pathname === '/api/products') {
         return json(res, 200, store.products.filter(p => p.active !== false));
       }
