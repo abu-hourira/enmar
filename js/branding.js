@@ -2,22 +2,28 @@
    Reads /api/settings and updates branding and login modal instruction guide on load. */
 function applySiteFavicon(url) {
   var href = (url || '').trim();
-  var existing = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var existing = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+
   if (!href) {
     existing.forEach(function (el) { el.remove(); });
     return;
   }
-  var link = existing[0];
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
-  existing.forEach(function (el, i) { if (i > 0) el.remove(); });
-  link.type = href.indexOf('image/svg') !== -1 ? 'image/svg+xml'
+
+  // Remove existing to force browser tab update
+  existing.forEach(function (el) { el.remove(); });
+
+  var mimeType = href.indexOf('image/svg') !== -1 ? 'image/svg+xml'
     : (href.indexOf('image/png') !== -1 ? 'image/png'
-      : (href.indexOf('image/x-icon') !== -1 || href.indexOf('image/vnd.microsoft.icon') !== -1 ? 'image/x-icon' : 'image/png'));
-  link.href = href;
+      : (href.indexOf('image/x-icon') !== -1 || href.indexOf('image/vnd.microsoft.icon') !== -1 || href.indexOf('.ico') !== -1 ? 'image/x-icon' : 'image/png'));
+
+  ['icon', 'shortcut icon', 'apple-touch-icon'].forEach(function (relType) {
+    var link = document.createElement('link');
+    link.rel = relType;
+    link.type = mimeType;
+    link.href = href;
+    head.appendChild(link);
+  });
 }
 window.applySiteFavicon = applySiteFavicon;
 

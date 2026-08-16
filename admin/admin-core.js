@@ -387,23 +387,31 @@ function applyAdminBranding(settings) {
 
 function applyAdminFavicon(url) {
   const href = String(url || '').trim();
-  const existing = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+  const head = document.head || document.getElementsByTagName('head')[0];
+  const existing = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+
   if (!href) {
     existing.forEach(el => el.remove());
     return;
   }
-  let link = existing[0];
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
-  }
-  existing.forEach((el, i) => { if (i > 0) el.remove(); });
-  link.type = href.includes('image/svg') ? 'image/svg+xml'
+
+  // Remove existing to force browser tab update
+  existing.forEach(el => el.remove());
+
+  const mimeType = href.includes('image/svg') ? 'image/svg+xml'
     : (href.includes('image/png') ? 'image/png'
-      : (href.includes('image/x-icon') || href.includes('image/vnd.microsoft.icon') ? 'image/x-icon' : 'image/png'));
-  link.href = href;
+      : (href.includes('image/x-icon') || href.includes('image/vnd.microsoft.icon') || href.includes('.ico') ? 'image/x-icon' : 'image/png'));
+
+  ['icon', 'shortcut icon', 'apple-touch-icon'].forEach(relType => {
+    const link = document.createElement('link');
+    link.rel = relType;
+    link.type = mimeType;
+    link.href = href;
+    head.appendChild(link);
+  });
 }
+window.applyAdminFavicon = applyAdminFavicon;
+window.applySiteFavicon = applyAdminFavicon;
 
 function setupShell() {
   if (!currentUser) return;
