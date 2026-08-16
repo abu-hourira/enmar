@@ -1169,26 +1169,23 @@ async function loadSettings() {
       bimg.alt = s.brandName || 'Logo';
       brandIcon.appendChild(bimg);
     }
-    if (typeof applySiteFavicon === 'function') {
-      applySiteFavicon(s.favicon || '');
+    const favUrl = String(s.favicon || '').trim();
+    const head = document.head || document.getElementsByTagName('head')[0];
+    const existingFavs = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]');
+    if (!favUrl) {
+      existingFavs.forEach(el => el.remove());
     } else {
-      const href = String(s.favicon || '').trim();
-      const existing = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-      if (!href) {
-        existing.forEach(el => el.remove());
-      } else {
-        let link = existing[0];
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.head.appendChild(link);
-        }
-        existing.forEach((el, i) => { if (i > 0) el.remove(); });
-        link.type = href.includes('image/svg') ? 'image/svg+xml'
-          : (href.includes('image/png') ? 'image/png'
-            : (href.includes('image/x-icon') || href.includes('image/vnd.microsoft.icon') ? 'image/x-icon' : 'image/png'));
-        link.href = href;
-      }
+      existingFavs.forEach(el => el.remove());
+      const mime = favUrl.includes('image/svg') ? 'image/svg+xml'
+        : (favUrl.includes('image/png') ? 'image/png'
+          : (favUrl.includes('image/x-icon') || favUrl.includes('image/vnd.microsoft.icon') || favUrl.includes('.ico') ? 'image/x-icon' : 'image/png'));
+      ['icon', 'shortcut icon', 'apple-touch-icon'].forEach(rel => {
+        const link = document.createElement('link');
+        link.rel = rel;
+        link.type = mime;
+        link.href = favUrl;
+        head.appendChild(link);
+      });
     }
     if (typeof s.shippingFlat === 'number')          SHIPPING_FLAT           = s.shippingFlat;
     if (typeof s.shippingFreeThreshold === 'number') SHIPPING_FREE_THRESHOLD = s.shippingFreeThreshold;

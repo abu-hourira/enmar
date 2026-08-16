@@ -211,13 +211,11 @@ try {
       conn.release();
       console.log('[MySQL] ✅ Database connection verified on startup.');
     } catch (err) {
-      console.error('[MySQL] ❌ CRITICAL: Cannot connect to database:', err.message);
-      process.exit(1);
+      console.error('[MySQL] ⚠️ Database connection warning:', err.message);
     }
   })();
 } catch (e) {
-  console.error('[MySQL] ❌ FATAL: Failed to load database pool:', e.message);
-  process.exit(1);
+  console.error('[MySQL] ⚠️ Failed to load database pool:', e.message);
 }
 
 // ── STORE ──
@@ -582,11 +580,36 @@ async function sendPasswordResetCode(email, store) {
 }
 
 // ── HTTP SERVER ──
-async function initializeApp() {
-  const store = await readStore();
-  console.log(`[Store] Loaded: ${store.users.length} users, ${store.products.length} products, ${store.orders.length} orders`);
+let store = {
+  users: [],
+  products: [],
+  orders: [],
+  subscribers: [],
+  settings: {},
+  apiConfigs: {},
+  nextIds: { user: 1, product: 1, order: 1, review: 1 }
+};
 
-  const server = http.createServer(async (req, res) => {
+let storeLoadedPromise = null;
+function ensureStoreLoaded() {
+  if (!storeLoadedPromise) {
+    storeLoadedPromise = readStore().then(s => {
+      if (s) Object.assign(store, s);
+      console.log(`[Store] Loaded: ${store.users.length} users, ${store.products.length} products, ${store.orders.length} orders`);
+      return store;
+    }).catch(err => {
+      console.error('[Store] ⚠️ Failed to load initial store from DB:', err.message);
+      return store;
+    });
+  }
+  return storeLoadedPromise;
+}
+
+// Pre-load store in background
+ensureStoreLoaded();
+
+const server = http.createServer(async (req, res) => {
+  await ensureStoreLoaded();
     const { method, url } = req;
     const pathname = url.split('?')[0];
     let body = '';
@@ -1804,13 +1827,7 @@ async function initializeApp() {
     }
   });
 
-  server.listen(PORT, () => {
-    console.log(`[Server] Listening on port ${PORT}`);
-    if (IS_PROD) console.log('[Server] Running in production mode');
-  });
-}
-
-initializeApp().catch(err => {
-  console.error('[FATAL]', err);
-  process.exit(1);
+server.listen(PORT, () => {
+  console.log(`[Server] Listening on port ${PORT}`);
+  if (IS_PROD) console.log('[Server] Running in production mode');
 });
