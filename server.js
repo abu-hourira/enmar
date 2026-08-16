@@ -221,6 +221,15 @@ try {
 // ── STORE ──
 async function readStore() {
   await dbService.ensureStoreSettings().catch(() => {});
+  try {
+    await dbService.ensureSessionsTable();
+    if (dbPool) {
+      const [sessRows] = await dbPool.query('SELECT * FROM user_sessions WHERE expires > ?', [Date.now()]);
+      sessRows.forEach(r => {
+        sessions.set(r.token, { userId: Number(r.user_id), expires: Number(r.expires) });
+      });
+    }
+  } catch {}
   const users = await dbService.getAllUsers();
   const products = await dbService.getAllProductsAdmin();
   const orders = await dbService.getAllOrdersAdmin();
@@ -297,7 +306,9 @@ function cookies(req) {
 }
 
 function currentUser(req, store) {
-  const session = sessions.get(cookies(req).hm_session);
+  const token = cookies(req).hm_session;
+  if (!token) return null;
+  const session = sessions.get(token);
   return session && session.expires > Date.now() ? store.users.find(u => u.id === session.userId && u.active) : null;
 }
 
@@ -308,8 +319,9 @@ function json(res, status, body) {
 
 function setSession(res, userId) {
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { userId, expires: Date.now() + 7 * 86400000 });
-  dbService.createSession(userId, token).catch(() => {});
+  const expires = Date.now() + 7 * 86400000;
+  sessions.set(token, { userId, expires });
+  dbService.createSession(userId, token, expires).catch(() => {});
   const secure = IS_PROD ? '; Secure' : '';
   res.setHeader('Set-Cookie', `hm_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800${secure}`);
   return token;

@@ -1702,6 +1702,51 @@ const dbService = {
     }
   },
 
+  // ─── 16. PERSISTENT SESSIONS ───
+  async ensureSessionsTable() {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        token VARCHAR(128) NOT NULL,
+        user_id BIGINT UNSIGNED NOT NULL,
+        expires BIGINT UNSIGNED NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (token),
+        KEY idx_user_id (user_id)
+      ) ENGINE=InnoDB
+    `);
+  },
+
+  async createSession(userId, token, expires) {
+    try {
+      await this.ensureSessionsTable();
+      await pool.query(
+        `INSERT INTO user_sessions (token, user_id, expires) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE expires = VALUES(expires)`,
+        [token, Number(userId), Number(expires) || (Date.now() + 7 * 86400000)]
+      );
+    } catch {}
+  },
+
+  async getSession(token) {
+    if (!token) return null;
+    try {
+      await this.ensureSessionsTable();
+      const [rows] = await pool.query('SELECT * FROM user_sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+      if (!rows.length) return null;
+      return { token: rows[0].token, userId: Number(rows[0].user_id), expires: Number(rows[0].expires) };
+    } catch {
+      return null;
+    }
+  },
+
+  async deleteSession(token) {
+    if (!token) return;
+    try {
+      await this.ensureSessionsTable();
+      await pool.query('DELETE FROM user_sessions WHERE token = ?', [token]);
+    } catch {}
+  },
+
   // ─── 15. NOTIFICATIONS ───
   async createNotification({ userId = null, targetRole = 'all', type = 'announcement', title, message, link = '', image = '', productId = null }) {
     try {
