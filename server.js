@@ -434,9 +434,9 @@ function emailConfig(store) {
   const user = c.user || process.env.EMAIL_USER || '';
   const pass = c.pass || process.env.EMAIL_PASS || '';
   const fromEmail = c.fromEmail || process.env.EMAIL_FROM || user || '';
-  return { host, port, user: String(user || '').trim(), pass: String(pass || '').trim(), fromEmail: String(fromEmail || '').trim() };
+  const fromName = c.fromName || process.env.EMAIL_FROM_NAME || 'ENMAR Official';
+  return { host, port, user: String(user || '').trim(), pass: String(pass || '').trim(), fromEmail: String(fromEmail || '').trim(), fromName: String(fromName || '').trim() };
 }
-const resolveEmailConfig = emailConfig;
 
 function smtpSend(cfg, mail) {
   return new Promise((resolve, reject) => {
