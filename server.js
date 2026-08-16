@@ -480,7 +480,7 @@ function smtpSend(cfg, mail) {
     (async () => {
       try {
         if (isExplicitTls) {
-          const initial = tls.connect({ host: cfg.host, port: Number(cfg.port) || 465, servername: cfg.host });
+          const initial = tls.connect({ host: cfg.host, port: Number(cfg.port) || 465, servername: cfg.host, rejectUnauthorized: false });
           bind(initial);
         } else {
           const tcpSock = net.connect({ host: cfg.host, port: Number(cfg.port) || 587 });
@@ -492,7 +492,7 @@ function smtpSend(cfg, mail) {
           c = code(await sendLine('STARTTLS'));
           if (c !== 220) return fail('STARTTLS refused');
           
-          const tlsSock = tls.connect({ socket: tcpSock, host: cfg.host, servername: cfg.host });
+          const tlsSock = tls.connect({ socket: tcpSock, host: cfg.host, servername: cfg.host, rejectUnauthorized: false });
           bind(tlsSock);
         }
 
