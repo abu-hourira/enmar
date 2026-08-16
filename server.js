@@ -24,7 +24,7 @@ const emailEncryption = require('./services/email-encryption.js');
   } catch { /* ignore */ }
 })();
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 const ROOT = path.resolve(__dirname);
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
