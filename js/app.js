@@ -80,7 +80,10 @@ function safeMultiline(text) {
 }
 
 /* ── client-side delivery countdown (user panel) ── */
-const DELIVERY_WINDOW_MS = 48 * 60 * 60 * 1000;
+function getUserDeliveryWindowMs() {
+  const hours = (window._siteSettings && Number(window._siteSettings.deliveryCountdownHours)) || 4;
+  return hours * 60 * 60 * 1000;
+}
 let _userCountdownTimer = null;
 
 function _fmtCountdown(ms) {
@@ -100,7 +103,7 @@ function userCountdownHTML(order) {
   if (order.estimatedDelivery) {
     target = new Date(order.estimatedDelivery).getTime();
   } else if (order.confirmedAt) {
-    target = new Date(order.confirmedAt).getTime() + DELIVERY_WINDOW_MS;
+    target = new Date(order.confirmedAt).getTime() + getUserDeliveryWindowMs();
   } else {
     return '';
   }
@@ -1966,26 +1969,6 @@ function showProductArrivalToast(p) {
   container.appendChild(toast);
 }
 
-function initLiveProductNotifications() {
-  if (!window.EventSource) return;
-  try {
-    const es = new EventSource('/api/events/live');
-    es.addEventListener('new-product', (e) => {
-      try {
-        const product = JSON.parse(e.data);
-        showProductArrivalToast(product);
-        if (typeof loadProducts === 'function') {
-          loadProducts().catch(() => {});
-        }
-      } catch (err) {
-        console.warn('[live-product-notif]', err);
-      }
-    });
-  } catch (err) {
-    console.warn('[sse-init]', err);
-  }
-}
-
 (async () => {
   try {
     initAuthModalSystem();
@@ -1997,7 +1980,6 @@ function initLiveProductNotifications() {
     ]);
     refreshAccountButton();
     await loadCommunityComments();
-    initLiveProductNotifications();
   } catch (error) {
     console.warn(error);
   }

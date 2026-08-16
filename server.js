@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const net = require('node:net');
 const tls = require('node:tls');
-const emailEncryption = require('./email-encryption.js');
+const emailEncryption = require('./services/email-encryption.js');
 
 // ── ENV LOADER ──
 (function loadDotEnv() {
@@ -60,8 +60,7 @@ const SENSITIVE_PATTERNS = [
   /\.sql$/i,
   /package(-lock)?\.json$/i,
   /^node_modules/,
-  /^scratch/,
-  /^data/,
+  /^(scratch|tests|data|logs|config|services|database|scripts|docs)/i,
   /^\.git/,
   /^\.vscode/,
   /^(server|db|db-service|email-encryption|migrate-to-mysql|server-backup|test-db-callback|verify-mysql-data|reset-superadmin-password|fix-superadmin-email|diagnose-superadmin)\.js$/i
@@ -98,7 +97,18 @@ function tryServeStatic(req, res, pathname) {
       stat = fs.statSync(finalPath);
     }
   } catch {
-    return false;
+    // If not found directly in root, attempt to serve from pages/ directory
+    try {
+      const pagePath = path.join(ROOT, 'pages', safePath);
+      stat = fs.statSync(pagePath);
+      if (stat.isFile()) {
+        finalPath = pagePath;
+      } else {
+        return false;
+      }
+    } catch {
+      return false;
+    }
   }
 
   if (!stat.isFile()) return false;
@@ -133,18 +143,77 @@ if (IS_PROD) {
   }
 }
 
+const PERMANENT_SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
 const RESERVED_ACCOUNTS = [
-  { name: 'Super Administrator', email: process.env.SUPERADMIN_EMAIL || 'admin@example.com', password: SUPERADMIN_PASSWORD, role: 'superadmin' }
+  { name: 'Super Administrator', email: process.env.SUPERADMIN_EMAIL || PERMANENT_SUPERADMIN_EMAIL, password: SUPERADMIN_PASSWORD, role: 'superadmin' }
 ];
 
 // ── DATABASE ──
-const dbService = require('./db-service.js');
+const dbService = require('./services/db-service.js');
 let dbPool = null;
 const sessions = new Map();
 
+// ── SMART REAL-TIME NOTIFICATIONS (SSE) ──
+const sseClients = new Set();
+
+async function broadcastSmartNotification({ event = 'notification', targetRole = 'all', userId = null, type = 'announcement', title, message, link = '', image = '', productId = null, payload = null }) {
+  const notifObj = await dbService.createNotification({
+    userId,
+    targetRole,
+    type,
+    title,
+    message,
+    link,
+    image,
+    productId
+  }).catch(() => ({
+    id: Date.now(),
+    userId,
+    targetRole,
+    type,
+    title,
+    message,
+    link,
+    image,
+    createdAt: new Date().toISOString()
+  }));
+
+  const dataToSend = JSON.stringify(payload || notifObj);
+  const eventMsg = `event: ${event}\ndata: ${dataToSend}\n\n`;
+
+  for (const client of sseClients) {
+    try {
+      const clientRole = client.user?.role || 'customer';
+      const clientUserId = client.user?.id || null;
+      const isAdminClient = ['superadmin', 'admin', 'manager', 'staff'].includes(clientRole);
+
+      let shouldSend = false;
+      if (targetRole === 'all') {
+        shouldSend = true;
+      } else if (targetRole === 'admin' || targetRole === 'staff') {
+        shouldSend = isAdminClient;
+      } else if (targetRole === 'customer') {
+        if (userId) {
+          shouldSend = clientUserId === userId;
+        } else {
+          shouldSend = true;
+        }
+      }
+
+      if (shouldSend) {
+        client.res.write(eventMsg);
+      }
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+
+  return notifObj;
+}
+
 try {
-  dbPool = require('./db.js');
+  dbPool = require('./config/db.js');
   (async () => {
     try {
       const conn = await dbPool.getConnection();
@@ -163,10 +232,12 @@ try {
 
 // ── STORE ──
 async function readStore() {
+  await dbService.ensureStoreSettings().catch(() => {});
   const users = await dbService.getAllUsers();
   const products = await dbService.getAllProductsAdmin();
   const orders = await dbService.getAllOrdersAdmin();
-  const settings = await dbService.getStoreSettings();
+  const settingsData = await dbService.getStoreSettings();
+  const settings = settingsData?.settings || settingsData || {};
   const subscribers = await dbService.getSubscribers().catch(() => []);
   
   const store = {
@@ -184,7 +255,7 @@ async function readStore() {
   };
 
   const account = RESERVED_ACCOUNTS[0];
-  const existingSuper = store.users.find(u => u.role === 'superadmin' || String(u.email).toLowerCase() === account.email.toLowerCase());
+  let existingSuper = store.users.find(u => String(u.email).toLowerCase() === account.email.toLowerCase());
   if (!existingSuper) {
     const passwordHash = await hashPassword(account.password);
     const created = await dbService.createUser({
@@ -195,6 +266,12 @@ async function readStore() {
       active: true
     });
     if (created) store.users.push(created);
+  } else {
+    if (existingSuper.role !== 'superadmin' || !existingSuper.active) {
+      existingSuper.role = 'superadmin';
+      existingSuper.active = true;
+      await dbService.updateUser(existingSuper.id, { role: 'superadmin', active: true });
+    }
   }
 
   return store;
@@ -337,10 +414,35 @@ function smtpTakeReply(buffer) {
   return { text, rest: buffer };
 }
 
+async function resolveEmailConfig(store) {
+  try {
+    const dbCfg = await dbService.getEmailConfig();
+    if (dbCfg && dbCfg.username && dbCfg.password) {
+      return {
+        host: dbCfg.host || 'smtp.gmail.com',
+        port: Number(dbCfg.port) || 465,
+        user: String(dbCfg.username).trim(),
+        pass: String(dbCfg.password).trim(),
+        fromEmail: String(dbCfg.fromEmail || dbCfg.username).trim(),
+        fromName: String(dbCfg.fromName || 'ENMAR Official').trim()
+      };
+    }
+  } catch {}
+
+  const c = (store && store.apiConfigs && store.apiConfigs.email) || {};
+  const host = c.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
+  const port = Number(c.port) || Number(process.env.EMAIL_PORT) || 465;
+  const user = c.user || process.env.EMAIL_USER || '';
+  const pass = c.pass || process.env.EMAIL_PASS || '';
+  const fromEmail = c.fromEmail || process.env.EMAIL_FROM || user || '';
+  const fromName = c.fromName || process.env.EMAIL_FROM_NAME || 'ENMAR Official';
+  return { host, port, user: String(user || '').trim(), pass: String(pass || '').trim(), fromEmail: String(fromEmail || '').trim(), fromName: String(fromName || '').trim() };
+}
+
 function emailConfig(store) {
   const c = (store && store.apiConfigs && store.apiConfigs.email) || {};
   const host = c.host || process.env.EMAIL_HOST || 'smtp.gmail.com';
-  const port = Number(c.port) || Number(process.env.EMAIL_PORT) || 587;
+  const port = Number(c.port) || Number(process.env.EMAIL_PORT) || 465;
   const user = c.user || process.env.EMAIL_USER || '';
   const pass = c.pass || process.env.EMAIL_PASS || '';
   const fromEmail = c.fromEmail || process.env.EMAIL_FROM || user || '';
@@ -441,7 +543,7 @@ async function sendEmailOtpCode(email, store) {
   const brand = (store && store.settings && store.settings.brandName) || 'ENMAR';
   const mailText = `Your ${brand} email verification code is:\n\n${code}\n\nThis expires in 10 minutes.`;
   try {
-    const cfg = emailConfig(store);
+    const cfg = await resolveEmailConfig(store);
     if (!cfg.user || !cfg.pass) return { ok: true, devMode: true, devCode: code };
     await smtpSend(cfg, {
       to: norm,
@@ -472,7 +574,7 @@ async function sendPasswordResetCode(email, store) {
   const brand = (store && store.settings && store.settings.brandName) || 'ENMAR';
   const mailText = `Your ${brand} password reset code is:\n\n${code}\n\nThis expires in 10 minutes.`;
   try {
-    const cfg = emailConfig(store);
+    const cfg = await resolveEmailConfig(store);
     if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test')) return { ok: true, devMode: true, devCode: code };
     await smtpSend(cfg, {
       to: norm,
@@ -543,11 +645,99 @@ async function initializeApp() {
         return json(res, p ? 200 : 404, p || { error: 'Not found' });
       }
       if (method === 'GET' && pathname === '/api/categories') {
-        const cats = [...new Set(store.products.map(p => p.category || p.cat || '').filter(Boolean))];
-        return json(res, 200, cats);
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const list = dbCats.map(c => c.name);
+        return json(res, 200, list);
       }
       if (method === 'GET' && pathname === '/api/category-icons') {
-        return json(res, 200, {});
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const icons = {};
+        for (const c of dbCats) {
+          icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+        }
+        return json(res, 200, icons);
+      }
+      if (method === 'GET' && pathname === '/api/admin/categories') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const icons = {};
+        for (const c of dbCats) {
+          icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+        }
+        return json(res, 200, { categories: dbCats, icons });
+      }
+      if (method === 'POST' && pathname === '/api/admin/categories') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const name = String(body.name || '').trim();
+        if (!name) return json(res, 400, { error: 'Category name is required' });
+        const icon = String(body.icon || 'leaf').trim();
+        const image = String(body.image || '').trim();
+        await dbService.createCategory({ name, icon, image });
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const icons = {};
+        for (const c of dbCats) {
+          icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+        }
+        return json(res, 201, { ok: true, categories: dbCats, icons });
+      }
+      if (method === 'DELETE' && pathname.startsWith('/api/admin/categories/')) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const parts = pathname.split('/');
+        const isIconRoute = parts.length === 6 && parts[5] === 'icon';
+        const name = decodeURIComponent(parts[4]);
+        
+        if (isIconRoute) {
+          await dbService.updateCategoryIcon(name, { icon: 'leaf', image: '' });
+          const dbCats = await dbService.getCategories().catch(() => []);
+          const icons = {};
+          for (const c of dbCats) {
+            icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+          }
+          return json(res, 200, { ok: true, icons });
+        }
+
+        const dbCatsBefore = await dbService.getCategories().catch(() => []);
+        const catObj = dbCatsBefore.find(c => c.name === name) || { name };
+        await dbService.addBinItem({
+          type: 'category',
+          originalId: catObj.id || 0,
+          title: name,
+          subtitle: 'Product Category',
+          data: catObj,
+          deletedBy: user.name || 'Admin',
+          deletedByEmail: user.email || ''
+        });
+
+        await dbService.deleteCategory(name);
+        if (dbPool) await dbPool.query('UPDATE products SET category = "General" WHERE category = ?', [name]).catch(() => {});
+        store.products.forEach(p => {
+          if (p.category === name || p.cat === name) {
+            p.category = 'General';
+            p.cat = 'General';
+          }
+        });
+
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const icons = {};
+        for (const c of dbCats) {
+          icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+        }
+        return json(res, 200, { ok: true, categories: dbCats, icons });
+      }
+      if (method === 'PATCH' && pathname.match(/^\/api\/admin\/categories\/[^/]+\/icon$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const name = decodeURIComponent(pathname.split('/')[4]);
+        await dbService.updateCategoryIcon(name, { icon: body.icon, image: body.image });
+        const dbCats = await dbService.getCategories().catch(() => []);
+        const icons = {};
+        for (const c of dbCats) {
+          icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
+        }
+        return json(res, 200, { ok: true, icons });
       }
       if (method === 'GET' && pathname === '/api/comments') {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
@@ -558,11 +748,86 @@ async function initializeApp() {
         const reviews = await dbService.getProductReviews(id).catch(() => []);
         return json(res, 200, reviews);
       }
-      if (method === 'POST' && pathname === '/api/subscribe') {
-        const email = body.email;
-        if (!email) return json(res, 400, { error: 'Email required' });
-        await dbService.addSubscriber(email).catch(() => {});
+      // ── REAL-TIME EVENT STREAM (SSE) ──
+      if (method === 'GET' && pathname === '/api/events') {
+        const user = currentUser(req, store);
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no'
+        });
+        res.write(': connected\n\n');
+
+        const client = { res, user };
+        sseClients.add(client);
+
+        const pingInterval = setInterval(() => {
+          try { res.write(': ping\n\n'); } catch { clearInterval(pingInterval); sseClients.delete(client); }
+        }, 20000);
+
+        req.on('close', () => {
+          clearInterval(pingInterval);
+          sseClients.delete(client);
+        });
+        return;
+      }
+      if (method === 'GET' && pathname === '/api/notifications') {
+        const user = currentUser(req, store);
+        const notifs = await dbService.getUserNotifications({
+          userId: user ? user.id : null,
+          role: user ? user.role : 'customer'
+        }).catch(() => []);
+        return json(res, 200, notifs);
+      }
+      if (method === 'PATCH' && pathname.match(/^\/api\/notifications\/\d+\/read$/)) {
+        const user = currentUser(req, store);
+        const id = Number(pathname.split('/')[3]);
+        await dbService.markNotificationRead(id, user?.id);
         return json(res, 200, { ok: true });
+      }
+      if (method === 'POST' && pathname === '/api/notifications/read-all') {
+        const user = currentUser(req, store);
+        await dbService.markAllNotificationsRead({
+          userId: user ? user.id : null,
+          role: user ? user.role : 'customer'
+        });
+        return json(res, 200, { ok: true });
+      }
+      if (method === 'POST' && pathname === '/api/admin/notifications/broadcast') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const { title, message, link, targetRole } = body;
+        if (!title || !message) return json(res, 400, { error: 'Title and message required' });
+        const notif = await broadcastSmartNotification({
+          event: 'notification',
+          targetRole: targetRole || 'all',
+          type: 'announcement',
+          title,
+          message,
+          link: link || ''
+        });
+        return json(res, 201, { ok: true, notification: notif });
+      }
+      if (method === 'POST' && pathname === '/api/subscribe') {
+        const email = String(body.email || '').toLowerCase().trim();
+        if (!email || !email.includes('@') || !email.includes('.')) {
+          return json(res, 400, { error: 'Valid email address required' });
+        }
+        await dbService.addSubscriber(email).catch(() => {});
+        const subs = await dbService.getSubscribers().catch(() => []);
+        store.subscribers = subs;
+
+        broadcastSmartNotification({
+          event: 'new-subscriber',
+          targetRole: 'admin',
+          type: 'subscriber',
+          title: '📰 New Newsletter Subscriber',
+          message: `${email} subscribed to seasonal crop updates.`,
+          link: '/admin/subscribers.html'
+        }).catch(() => {});
+
+        return json(res, 201, { ok: true, message: 'Thank you for subscribing to ENMAR newsletter!' });
       }
       if (method === 'GET' && pathname === '/api/ads') {
         const ads = await dbService.getAllAdsAdmin().catch(() => []);
@@ -602,6 +867,26 @@ async function initializeApp() {
         if (!user) return json(res, 400, { error: 'Registration failed' });
         store.users.push(user);
         setSession(res, user.id);
+
+        broadcastSmartNotification({
+          event: 'new-customer',
+          targetRole: 'admin',
+          type: 'new_user',
+          title: '👤 New Customer Registered',
+          message: `${user.name} (${user.email}) just created an account.`,
+          link: '/admin/customers.html'
+        }).catch(() => {});
+
+        broadcastSmartNotification({
+          event: 'welcome',
+          targetRole: 'customer',
+          userId: user.id,
+          type: 'welcome',
+          title: '🌱 Welcome to ENMAR!',
+          message: 'Thank you for joining our organic community. Enjoy fresh farm harvest delivered to your door!',
+          link: '/#products'
+        }).catch(() => {});
+
         return json(res, 201, { ok: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
       }
       if (method === 'POST' && pathname === '/api/auth/login') {
@@ -616,7 +901,47 @@ async function initializeApp() {
       }
       if (method === 'GET' && pathname === '/api/auth/me') {
         const user = currentUser(req, store);
-        return json(res, user ? 200 : 401, { user: user ? { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar || '' } : null });
+        if (!user) return json(res, 401, { user: null });
+        return json(res, 200, {
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone || '',
+            address: user.address || '',
+            city: user.city || '',
+            avatar: user.avatar || '',
+            bio: user.bio || '',
+            designation: user.designation || ''
+          }
+        });
+      }
+      if (method === 'PATCH' && pathname === '/api/auth/profile') {
+        const user = currentUser(req, store);
+        if (!user) return json(res, 401, { error: 'Unauthorized' });
+        const fields = {};
+        if (body.name !== undefined) { user.name = body.name; fields.name = body.name; }
+        if (body.phone !== undefined) { user.phone = body.phone; fields.phone = body.phone; }
+        if (body.address !== undefined) { user.address = body.address; fields.address = body.address; }
+        if (body.city !== undefined) { user.city = body.city; fields.city = body.city; }
+        if (body.avatar !== undefined) { user.avatar = body.avatar; fields.avatar = body.avatar; }
+        if (body.bio !== undefined) { user.bio = body.bio; fields.bio = body.bio; }
+        if (body.designation !== undefined) { user.designation = body.designation; fields.designation = body.designation; }
+        await dbService.updateUser(user.id, fields);
+        return json(res, 200, {
+          ok: true,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone || '',
+            address: user.address || '',
+            city: user.city || '',
+            avatar: user.avatar || ''
+          }
+        });
       }
       if (method === 'POST' && pathname === '/api/auth/forgot-password') {
         const email = String(body.email || '').toLowerCase().trim();
@@ -717,6 +1042,28 @@ async function initializeApp() {
         });
         if (!order) return json(res, 400, { error: 'Order creation failed' });
         store.orders.push(order);
+
+        // Smart real-time notification
+        broadcastSmartNotification({
+          event: 'new-order',
+          targetRole: 'admin',
+          type: 'order_placed',
+          title: `🛒 New Order #${order.number || order.id}`,
+          message: `Order of ৳${order.total} placed by ${user.name || 'Customer'}`,
+          link: '/admin/orders.html',
+          payload: order
+        }).catch(() => {});
+
+        broadcastSmartNotification({
+          event: 'order-received',
+          targetRole: 'customer',
+          userId: user.id,
+          type: 'order_placed',
+          title: `📦 Order #${order.number || order.id} Placed!`,
+          message: `Thank you! Your order for ৳${order.total} has been received.`,
+          link: '/pages/my-orders.html'
+        }).catch(() => {});
+
         return json(res, 201, { ok: true, order });
       }
       if (method === 'GET' && pathname.match(/^\/api\/orders\/\d+$/)) {
@@ -732,8 +1079,18 @@ async function initializeApp() {
         const id = Number(pathname.split('/')[3]);
         const order = store.orders.find(o => o.id === id && o.userId === user.id);
         if (!order) return json(res, 404, { error: 'Not found' });
-        if (body.address) order.deliveryAddress = body.address;
-        if (body.phone) order.customerPhone = body.phone;
+        if (!order.customer) order.customer = {};
+        if (!order.delivery) order.delivery = {};
+        if (body.address) {
+          order.deliveryAddress = body.address;
+          order.delivery.address = body.address;
+          order.customer.address = body.address;
+        }
+        if (body.phone) {
+          order.customerPhone = body.phone;
+          order.delivery.phone = body.phone;
+          order.customer.phone = body.phone;
+        }
         await dbService.updateOrder(id, order);
         return json(res, 200, order);
       }
@@ -811,6 +1168,16 @@ async function initializeApp() {
         if (!Array.isArray(order.conversation)) order.conversation = [];
         order.conversation.push(msgObj);
         await dbService.updateOrder(id, order);
+
+        broadcastSmartNotification({
+          event: 'order-message',
+          targetRole: 'admin',
+          type: 'order_message',
+          title: `💬 Message on Order #${order.number || order.id}`,
+          message: `${user.name || 'Customer'}: ${text}`,
+          link: '/admin/orders.html'
+        }).catch(() => {});
+
         return json(res, 201, { ok: true, message: msgObj });
       }
       if (method === 'GET' && pathname === '/api/my-reviews') {
@@ -829,6 +1196,16 @@ async function initializeApp() {
           rating: body.rating || 5,
           comment: body.comment || ''
         });
+
+        broadcastSmartNotification({
+          event: 'new-review',
+          targetRole: 'admin',
+          type: 'review',
+          title: `⭐ New ${body.rating || 5}★ Review`,
+          message: `${user.name || 'Customer'}: ${body.comment || 'Submitted a rating'}`,
+          link: '/admin/reviews.html'
+        }).catch(() => {});
+
         return json(res, 201, review || { error: 'Failed' });
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/products\/(\d+)\/reviews$/)) {
@@ -845,6 +1222,16 @@ async function initializeApp() {
           userId: user.id,
           text: body.text || ''
         });
+
+        broadcastSmartNotification({
+          event: 'new-comment',
+          targetRole: 'admin',
+          type: 'comment',
+          title: '💬 New Community Voice Comment',
+          message: `${user.name || 'User'}: ${body.text || ''}`,
+          link: '/admin/comments.html'
+        }).catch(() => {});
+
         return json(res, 201, { ok: true, comment });
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/comments\/\d+$/)) {
@@ -924,6 +1311,9 @@ async function initializeApp() {
         const id = Number(pathname.split('/')[4]);
         const target = store.users.find(u => u.id === id);
         if (!target) return json(res, 404, { error: 'Not found' });
+        if (target.email && target.email.toLowerCase() === PERMANENT_SUPERADMIN_EMAIL.toLowerCase()) {
+          return json(res, 403, { error: 'Permanent Superadmin cannot be modified via API. Changes must be made directly in the database.' });
+        }
         if (body.active !== undefined) target.active = body.active;
         if (body.role) target.role = body.role;
         await dbService.updateUser(id, target);
@@ -935,6 +1325,9 @@ async function initializeApp() {
         const id = Number(pathname.split('/')[4]);
         const target = store.users.find(u => u.id === id);
         if (!target) return json(res, 404, { error: 'Not found' });
+        if (target.email && target.email.toLowerCase() === PERMANENT_SUPERADMIN_EMAIL.toLowerCase()) {
+          return json(res, 403, { error: 'Permanent Superadmin password cannot be reset via API. Changes must be made directly in the database.' });
+        }
         const passwordHash = await hashPassword(body.password);
         target.passwordHash = passwordHash;
         await dbService.updateUser(id, target);
@@ -944,6 +1337,21 @@ async function initializeApp() {
         const user = currentUser(req, store);
         if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
+        const target = store.users.find(u => u.id === id);
+        if (target && target.email && target.email.toLowerCase() === PERMANENT_SUPERADMIN_EMAIL.toLowerCase()) {
+          return json(res, 403, { error: 'Permanent Superadmin cannot be deleted. Changes must be made directly in the database.' });
+        }
+        if (target) {
+          await dbService.addBinItem({
+            type: 'user',
+            originalId: id,
+            title: target.name || 'User',
+            subtitle: `${target.email || ''} (${target.role || 'customer'})`,
+            data: target,
+            deletedBy: user.name || 'Admin',
+            deletedByEmail: user.email || ''
+          });
+        }
         await dbService.deleteUser(id);
         const idx = store.users.findIndex(u => u.id === id);
         if (idx >= 0) store.users.splice(idx, 1);
@@ -960,14 +1368,31 @@ async function initializeApp() {
         const product = await dbService.createProduct({
           name: body.name,
           farm: body.farm || '',
-          price: body.price || 0,
+          price: Number(body.price) || 0,
           unit: body.unit || 'kg',
           category: body.cat || body.category || 'General',
-          icon: body.icon || 'leaf'
+          icon: body.icon || 'leaf',
+          tag: body.tag || '',
+          lot: body.lot || '',
+          discount: Number(body.discount) || 0,
+          description: body.description || '',
+          images: body.images || []
         });
         if (!product) return json(res, 400, { error: 'Creation failed' });
         store.products.push(product);
         return json(res, 201, Object.assign({ ok: true, id: product.id }, product));
+      }
+      if (method === 'PATCH' && pathname.match(/^\/api\/admin\/products\/\d+$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const id = Number(pathname.split('/')[4]);
+        const idx = store.products.findIndex(p => p.id === id);
+        if (idx < 0) return json(res, 404, { error: 'Not found' });
+        const updated = await dbService.updateProduct(id, body);
+        if (updated) {
+          Object.assign(store.products[idx], updated);
+        }
+        return json(res, 200, { ok: true, product: store.products[idx] });
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/products\/\d+$/)) {
         const user = currentUser(req, store);
@@ -976,18 +1401,15 @@ async function initializeApp() {
         const idx = store.products.findIndex(p => p.id === id);
         if (idx < 0) return json(res, 404, { error: 'Not found' });
         const p = store.products[idx];
-        const binEntry = {
-          id: Date.now(),
+        const binEntry = await dbService.addBinItem({
           type: 'product',
           originalId: id,
           title: p.name,
           subtitle: `৳${p.price} · ${p.cat || p.category || ''}`,
           data: p,
-          deletedAt: new Date().toISOString(),
-          deletedBy: user.name || 'Admin'
-        };
-        if (!Array.isArray(store.bin)) store.bin = [];
-        store.bin.push(binEntry);
+          deletedBy: user.name || 'Admin',
+          deletedByEmail: user.email || ''
+        });
         await dbService.deleteProduct(id);
         store.products.splice(idx, 1);
         return json(res, 200, { ok: true, binEntry });
@@ -1000,10 +1422,59 @@ async function initializeApp() {
         if (!order) order = await dbService.getOrderById(id);
         if (!order) return json(res, 404, { error: 'Not found' });
         if (order.cancelledBy === 'customer') return json(res, 400, { error: 'Order was cancelled by the customer' });
-        if (body.status) order.status = body.status;
-        if (body.estimatedDelivery) order.estimatedDelivery = body.estimatedDelivery;
-        await dbService.updateOrder(id, order);
-        return json(res, 200, order);
+        
+        const prevStatus = order.status;
+        if (body.status) {
+          order.status = body.status;
+          if (body.status === 'Confirmed') {
+            order.confirmedAt = new Date().toISOString();
+            order.confirmedBy = user.name || 'Admin';
+            const countdownHours = Number(store.settings?.deliveryCountdownHours || store.settings?.deliveryHours || 4);
+            if (!body.estimatedDelivery) {
+              order.estimatedDelivery = new Date(Date.now() + countdownHours * 3600 * 1000).toISOString();
+            } else {
+              order.estimatedDelivery = body.estimatedDelivery;
+            }
+          }
+        }
+        if (body.estimatedDelivery !== undefined && body.status !== 'Confirmed') {
+          order.estimatedDelivery = body.estimatedDelivery;
+        }
+
+        if (!Array.isArray(order.history)) order.history = [];
+        order.history.push({
+          id: Date.now(),
+          action: body.status && body.status !== prevStatus ? `Status: ${body.status}` : 'Order Updated',
+          detail: `Order updated by ${user.name || 'Admin'}${order.status === 'Confirmed' ? ` (Auto delivery countdown: ${store.settings?.deliveryCountdownHours || 4}h)` : ''}`,
+          actor: 'staff',
+          actorName: user.name || 'Admin',
+          timestamp: new Date().toISOString()
+        });
+
+        const updated = await dbService.updateOrder(id, order);
+        const idx = store.orders.findIndex(o => o.id === id);
+        if (idx >= 0) store.orders[idx] = updated || order;
+
+        if (body.status && body.status !== prevStatus) {
+          const statusTitle = body.status === 'Confirmed'
+            ? '✅ Order Confirmed — Delivery in 4 Hours!'
+            : `🚚 Order #${order.number || order.id} Status: ${body.status}`;
+          const statusMsg = body.status === 'Confirmed'
+            ? `Your order #${order.number || order.id} has been confirmed! Auto delivery countdown is active.`
+            : `Your order #${order.number || order.id} is now ${body.status}.`;
+
+          broadcastSmartNotification({
+            event: 'order-status',
+            targetRole: 'customer',
+            userId: order.userId,
+            type: 'order_status',
+            title: statusTitle,
+            message: statusMsg,
+            link: '/pages/my-orders.html'
+          }).catch(() => {});
+        }
+
+        return json(res, 200, updated || order);
       }
       if (method === 'POST' && pathname.match(/^\/api\/admin\/orders\/\d+\/messages$/)) {
         const user = currentUser(req, store);
@@ -1027,6 +1498,17 @@ async function initializeApp() {
         if (!Array.isArray(order.conversation)) order.conversation = [];
         order.conversation.push(msgObj);
         await dbService.updateOrder(id, order);
+
+        broadcastSmartNotification({
+          event: 'order-message',
+          targetRole: 'customer',
+          userId: order.userId,
+          type: 'order_message',
+          title: `💬 Support Reply on Order #${order.number || order.id}`,
+          message: `${user.name || 'Staff'}: ${text}`,
+          link: '/pages/my-orders.html'
+        }).catch(() => {});
+
         return json(res, 201, { ok: true, message: msgObj });
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/orders\/\d+$/)) {
@@ -1047,7 +1529,19 @@ async function initializeApp() {
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/comments\/\d+$/)) {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
-        const id = Number(pathname.split('/')[3]);
+        const id = Number(pathname.split('/')[4]);
+        const comment = await dbService.getCommentById(id).catch(() => null);
+        if (comment) {
+          await dbService.addBinItem({
+            type: 'comment',
+            originalId: id,
+            title: `Comment by ${comment.authorName || 'User'}`,
+            subtitle: comment.text || '',
+            data: comment,
+            deletedBy: user.name || 'Admin',
+            deletedByEmail: user.email || ''
+          });
+        }
         await dbService.deleteComment(id);
         return json(res, 200, { ok: true });
       }
@@ -1060,14 +1554,49 @@ async function initializeApp() {
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/reviews\/\d+$/)) {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
-        const id = Number(pathname.split('/')[3]);
+        const id = Number(pathname.split('/')[4]);
+        const review = await dbService.getReviewById(id).catch(() => null);
+        if (review) {
+          await dbService.addBinItem({
+            type: 'review',
+            originalId: id,
+            title: `Review by ${review.authorName || 'User'} (${review.rating}★)`,
+            subtitle: review.comment || '',
+            data: review,
+            deletedBy: user.name || 'Admin',
+            deletedByEmail: user.email || ''
+          });
+        }
         await dbService.deleteReview(id);
         return json(res, 200, { ok: true });
       }
       if (method === 'GET' && pathname === '/api/admin/subscribers') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
-        return json(res, 200, store.subscribers);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const subs = await dbService.getSubscribers().catch(() => []);
+        return json(res, 200, subs);
+      }
+      if (method === 'DELETE' && pathname.match(/^\/api\/admin\/subscribers\/\d+$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const id = Number(pathname.split('/')[4]);
+        const subs = await dbService.getSubscribers().catch(() => []);
+        const target = subs.find(s => s.id === id);
+        if (target) {
+          await dbService.addBinItem({
+            type: 'subscriber',
+            originalId: id,
+            title: target.email,
+            subtitle: `Subscribed: ${target.subscribedAt || ''}`,
+            data: target,
+            deletedBy: user.name || 'Admin',
+            deletedByEmail: user.email || ''
+          });
+        }
+        await dbService.deleteSubscriber(id);
+        const updatedSubs = await dbService.getSubscribers().catch(() => []);
+        store.subscribers = updatedSubs;
+        return json(res, 200, { ok: true });
       }
       if (method === 'GET' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
@@ -1084,40 +1613,106 @@ async function initializeApp() {
       if (method === 'GET' && pathname === '/api/admin/bin') {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
-        if (!Array.isArray(store.bin)) store.bin = [];
-        const counts = {
-          all: store.bin.length,
-          product: store.bin.filter(b => b.type === 'product').length,
-          order: store.bin.filter(b => b.type === 'order').length,
-          user: store.bin.filter(b => b.type === 'user').length,
-          comment: store.bin.filter(b => b.type === 'comment').length
-        };
-        return json(res, 200, { ok: true, bin: store.bin, counts });
+        const binItems = await dbService.getBinItems();
+        const counts = await dbService.getBinCounts();
+        return json(res, 200, { ok: true, bin: binItems, counts });
       }
       if (method === 'POST' && pathname.match(/^\/api\/admin\/bin\/\d+\/restore$/)) {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const binId = Number(pathname.split('/')[4]);
-        if (!Array.isArray(store.bin)) store.bin = [];
-        const idx = store.bin.findIndex(b => b.id === binId);
-        if (idx < 0) return json(res, 404, { error: 'Item not found in bin' });
-        const item = store.bin[idx];
+        const item = await dbService.getBinItemById(binId);
+        if (!item) return json(res, 404, { error: 'Item not found in bin' });
         if (item.type === 'product' && item.data) {
           const prodToRestore = { ...item.data, id: item.originalId || item.data.id };
           const restoredProd = await dbService.createProduct(prodToRestore);
           if (restoredProd) store.products.push(restoredProd);
+        } else if (item.type === 'category') {
+          const catData = item.data || { name: item.title };
+          await dbService.createCategory(catData);
+        } else if (item.type === 'comment' && item.data) {
+          await dbService.createComment(item.data);
+        } else if (item.type === 'review' && item.data) {
+          await dbService.createReview(item.data);
+        } else if (item.type === 'user' && item.data) {
+          const restoredUser = await dbService.createUser(item.data);
+          if (restoredUser) store.users.push(restoredUser);
+        } else if (item.type === 'ad' && item.data) {
+          await dbService.createAd(item.data);
+        } else if (item.type === 'subscriber' && item.data) {
+          await dbService.addSubscriber(item.data.email || item.title);
         }
-        store.bin.splice(idx, 1);
+        await dbService.removeBinItem(binId);
         return json(res, 200, { ok: true, message: 'Item restored successfully' });
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/bin\/\d+$/)) {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const binId = Number(pathname.split('/')[4]);
-        if (!Array.isArray(store.bin)) store.bin = [];
-        const idx = store.bin.findIndex(b => b.id === binId);
-        if (idx >= 0) store.bin.splice(idx, 1);
+        await dbService.removeBinItem(binId);
         return json(res, 200, { ok: true, message: 'Permanently purged' });
+      }
+      if (method === 'POST' && pathname === '/api/admin/staff') {
+        const user = currentUser(req, store);
+        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        const { name, email, password, role } = body;
+        if (!email || !password) return json(res, 400, { error: 'Email and password required' });
+        const passwordHash = await hashPassword(password);
+        const newUser = await dbService.createUser({
+          name: name || 'Staff',
+          email: String(email).toLowerCase().trim(),
+          passwordHash,
+          role: role || 'staff',
+          active: true
+        });
+        if (!newUser) return json(res, 400, { error: 'Failed to create staff' });
+        store.users.push(newUser);
+        return json(res, 201, { ok: true, user: newUser });
+      }
+      if (method === 'GET' && pathname === '/api/admin/ads') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const ads = await dbService.getAllAdsAdmin().catch(() => []);
+        return json(res, 200, ads);
+      }
+      if (method === 'POST' && pathname === '/api/admin/ads') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const ad = await dbService.createAd(body);
+        return json(res, 201, ad);
+      }
+      if (method === 'PATCH' && pathname.match(/^\/api\/admin\/ads\/[^/]+$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const id = decodeURIComponent(pathname.split('/')[4]);
+        const ad = await dbService.updateAd(id, body);
+        return json(res, 200, ad || { ok: true });
+      }
+      if (method === 'DELETE' && pathname.match(/^\/api\/admin\/ads\/[^/]+$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const id = decodeURIComponent(pathname.split('/')[4]);
+        const [adsRows] = dbPool ? await dbPool.query('SELECT * FROM ads WHERE id = ?', [id]).catch(() => [[]]) : [[]];
+        const ad = adsRows[0];
+        if (ad) {
+          await dbService.addBinItem({
+            type: 'ad',
+            originalId: 0,
+            title: ad.name || ad.title || 'Banner Ad',
+            subtitle: ad.headline || ad.sub || '',
+            data: ad,
+            deletedBy: user.name || 'Admin',
+            deletedByEmail: user.email || ''
+          });
+        }
+        await dbService.deleteAd(id);
+        return json(res, 200, { ok: true });
+      }
+      if (method === 'POST' && pathname === '/api/admin/bin/empty') {
+        const user = currentUser(req, store);
+        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        await dbService.emptyBin(body.type);
+        return json(res, 200, { ok: true, message: 'Recycle bin emptied' });
       }
       if (method === 'GET' && pathname === '/api/admin/apis') {
         const user = currentUser(req, store);

@@ -9,7 +9,7 @@
  * It does NOT modify or delete any production data.
  */
 
-const pool = require('./db.js');
+const pool = require('../config/db.js');
 const fs = require('fs');
 const path = require('path');
 

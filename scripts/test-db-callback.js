@@ -7,7 +7,7 @@
  * No real application data is modified or deleted.
  */
 
-const pool = require('./db.js'); // MySQL connection pool defined in db.js
+const pool = require('../config/db.js'); // MySQL connection pool defined in db.js
 const fs = require('fs');
 const path = require('path');
 

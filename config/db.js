@@ -6,7 +6,7 @@ const path = require('path');
 // Auto-load .env if not yet loaded
 (function loadDotEnv() {
   try {
-    const envPath = path.join(__dirname, '.env');
+    const envPath = path.join(__dirname, '..', '.env');
     if (!fs.existsSync(envPath)) return;
     const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
     for (const rawLine of lines) {

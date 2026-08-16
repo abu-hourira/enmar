@@ -615,105 +615,29 @@ function renderAdminHistory(o) {
   listEl.scrollTop = listEl.scrollHeight;
 }
 
-/* ── ORDER NOTIFICATIONS (SSE) ── */
-let _sseSource = null;
-
-function startOrderNotifications() {
-  if (_sseSource) return; // already connected
-  if (!window.EventSource) return; // browser doesn't support SSE
-
-  _sseSource = new EventSource('/api/events');
-
-  _sseSource.addEventListener('new-order', (e) => {
-    try {
-      const order = JSON.parse(e.data);
-      showOrderToast(order);
-      // play a subtle beep using the Web Audio API if available
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.35);
-      } catch { /* audio not available */ }
-    } catch { /* ignore malformed data */ }
-  });
-
-  _sseSource.onerror = () => {
-    // reconnect automatically after 5 s if the connection drops
-    _sseSource.close();
-    _sseSource = null;
-    setTimeout(startOrderNotifications, 5000);
-  };
-}
-
-function showOrderToast(order) {
-  // ensure container exists
-  let container = document.getElementById('toastContainer');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toastContainer';
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement('div');
-  toast.className = 'order-toast';
-  toast.innerHTML = `
-    <div class="order-toast__icon">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 7h11v9H3z"/><path d="M14 11h4l3 3v2h-7z"/>
-        <circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/>
-      </svg>
-    </div>
-    <div class="order-toast__body">
-      <strong>New Order</strong>
-      <span>${esc(order.number)} · ${esc(order.customer)}</span>
-      <span>${esc(order.city)} · ${taka(order.total)}</span>
-    </div>
-    <a href="/admin/orders.html" class="order-toast__link">View</a>
-    <button type="button" class="order-toast__close" aria-label="Dismiss">✕</button>`;
-
-  toast.querySelector('.order-toast__close').onclick = () => dismissToast(toast);
-  container.appendChild(toast);
-
-  // animate in
-  requestAnimationFrame(() => toast.classList.add('order-toast--in'));
-
-  // auto-dismiss after 8 s
-  setTimeout(() => dismissToast(toast), 8000);
-}
-
-function dismissToast(toast) {
-  toast.classList.remove('order-toast--in');
-  toast.classList.add('order-toast--out');
-  toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-}
-
-// Hook into initAdminPage — start SSE after successful auth
+// Hook into initAdminPage
 const _origInitAdminPage = initAdminPage;
 // eslint-disable-next-line no-global-assign
 initAdminPage = async function(requiredRoles) {
   const user = await _origInitAdminPage(requiredRoles);
-  if (user) startOrderNotifications();
   return user;
 };
 
 /* ── DELIVERY COUNTDOWN ── */
-const DELIVERY_WINDOW_MS = 48 * 60 * 60 * 1000; // 48 hours
+function getDeliveryWindowMs() {
+  const hours = (window._siteSettings && Number(window._siteSettings.deliveryCountdownHours)) || 4;
+  return hours * 60 * 60 * 1000;
+}
 
 function countdownHTML(order) {
   // Only show for Confirmed or Shipped (not yet Delivered/Cancelled)
   if (['Delivered', 'Cancelled', 'Pending'].includes(order.status)) return '';
-  // prefer admin-set estimatedDelivery, fall back to confirmedAt + 48h
+  // prefer admin-set estimatedDelivery, fall back to confirmedAt + settings hours
   let target;
   if (order.estimatedDelivery) {
     target = new Date(order.estimatedDelivery).getTime();
   } else if (order.confirmedAt) {
-    target = new Date(order.confirmedAt).getTime() + DELIVERY_WINDOW_MS;
+    target = new Date(order.confirmedAt).getTime() + getDeliveryWindowMs();
   } else {
     return '';
   }

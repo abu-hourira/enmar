@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "check": "node --check server.js",
-    "test": "node scratch/test-production-suite.js"
+    "test": "node tests/test-production-suite.js"
   },
   "keywords": [
     "ecommerce",
@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
     "mysql2": "^3.23.3"
   }
 }

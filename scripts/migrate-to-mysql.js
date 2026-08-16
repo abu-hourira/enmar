@@ -1,6 +1,6 @@
 // migrate-to-mysql.js - Seamless 1-Click Data Migration into MySQL
 const fs = require('fs');
-const pool = require('./db.js');
+const pool = require('../config/db.js');
 
 async function migrate() {
   console.log('🚀 Starting Data Migration to MySQL enmar_db...\n');

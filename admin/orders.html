@@ -232,14 +232,19 @@ function renderTable() {
 function bindStatusSelects() {
   document.querySelectorAll('.statusSelect').forEach(sel => {
     sel.onchange = async () => {
+      const oid = Number(sel.dataset.order);
+      const o = allOrders.find(x => x.id === oid);
+      const prevStatus = o ? o.status : '';
       try {
-        await api(`/api/admin/orders/${sel.dataset.order}`, {
+        const updated = await api(`/api/admin/orders/${oid}`, {
           method: 'PATCH',
           body: JSON.stringify({ status: sel.value })
         });
-        const o = allOrders.find(x => x.id === Number(sel.dataset.order));
-        if (o) o.status = sel.value;
+        if (o) Object.assign(o, updated);
+        notice($('globalMessage'), `Order ${o?.number || '#' + oid} status changed to "${sel.value}".`, true);
+        renderTable();
       } catch (err) {
+        if (o) sel.value = prevStatus;
         notice($('globalMessage'), err.message);
       }
     };
@@ -259,6 +264,7 @@ function bindOrderActions() {
       if (!confirm(`Delete order ${o?.number}? Cannot be undone.`)) return;
       try {
         await api(`/api/admin/orders/${btn.dataset.oid}`, { method: 'DELETE' });
+        notice($('globalMessage'), `Order ${o?.number} deleted successfully.`, true);
         allOrders = await api('/api/admin/orders');
         renderTable();
       } catch (err) {
@@ -334,15 +340,15 @@ function renderAdminThread(o) {
     }];
   }
   listEl.innerHTML = msgs.map(m => {
-    const isStore = m.sender === 'store';
-    const timeStr = m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' }) : '';
+    const isStore = ['store', 'staff', 'admin', 'manager', 'superadmin'].includes(m.sender);
+    const timeStr = (m.createdAt || m.timestamp) ? new Date(m.createdAt || m.timestamp).toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' }) : '';
     return `
       <div style="padding:7px 10px;border-radius:6px;background:${isStore ? '#f0fdf4;border-left:3.5px solid #16a34a' : '#f8fafc;border-left:3.5px solid #3b82f6'};font-size:.82rem">
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:.65rem;margin-bottom:2px">
           <strong style="color:${isStore ? '#15803d' : '#1d4ed8'}">${isStore ? `🌾 ${esc(m.senderName || brandName)}` : `👤 ${esc(m.senderName || 'Customer')}`}</strong>
           <span style="color:var(--ink-soft);font-family:var(--font-mono)">${esc(timeStr)}</span>
         </div>
-        <div style="color:var(--ink);white-space:pre-wrap">${esc(m.text)}</div>
+        <div style="color:var(--ink);white-space:pre-wrap">${esc(m.text || m.message || '')}</div>
       </div>
     `;
   }).join('');
@@ -375,8 +381,10 @@ $('orderEstSave').onclick = async () => {
       body: JSON.stringify({ estimatedDelivery: iso })
     });
     const o = allOrders.find(x => x.id === oid);
-    if (o) o.estimatedDelivery = updated.estimatedDelivery;
-    // refresh saved label
+    if (o) {
+      Object.assign(o, updated);
+      renderAdminHistory(o);
+    }
     const d = new Date(updated.estimatedDelivery);
     $('orderEstCurrent').innerHTML = `<span class="est-current-label">Saved:</span> ${d.toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' })}`;
     notice($('orderEstMessage'), 'Delivery time saved.', true);
@@ -388,12 +396,15 @@ $('orderEstClear').onclick = async () => {
   const oid = Number($('orderNoteId').value);
   if (!confirm('Remove the estimated delivery time for this order?')) return;
   try {
-    await api(`/api/admin/orders/${oid}`, {
+    const updated = await api(`/api/admin/orders/${oid}`, {
       method: 'PATCH',
       body: JSON.stringify({ estimatedDelivery: null })
     });
     const o = allOrders.find(x => x.id === oid);
-    if (o) o.estimatedDelivery = null;
+    if (o) {
+      Object.assign(o, updated);
+      renderAdminHistory(o);
+    }
     $('orderEstDelivery').value = '';
     $('orderEstCurrent').innerHTML = '<span class="est-current-label">No delivery time set yet.</span>';
     notice($('orderEstMessage'), 'Delivery time cleared.', true);
@@ -416,14 +427,20 @@ $('adminReplyBtn').onclick = async () => {
     });
     const o = allOrders.find(x => x.id === oid);
     if (o) {
-      o.messages = res.messages;
-      o.customerMessage = text;
-      o.note = text;
+      if (res.order) {
+        Object.assign(o, res.order);
+      } else {
+        o.messages = res.messages || (o.messages ? [...o.messages, res.message] : [res.message]);
+        if (res.message) o.customerMessage = res.message.text;
+      }
     }
     $('adminReplyInput').value = '';
     $('adminReplyBtn').disabled = false;
     $('adminReplyBtn').textContent = 'Send Reply';
-    renderAdminThread(o);
+    if (o) {
+      renderAdminThread(o);
+      renderAdminHistory(o);
+    }
     notice($('adminReplyMessage'), 'Reply sent to customer.', true);
     renderTable();
   } catch (err) {

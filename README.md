@@ -8,17 +8,21 @@ A dependency-free, full-stack JavaScript organic-food storefront and management 
 
 ```
 enma/
+├── .env                      # Environment variables configuration
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Git ignore rules for logs, secrets, and data
-├── database.sql              # MySQL 8+ relational schema
 ├── package.json              # Project configuration and npm scripts
+├── package-lock.json         # Package lockfile
 ├── README.md                 # Project documentation
 ├── server.js                 # Native Node.js HTTP server & REST/SSE API
-│
 ├── index.html                # Storefront homepage & product catalog
-├── product.html              # Product details & customer reviews
-├── checkout.html             # BDT checkout (COD, bKash, Nagad)
-├── my-orders.html            # Customer portal & order tracking
+│
+├── pages/                    # Customer storefront subpages
+│   ├── product.html          # Product details & customer reviews
+│   ├── checkout.html         # BDT checkout (COD, bKash, Nagad)
+│   ├── my-orders.html        # Customer portal & order tracking
+│   ├── receipt.html          # Order confirmation & printable receipt
+│   └── bmi-calculator.html   # Health & calorie calculator tool
 │
 ├── admin/                    # Administrative suite
 │   ├── admin-charts.js       # HTML5 canvas analytics charts
@@ -27,6 +31,8 @@ enma/
 │   ├── ads.html              # Ad Maker banner tool
 │   ├── analytics.html        # Sales analytics & revenue reports
 │   ├── apis.html             # SMS & SMTP gateway connection settings
+│   ├── bin.html              # Recycle bin & data restoration
+│   ├── comments.html         # Product comment moderation
 │   ├── customers.html        # Customer directory & access controls
 │   ├── dashboard.html        # Main admin dashboard
 │   ├── orders.html           # Order processing & delivery status
@@ -36,10 +42,20 @@ enma/
 │   ├── staff.html            # Staff account provisioning (superadmin)
 │   └── subscribers.html      # Newsletter subscriber management
 │
-├── css/
+├── config/                   # Configuration files
+│   └── db.js                 # MySQL 8+ connection pool configuration
+│
+├── services/                 # Backend business logic & data access
+│   ├── db-service.js         # MySQL Data Access Layer (CRUD operations)
+│   └── email-encryption.js   # AES-256-GCM encryption for credentials
+│
+├── database/                 # Database schema & migrations
+│   └── database.sql          # MySQL 8+ relational schema DDL
+│
+├── css/                      # Stylesheets
 │   └── harvest-market.css    # Core storefront design system & theme
 │
-├── js/
+├── js/                       # Storefront client JavaScript
 │   ├── app.js                # Customer account, auth modal, & cart state
 │   ├── branding.js           # Dynamic store logo & name synchronization
 │   ├── devtools-guard.js     # DevTools & inspection protection
@@ -47,9 +63,23 @@ enma/
 │   ├── product.js            # Product detail view & review submission
 │   └── theme.js              # Dynamic CSS color theme applicator
 │
-├── data/
-│   ├── .gitkeep              # Directory placeholder
-│   └── store.json            # Local JSON database (auto-generated)
+├── scripts/                  # Administrative & maintenance utility scripts
+│   ├── set-superadmin.js     # Superadmin account creator/updater
+│   ├── migrate-to-mysql.js   # Data migration utility
+│   ├── diagnose-superadmin.js# Diagnostic tool for superadmin accounts
+│   └── fix-superadmin-email.js
+│
+├── docs/                     # Technical documentation & audit reports
+│   ├── EMAIL_SECURITY_AUDIT_REPORT.md
+│   ├── JSON_MIGRATION_AUDIT.md
+│   ├── PRODUCTION_READINESS_CHECK.md
+│   └── PRODUCTION_READINESS_CHECKLIST.md
+│
+├── tests/                    # Production test suites & validations
+│   └── test-production-suite.js
+│
+├── data/                     # Data directory
+│   └── .gitkeep              # Directory placeholder
 │
 └── uploads/                  # User & product uploaded media
     └── .gitkeep              # Directory placeholder

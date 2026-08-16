@@ -790,7 +790,10 @@ document.querySelectorAll('.account-nav-item[data-panel]').forEach(btn => {
 });
 
 /* ── Countdown ── */
-const DELIVERY_WINDOW_MS = 48 * 60 * 60 * 1000;
+function getDeliveryWindowMs() {
+  const hours = (_siteSettings && Number(_siteSettings.deliveryCountdownHours)) || 4;
+  return hours * 60 * 60 * 1000;
+}
 let _cdTimer = null;
 function fmtCountdown(ms) {
   if (ms <= 0) return 'Arriving soon';
@@ -815,7 +818,7 @@ function deliveryChipHTML(o) {
   if (['Delivered','Cancelled','Pending'].includes(o.status)) return '';
   let target;
   if (o.estimatedDelivery) target = new Date(o.estimatedDelivery).getTime();
-  else if (o.confirmedAt)  target = new Date(o.confirmedAt).getTime() + DELIVERY_WINDOW_MS;
+  else if (o.confirmedAt)  target = new Date(o.confirmedAt).getTime() + getDeliveryWindowMs();
   else return '';
   const rem = target - Date.now(), due = rem <= 0;
   const dateStr = new Date(target).toLocaleString('en-BD', { dateStyle:'medium', timeStyle:'short' });

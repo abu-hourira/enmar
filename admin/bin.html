@@ -302,6 +302,7 @@ function typeBadge(type) {
   else if (t === 'review') icon = '⭐';
   else if (t === 'subscriber') icon = '📰';
   else if (t === 'ad') icon = '📢';
+  else if (t === 'category') icon = '📁';
 
   return `<span class="bin-type-pill type-${t}">${icon} ${esc(t)}</span>`;
 }
@@ -405,7 +406,7 @@ function renderBinTable() {
   // Wire inspect buttons
   document.querySelectorAll('.btn-inspect-item').forEach(btn => {
     btn.onclick = () => {
-      const item = _binItems.find(b => b.id === btn.dataset.id);
+      const item = _binItems.find(b => b.id === Number(btn.dataset.id));
       if (!item) return;
       _selectedBinItem = item;
       $('modalItemTitle').textContent = item.title;
@@ -418,17 +419,17 @@ function renderBinTable() {
 
   // Wire restore buttons
   document.querySelectorAll('.btn-restore-item').forEach(btn => {
-    btn.onclick = () => restoreItem(btn.dataset.id);
+    btn.onclick = () => restoreItem(Number(btn.dataset.id));
   });
 
   // Wire purge buttons
   document.querySelectorAll('.btn-purge-item').forEach(btn => {
-    btn.onclick = () => purgeItem(btn.dataset.id);
+    btn.onclick = () => purgeItem(Number(btn.dataset.id));
   });
 }
 
 async function restoreItem(binId) {
-  const item = _binItems.find(b => b.id === binId);
+  const item = _binItems.find(b => b.id === Number(binId));
   const name = item ? item.title : 'this item';
   const ok = typeof smartConfirm === 'function' ? await smartConfirm({
     title: 'Restore Item',
@@ -452,7 +453,7 @@ async function restoreItem(binId) {
 }
 
 async function purgeItem(binId) {
-  const item = _binItems.find(b => b.id === binId);
+  const item = _binItems.find(b => b.id === Number(binId));
   const name = item ? item.title : 'this item';
   const ok = typeof smartConfirm === 'function' ? await smartConfirm({
     title: 'Permanent Deletion',

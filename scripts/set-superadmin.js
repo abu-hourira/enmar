@@ -1,6 +1,6 @@
 // scripts/set-superadmin.js
 const crypto = require('crypto');
-const pool = require('../db.js');
+const pool = require('../config/db.js');
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   return new Promise((resolve, reject) => {

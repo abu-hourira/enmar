@@ -448,7 +448,12 @@
             <small class="field-hint">By default "Thank you". This message can also be edited per order from the Admin Orders panel.</small>
           </div>
           <div class="field">
-            <label for="defaultDeliveryEstimate">Default Delivery Estimate</label>
+            <label for="deliveryCountdownHours">Auto Delivery Countdown (Hours)</label>
+            <input type="number" id="deliveryCountdownHours" min="0.5" max="720" step="0.5" placeholder="4" value="4" required>
+            <small class="field-hint">When an order is Confirmed, the delivery countdown will automatically start from this time (e.g. 4 hours).</small>
+          </div>
+          <div class="field">
+            <label for="defaultDeliveryEstimate">Default Delivery Estimate Text</label>
             <input type="text" id="defaultDeliveryEstimate" maxlength="80" placeholder="24–48 hours" required>
           </div>
           <div class="field">
@@ -746,10 +751,11 @@
     fill('pagePreOrder',        s.pagePreOrder);
 
     // Default order & delivery texts
-    fill('defaultOrderMessage',     s.defaultOrderMessage);
-    fill('defaultDeliveryEstimate', s.defaultDeliveryEstimate);
-    fill('orderSuccessHeading',     s.orderSuccessHeading);
-    fill('orderSuccessMessage',     s.orderSuccessMessage);
+    fill('defaultOrderMessage',        s.defaultOrderMessage);
+    fill('deliveryCountdownHours',     s.deliveryCountdownHours || 4);
+    fill('defaultDeliveryEstimate',    s.defaultDeliveryEstimate);
+    fill('orderSuccessHeading',        s.orderSuccessHeading);
+    fill('orderSuccessMessage',        s.orderSuccessMessage);
 
     // Catalog & search texts
     fill('categorySectionTitle',    s.categorySectionTitle);
@@ -923,6 +929,7 @@
         method: 'PATCH',
         body: JSON.stringify({
           defaultOrderMessage:     val('defaultOrderMessage'),
+          deliveryCountdownHours:  Number(val('deliveryCountdownHours')) || 4,
           defaultDeliveryEstimate: val('defaultDeliveryEstimate'),
           orderSuccessHeading:     val('orderSuccessHeading'),
           orderSuccessMessage:     val('orderSuccessMessage')
