@@ -1624,6 +1624,28 @@ const dbService = {
     return rows.map(r => ({ id: r.id, url: r.url, type: r.type, createdAt: r.created_at }));
   },
 
+  async getEmailConfig() {
+    try {
+      const [rows] = await pool.query("SELECT setting_val FROM store_settings WHERE setting_key = 'apiConfigs'");
+      if (rows.length && rows[0].setting_val) {
+        const parsed = safeJsonParse(rows[0].setting_val, {});
+        if (parsed.email && parsed.email.user && parsed.email.pass) {
+          return {
+            host: parsed.email.host || 'smtp.gmail.com',
+            port: Number(parsed.email.port) || 465,
+            username: parsed.email.user,
+            password: parsed.email.pass,
+            fromEmail: parsed.email.fromEmail || parsed.email.user,
+            fromName: parsed.email.fromName || 'ENMAR Official'
+          };
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
   // ─── 15. NOTIFICATIONS ───
   async createNotification({ userId = null, targetRole = 'all', type = 'announcement', title, message, link = '', image = '', productId = null }) {
     try {

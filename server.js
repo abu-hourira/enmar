@@ -444,7 +444,7 @@ function smtpSend(cfg, mail) {
     const waiters = [];
     let socket = null;
     let finished = false;
-    const overall = setTimeout(() => finish(new Error('SMTP connection timed out')), 4000);
+    const overall = setTimeout(() => finish(new Error('SMTP connection timed out after 20 seconds')), 20000);
     
     function finish(err, ok) {
       if (finished) return;
@@ -471,38 +471,61 @@ function smtpSend(cfg, mail) {
       socket = sock;
       sock.on('data', onData);
       sock.on('error', err => finish(err));
-      sock.on('close', () => finish(new Error('SMTP connection closed')));
+      sock.on('close', () => finish(new Error('SMTP connection closed prematurely')));
     }
     
     const code = text => Number(text.slice(0, 3));
-    const initial = tls.connect({ host: cfg.host, port: cfg.port, servername: cfg.host });
-    bind(initial);
+    const isExplicitTls = Number(cfg.port) === 465 || cfg.secure !== false;
 
     (async () => {
       try {
-        let c = code(await reply());
-        if (c !== 220) return fail('SMTP greeting failed');
-        c = code(await sendLine('EHLO ' + cfg.host));
-        if (c !== 250) return fail('EHLO rejected');
-        c = code(await sendLine('AUTH LOGIN'));
-        if (c === 334) {
-          c = code(await sendLine(Buffer.from(cfg.user).toString('base64')));
-          if (c !== 334) return fail('username rejected');
-          c = code(await sendLine(Buffer.from(cfg.pass).toString('base64')));
-          if (c !== 235) return fail('authentication failed');
+        if (isExplicitTls) {
+          const initial = tls.connect({ host: cfg.host, port: Number(cfg.port) || 465, servername: cfg.host });
+          bind(initial);
         } else {
-          c = code(await sendLine('AUTH PLAIN ' + Buffer.from('\0' + cfg.user + '\0' + cfg.pass).toString('base64')));
-          if (c !== 235) return fail('authentication failed');
+          const tcpSock = net.connect({ host: cfg.host, port: Number(cfg.port) || 587 });
+          bind(tcpSock);
+          let c = code(await reply());
+          if (c !== 220) return fail('SMTP greeting failed');
+          c = code(await sendLine('EHLO ' + cfg.host));
+          if (c !== 250) return fail('EHLO rejected');
+          c = code(await sendLine('STARTTLS'));
+          if (c !== 220) return fail('STARTTLS refused');
+          
+          const tlsSock = tls.connect({ socket: tcpSock, host: cfg.host, servername: cfg.host });
+          bind(tlsSock);
         }
 
-        c = code(await sendLine('MAIL FROM:<' + mail.fromEmail + '>'));
-        if (c !== 250) return fail('sender rejected');
-        c = code(await sendLine('RCPT TO:<' + mail.to + '>'));
-        if (c !== 250 && c !== 251) return fail('recipient rejected');
-        c = code(await sendLine('DATA'));
-        if (c !== 354) return fail('server refused message');
+        let c = code(await reply().catch(() => '220 OK'));
+        c = code(await sendLine('EHLO ' + cfg.host));
+        if (c !== 250) return fail('EHLO rejected: ' + cfg.host);
 
-        const dataContent = 'From: ' + mail.fromHeader + '\r\n'
+        const cleanUser = String(cfg.user || '').trim();
+        const cleanPass = String(cfg.pass || '').replace(/\s+/g, '');
+
+        c = code(await sendLine('AUTH LOGIN'));
+        if (c === 334) {
+          c = code(await sendLine(Buffer.from(cleanUser).toString('base64')));
+          if (c !== 334) return fail('Username rejected by SMTP');
+          c = code(await sendLine(Buffer.from(cleanPass).toString('base64')));
+          if (c !== 235) return fail('Authentication failed (Check your Gmail address & 16-character App Password)');
+        } else {
+          c = code(await sendLine('AUTH PLAIN ' + Buffer.from('\0' + cleanUser + '\0' + cleanPass).toString('base64')));
+          if (c !== 235) return fail('Authentication failed (Check your Gmail address & 16-character App Password)');
+        }
+
+        const senderEmail = mail.fromEmail || cfg.fromEmail || cleanUser;
+        c = code(await sendLine('MAIL FROM:<' + senderEmail + '>'));
+        if (c !== 250) return fail('Sender address rejected: ' + senderEmail);
+        c = code(await sendLine('RCPT TO:<' + mail.to + '>'));
+        if (c !== 250 && c !== 251) return fail('Recipient address rejected: ' + mail.to);
+        c = code(await sendLine('DATA'));
+        if (c !== 354) return fail('Server refused DATA transfer');
+
+        const fromDisplay = mail.fromName || cfg.fromName || 'ENMAR';
+        const fromHeader = `"${fromDisplay}" <${senderEmail}>`;
+
+        const dataContent = 'From: ' + fromHeader + '\r\n'
           + 'To: <' + mail.to + '>\r\n'
           + 'Subject: =?UTF-8?B?' + Buffer.from(mail.subject).toString('base64') + '?=\r\n'
           + 'Date: ' + new Date().toUTCString() + '\r\n'
@@ -515,7 +538,7 @@ function smtpSend(cfg, mail) {
         socket.write(dataContent + '\r\n');
         const finalReply = await sendLine('.');
         c = code(finalReply);
-        if (c !== 250) return fail('message rejected');
+        if (c !== 250) return fail('Message rejected by SMTP server');
 
         await sendLine('QUIT').catch(() => {});
         return finish(null, { success: true, message: 'Email sent successfully' });
@@ -530,21 +553,24 @@ async function sendEmailOtpCode(email, store) {
   const norm = String(email || '').toLowerCase().trim();
   const code = await createEmailOtp(norm);
   const brand = (store && store.settings && store.settings.brandName) || 'ENMAR';
-  const mailText = `Your ${brand} email verification code is:\n\n${code}\n\nThis expires in 10 minutes.`;
+  const mailText = `Hello,\n\nYour ${brand} email verification OTP code is:\n\n   ${code}\n\nThis code will expire in 10 minutes. Please do not share this code with anyone.\n\nThank you,\n${brand} Team`;
   try {
     const cfg = await resolveEmailConfig(store);
-    if (!cfg.user || !cfg.pass) return { ok: true, devMode: true, devCode: code };
+    if (!cfg.user || !cfg.pass) {
+      console.log(`[OTP Simulated Dev Code] Email: ${norm}, Code: ${code}`);
+      return { ok: true, devMode: true, devCode: code, message: 'Verification code generated' };
+    }
     await smtpSend(cfg, {
       to: norm,
       fromEmail: cfg.fromEmail,
-      fromHeader: cfg.fromEmail,
-      subject: `${brand} Verification Code: ${code}`,
+      fromName: cfg.fromName || brand,
+      subject: `[${brand}] Your Email Verification Code: ${code}`,
       text: mailText
     });
     return { ok: true, message: 'Verification code sent to your email' };
   } catch (err) {
-    console.warn(`[OTP] Email attempt: ${err.message}`);
-    return { ok: true, devMode: true, devCode: code, warning: err.message };
+    console.error(`[OTP Error] Failed to deliver email to ${norm}:`, err.message);
+    return { ok: true, devMode: true, devCode: code, warning: `SMTP Error: ${err.message}` };
   }
 }
 
@@ -561,21 +587,24 @@ async function sendPasswordResetCode(email, store) {
   
   const code = await createPasswordResetOtp(norm);
   const brand = (store && store.settings && store.settings.brandName) || 'ENMAR';
-  const mailText = `Your ${brand} password reset code is:\n\n${code}\n\nThis expires in 10 minutes.`;
+  const mailText = `Hello,\n\nYour ${brand} password reset OTP code is:\n\n   ${code}\n\nThis code will expire in 10 minutes. If you did not request a password reset, please ignore this email.\n\nThank you,\n${brand} Team`;
   try {
     const cfg = await resolveEmailConfig(store);
-    if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test')) return { ok: true, devMode: true, devCode: code };
+    if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test')) {
+      console.log(`[Password Reset Simulated Dev Code] Email: ${norm}, Code: ${code}`);
+      return { ok: true, devMode: true, devCode: code, message: 'Password reset code generated' };
+    }
     await smtpSend(cfg, {
       to: norm,
       fromEmail: cfg.fromEmail,
-      fromHeader: cfg.fromEmail,
-      subject: `${brand} Password Reset Code: ${code}`,
+      fromName: cfg.fromName || brand,
+      subject: `[${brand}] Password Reset Code: ${code}`,
       text: mailText
     });
     return { ok: true, message: 'Password reset code sent to your email' };
   } catch (err) {
-    console.warn(`[OTP] Email attempt: ${err.message}`);
-    return { ok: true, devMode: true, devCode: code, warning: err.message };
+    console.error(`[Password Reset Error] Failed to deliver email to ${norm}:`, err.message);
+    return { ok: true, devMode: true, devCode: code, warning: `SMTP Error: ${err.message}` };
   }
 }
 
