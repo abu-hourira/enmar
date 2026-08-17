@@ -89,7 +89,7 @@ async function runMasterAudit() {
   // SECTION 3: Admin Auth & Session Management
   console.log('\n▶ [PHASE 3] SuperAdmin & Staff Authentication');
   const superEmail = process.env.SUPERADMIN_EMAIL || 'mdhourira6712@gmail.com';
-  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
+  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhorira97@';
 
   const adminLogin = await req('/api/auth/login', {
     method: 'POST',

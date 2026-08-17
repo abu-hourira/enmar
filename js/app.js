@@ -604,6 +604,10 @@ function initAuthModalSystem() {
               tag: 'Account Active'
             });
           }
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has('checkout')) {
+            window.location.href = '/checkout';
+          }
         } catch (err) {
           message(noticeEl, err.message);
         } finally {
@@ -637,6 +641,11 @@ function initAuthModalSystem() {
           const isStaff = currentUser && ['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role);
           if (isStaff) {
             window.location.href = '/admin/dashboard';
+          } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('checkout')) {
+              window.location.href = '/checkout';
+            }
           }
         } catch (err) {
           message(noticeEl, err.message);
@@ -1895,6 +1904,13 @@ function showProductArrivalToast(p) {
     ]);
     refreshAccountButton();
     await loadCommunityComments();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!currentUser && (urlParams.has('login') || urlParams.has('auth') || urlParams.has('checkout'))) {
+      const mode = urlParams.get('mode') === 'register' ? 'register' : 'login';
+      const note = urlParams.has('checkout') ? 'অর্ডার সম্পন্ন করার জন্য অনুগ্রহ করে সাইন ইন করুন।' : '';
+      openAuthModal(mode, note);
+    }
   } catch (error) {
     console.warn(error);
   }

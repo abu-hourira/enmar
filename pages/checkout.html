@@ -463,17 +463,76 @@
 
 /* ── Auth gate ── */
 .auth-gate {
-  max-width: 440px;
+  max-width: 480px;
   margin: 60px auto;
-  padding: 0 24px;
+  padding: 36px 28px;
+  background: var(--paper, #ffffff);
+  border: 1px solid var(--line, #e2dcd2);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
-.auth-gate h2 {
-  font-family: var(--font-display);
-  color: var(--forest);
-  margin-bottom: 12px;
+.auth-gate-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 18px;
+  background: var(--paper-alt, #f5efe6);
+  color: var(--forest, #631e2a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.auth-gate p { color: var(--ink-soft); margin-bottom: 24px; }
+.auth-gate h2 {
+  font-family: var(--font-display, inherit);
+  color: var(--forest, #631e2a);
+  font-size: 1.45rem;
+  margin-bottom: 10px;
+}
+.auth-gate p {
+  color: var(--ink-soft, #666);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.auth-gate-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.btn-auth-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--forest, #631e2a);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform .15s, background .15s, box-shadow .15s;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+.btn-auth-primary:hover {
+  background: var(--forest-deep, #47161e);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  color: #ffffff;
+}
+.btn-auth-secondary {
+  display: inline-block;
+  color: var(--forest, #631e2a);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px;
+  transition: opacity .15s;
+}
+.btn-auth-secondary:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
 
 /* ── Message notice ── */
 #checkoutMessage:not(:empty) { margin-bottom: 16px; }
@@ -837,48 +896,75 @@ function renderEmptyCart() {
 
 /* ── render auth gate ── */
 function renderAuthGate() {
+  const brand = (_siteSettings && _siteSettings.brandName) || 'ENMAR';
   document.getElementById('main').innerHTML = `
     <div class="auth-gate">
-      <h2>Sign in to continue</h2>
-      <p>You need an ENMAR account to place an order.</p>
-      <a href="/?checkout=1" class="btn-primary">Sign In</a>
+      <div class="auth-gate-icon">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <h2>অর্ডার সম্পন্ন করতে সাইন ইন করুন</h2>
+      <p>আপনার অর্ডারটি নিশ্চিত ও লাইভ ডেলিভারি ট্র্যাকিং করার জন্য একটি একাউন্টে সাইন ইন বা রেজিস্টার করুন।</p>
+      <div class="auth-gate-btn-wrap">
+        <a href="/?login=1&checkout=1" class="btn-auth-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          সাইন ইন / একাউন্ট খুলুন →
+        </a>
+        <a href="/" class="btn-auth-secondary">← শপে ফিরে যান</a>
+      </div>
     </div>`;
+}
+
+/* ── safe auth user fetch ── */
+async function getAuthUser() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => ({}));
+    return data.user || null;
+  } catch {
+    return null;
+  }
 }
 
 /* ── boot ── */
 (async () => {
   try {
-    const [meData, products, settings] = await Promise.all([
-      apiFetch('/api/auth/me'),
-      apiFetch('/api/products'),
-      apiFetch('/api/settings')
+    const [user, products, settings] = await Promise.all([
+      getAuthUser(),
+      apiFetch('/api/products').catch(() => []),
+      apiFetch('/api/settings').catch(() => ({}))
     ]);
 
     _siteSettings = settings || {};
-    PRODUCTS = products;
+    PRODUCTS = products || [];
     if (typeof settings.shippingFlat === 'number')          SHIPPING_FLAT = settings.shippingFlat;
     if (typeof settings.shippingFreeThreshold === 'number') SHIPPING_FREE = settings.shippingFreeThreshold;
 
-    const user = meData.user;
-
     /* staff → admin panel */
     if (user && ['superadmin','admin','manager','moderator'].includes(user.role)) {
-      window.location.href = '/admin/dashboard.html';
+      window.location.href = '/admin/dashboard';
       return;
     }
 
-    /* not signed in */
-    if (!user) { renderAuthGate(); return; }
+    /* not signed in → display clean Sign In message card */
+    if (!user) {
+      renderAuthGate();
+      return;
+    }
 
     /* empty cart */
-    if (getLines().length === 0) { renderEmptyCart(); return; }
+    if (getLines().length === 0) {
+      renderEmptyCart();
+      return;
+    }
 
     renderForm(user);
 
   } catch (err) {
-    document.getElementById('main').innerHTML =
-      `<div class="auth-gate"><p style="color:var(--tomato)">${esc(err.message)}</p>
-      <a href="/" class="account-btn">← Back to Shop</a></div>`;
+    renderAuthGate();
   }
 })();
 </script>
