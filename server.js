@@ -312,6 +312,87 @@ function currentUser(req, store) {
   return session && session.expires > Date.now() ? store.users.find(u => u.id === session.userId && u.active) : null;
 }
 
+// ── Minimal dependency-free multipart/form-data parser ──
+// Populates `fields` (text inputs) and `files` (with { field, filename, mime, buffer }).
+// Supports multi-value fields (e.g. several `images` entries) by storing arrays.
+function parseMultipart(buffer, contentType) {
+  const fields = {};
+  const files = [];
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
+  if (!boundaryMatch) return { fields, files };
+  const boundary = '--' + (boundaryMatch[1] || boundaryMatch[2]).trim();
+  const delimiter = Buffer.from(boundary);
+
+  // Split buffer on the boundary delimiter.
+  const parts = [];
+  let start = buffer.indexOf(delimiter);
+  while (start !== -1) {
+    const next = buffer.indexOf(delimiter, start + delimiter.length);
+    if (next === -1) break;
+    if (buffer[start + delimiter.length] === 0x2d && buffer[start + delimiter.length + 1] === 0x2d) break; // "--" closing
+    // The part is between the end of this boundary line and the next boundary.
+    const headerStart = start + delimiter.length;
+    // find end of headers (\r\n\r\n)
+    const headerEnd = buffer.indexOf('\r\n\r\n', headerStart);
+    if (headerEnd === -1) { start = next; continue; }
+    const rawHeaders = buffer.toString('utf8', headerStart, headerEnd);
+    // Body content ends 2 bytes before next boundary (trailing \r\n).
+    let contentEnd = next - 2;
+    if (buffer[next - 1] === 0x0a && buffer[next - 2] === 0x0d) contentEnd = next - 2;
+    else if (buffer[next - 1] === 0x0d) contentEnd = next - 1;
+    const content = buffer.slice(headerEnd + 4, contentEnd);
+    parts.push({ rawHeaders, content });
+    start = next;
+  }
+
+  for (const part of parts) {
+    const cd = /content-disposition:[^\r\n]*/i.exec(part.rawHeaders);
+    if (!cd) continue;
+    const nameMatch = /name="([^"]*)"/i.exec(cd[0]);
+    const fileMatch = /filename="([^"]*)"/i.exec(cd[0]);
+    if (!nameMatch) continue;
+    const name = nameMatch[1];
+    const mimeMatch = /content-type:\s*([^\r\n]+)/i.exec(part.rawHeaders);
+    if (fileMatch && fileMatch[1]) {
+      files.push({
+        field: name,
+        filename: fileMatch[1],
+        mime: mimeMatch ? mimeMatch[1].trim() : 'application/octet-stream',
+        buffer: part.content
+      });
+    } else {
+      if (!(name in fields)) fields[name] = part.content.toString('utf8');
+      else if (Array.isArray(fields[name])) fields[name].push(part.content.toString('utf8'));
+      else fields[name] = [fields[name], part.content.toString('utf8')];
+    }
+  }
+  return { fields, files };
+}
+
+// ── Save uploaded multipart files as product images under /uploads ──
+// Returns an array of public URLs (e.g. "/uploads/products/abc.jpg").
+const UPLOAD_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/bmp', 'image/svg+xml']);
+function saveUploadedImages(files) {
+  if (!files || !files.length) return [];
+  const dir = path.join(ROOT, 'uploads', 'products');
+  try { fs.mkdirSync(dir, { recursive: true }); } catch { /* exists */ }
+  const urls = [];
+  for (const f of files) {
+    if (f.field !== 'images' || !f.buffer || !f.buffer.length) continue;
+    const mime = f.mime || 'application/octet-stream';
+    if (!UPLOAD_ALLOWED_MIME.has(mime)) continue;
+    const ext = ({
+      'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
+      'image/avif': 'avif', 'image/bmp': 'bmp', 'image/svg+xml': 'svg'
+    })[mime] || 'bin';
+    const safeBase = (f.filename || 'img').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '');
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeBase}.${ext}`;
+    fs.writeFileSync(path.join(dir, fileName), f.buffer);
+    urls.push(`/uploads/products/${fileName}`);
+  }
+  return urls;
+}
+
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(body));
@@ -676,16 +757,31 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // Parse body for API mutations
+    // Parse request body for API mutations (JSON or multipart/form-data)
     let body = {};
+    req.files = [];
+    const _contentType = req.headers['content-type'] || '';
     if (['POST', 'PATCH', 'PUT'].includes(method)) {
-      let rawBody = '';
+      const chunks = [];
+      let _bytes = 0;
       await new Promise((resolve) => {
-        req.on('data', chunk => { rawBody += chunk.toString(); });
+        req.on('data', (chunk) => {
+          _bytes += chunk.length;
+          if (_bytes > 25 * 1024 * 1024) { req.destroy(); return resolve(); } // 25MB cap
+          chunks.push(chunk);
+        });
         req.on('end', resolve);
         req.on('error', () => resolve());
       });
-      try { body = JSON.parse(rawBody); } catch { body = {}; }
+      const _rawBuf = Buffer.concat(chunks);
+      if (_contentType.includes('multipart/form-data')) {
+        const parsed = parseMultipart(_rawBuf, _contentType);
+        body = parsed.fields;
+        req.files = parsed.files;
+      } else {
+        const rawText = _rawBuf.toString('utf8');
+        try { body = JSON.parse(rawText); } catch { body = {}; }
+      }
     }
 
     // Ensure DB store is loaded before handling API endpoints
@@ -1425,6 +1521,9 @@ const server = http.createServer(async (req, res) => {
       if (method === 'POST' && pathname === '/api/admin/products') {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        // Persist any uploaded product images (multipart 'images' field) to /uploads
+        const uploadedImages = await saveUploadedImages(req.files);
+        const images = (Array.isArray(body.images) ? body.images : (body.images ? [body.images] : [])).concat(uploadedImages);
         const product = await dbService.createProduct({
           name: body.name,
           farm: body.farm || '',
@@ -1436,10 +1535,14 @@ const server = http.createServer(async (req, res) => {
           lot: body.lot || '',
           discount: Number(body.discount) || 0,
           description: body.description || '',
-          images: body.images || []
+          images
         });
         if (!product) return json(res, 400, { error: 'Creation failed' });
         store.products.push(product);
+        // Optional storefront broadcast when notifyCustomers is enabled
+        if (body.notifyCustomers !== 'false' && body.notifyCustomers !== false) {
+          try { await dbService.notifyNewProduct?.(product); } catch { /* non-fatal */ }
+        }
         return json(res, 201, Object.assign({ ok: true, id: product.id }, product));
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/admin\/products\/\d+$/)) {
@@ -1448,7 +1551,16 @@ const server = http.createServer(async (req, res) => {
         const id = Number(pathname.split('/')[4]);
         const idx = store.products.findIndex(p => p.id === id);
         if (idx < 0) return json(res, 404, { error: 'Not found' });
-        const updated = await dbService.updateProduct(id, body);
+        // Merge uploaded images with existing ones (and honor removals) for multipart edits.
+        let patch = body;
+        if (req.files && req.files.length) {
+          const existing = (store.products[idx].images || []).filter(img => {
+            try { return !(body.removeImages && JSON.parse(body.removeImages).includes(img)); } catch { return true; }
+          });
+          const uploaded = await saveUploadedImages(req.files);
+          patch = Object.assign({}, body, { images: existing.concat(uploaded) });
+        }
+        const updated = await dbService.updateProduct(id, patch);
         if (updated) {
           Object.assign(store.products[idx], updated);
         }

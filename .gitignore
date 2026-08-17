@@ -26,6 +26,10 @@ enbar_db/
 fix-superadmin-email.js
 reset-superadmin-password.js
 
+# Production deploy artifacts (may contain .env / credentials)
+enmar_production_deploy.zip
+enmar_*.zip
+
 # Dependency & scratch directories
 node_modules/
 scratch/
