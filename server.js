@@ -881,60 +881,7 @@ function syncThemeToCssFiles(primary, accent) {
 }
 
 function syncBrandingToDisk(settings) {
-  if (!settings) return;
-  const siteTitle = settings.siteTitle || '';
-  const brandName = settings.brandName || 'ENMAR';
-  const brandLogo = settings.brandLogo || '';
-  const favicon = settings.favicon || '';
-  const siteDesc = settings.siteDescription || settings.metaDescription || '';
-
-  const htmlFiles = [
-    path.join(ROOT, 'index.html'),
-    path.join(ROOT, 'pages', 'product.html'),
-    path.join(ROOT, 'pages', 'checkout.html'),
-    path.join(ROOT, 'pages', 'my-orders.html'),
-    path.join(ROOT, 'pages', 'developer-info.html'),
-    path.join(ROOT, 'pages', 'bmi-calculator.html')
-  ];
-
-  htmlFiles.forEach(fp => {
-    if (fs.existsSync(fp)) {
-      try {
-        let html = fs.readFileSync(fp, 'utf8');
-        if (favicon) {
-          html = html.replace(/<link[^>]*id=["']siteFavicon["'][^>]*>/gi, `<link rel="icon" id="siteFavicon" href="${favicon}">`);
-        }
-        if (fp.endsWith('index.html') && siteTitle) {
-          html = html.replace(/<title>([^<]*)<\/title>/gi, `<title>${siteTitle}</title>`);
-          html = html.replace(/<meta\s+property=["']og:title["']\s+content=["'][^"']*["']/gi, `<meta property="og:title" content="${siteTitle}">`);
-          html = html.replace(/<meta\s+name=["']twitter:title["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:title" content="${siteTitle}">`);
-        } else if (brandName && !fp.includes('product.html')) {
-          html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
-            if (currentTitle.includes(' | ')) {
-              const parts = currentTitle.split(' | ');
-              return `<title>${brandName} | ${parts.slice(1).join(' | ')}</title>`;
-            }
-            if (currentTitle.includes(' — ')) {
-              const parts = currentTitle.split(' — ');
-              return `<title>${parts[0]} — ${brandName}</title>`;
-            }
-            return `<title>${brandName} — ${currentTitle}</title>`;
-          });
-        }
-        if (brandName) {
-          html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
-        }
-        if (siteDesc && fp.endsWith('index.html')) {
-          html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}">`);
-          html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}">`);
-          html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}">`);
-        }
-        fs.writeFileSync(fp, html, 'utf8');
-      } catch (e) {
-        console.error('[Branding Sync] Error writing', fp, e.message);
-      }
-    }
-  });
+  // SSR dynamic injection in injectServerBranding handles all branding in-memory with 0ms delay without dirtying git files
 }
 
 // ── HTTP SERVER ──
