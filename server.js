@@ -114,14 +114,14 @@ function findProductBySlugOrId(identifier) {
   // 1. Direct numeric match: 123
   if (/^\d+$/.test(decoded)) {
     const id = Number(decoded);
-    return store.products.find(p => p.id === id) || null;
+    return store.products.find(p => Number(p.id) === id) || null;
   }
   
   // 2. ID prefix match: 123-honey-jar
   const prefixMatch = decoded.match(/^(\d+)-/);
   if (prefixMatch) {
     const id = Number(prefixMatch[1]);
-    const p = store.products.find(x => x.id === id);
+    const p = store.products.find(x => Number(x.id) === id);
     if (p) return p;
   }
   
@@ -129,7 +129,7 @@ function findProductBySlugOrId(identifier) {
   const suffixMatch = decoded.match(/-(\d+)$/);
   if (suffixMatch) {
     const id = Number(suffixMatch[1]);
-    const p = store.products.find(x => x.id === id);
+    const p = store.products.find(x => Number(x.id) === id);
     if (p) return p;
   }
   
@@ -252,7 +252,7 @@ function injectServerBranding(html, filePath = '') {
   return html;
 }
 
-function tryServeStatic(req, res, pathname) {
+async function tryServeStatic(req, res, pathname) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   if (pathname.startsWith('/api/')) return false;
 
@@ -285,8 +285,17 @@ function tryServeStatic(req, res, pathname) {
   // Clean product route: /product/:slugOrId
   const prodRouteMatch = pathname.match(/^\/product\/([^\/?#]+)$/i);
   if (prodRouteMatch) {
-    const ident = prodRouteMatch[1];
-    const product = findProductBySlugOrId(ident);
+    const ident = decodeURIComponent(prodRouteMatch[1]);
+    let product = findProductBySlugOrId(ident);
+    // DB fallback if in-memory store misses
+    if (!product) {
+      const numMatch = ident.match(/^(\d+)/);
+      if (numMatch) {
+        try {
+          product = await dbService.getProductById(Number(numMatch[1]));
+        } catch {}
+      }
+    }
     const prodHtmlPath = path.join(ROOT, 'pages', 'product.html');
     if (fs.existsSync(prodHtmlPath)) {
       let html = fs.readFileSync(prodHtmlPath, 'utf8');
@@ -1221,7 +1230,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
     // ── STATIC FILE SERVING (Instant response for all HTML, CSS, JS, images) ──
-    if (tryServeStatic(req, res, pathname)) return;
+    if (await tryServeStatic(req, res, pathname)) return;
     if (method === 'GET' && (pathname === '/' || pathname === '')) {
       const indexPath = path.join(ROOT, 'index.html');
       if (fs.existsSync(indexPath)) {
@@ -1269,8 +1278,15 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, store.products.filter(p => p.active !== false));
       }
       if (method === 'GET' && pathname.match(/^\/api\/products\/([^\/]+)$/)) {
-        const ident = pathname.split('/')[3];
-        const p = findProductBySlugOrId(ident);
+        const ident = decodeURIComponent(pathname.split('/')[3]);
+        let p = findProductBySlugOrId(ident);
+        // DB fallback if in-memory store misses
+        if (!p && /^\d+$/.test(ident)) {
+          try {
+            const dbProd = await dbService.getProductById(Number(ident));
+            if (dbProd) p = dbProd;
+          } catch {}
+        }
         return json(res, p ? 200 : 404, p || { error: 'Not found' });
       }
       if (method === 'GET' && pathname === '/api/categories') {
