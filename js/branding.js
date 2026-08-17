@@ -60,8 +60,17 @@ window.applySiteFavicon = applySiteFavicon;
         if (twDesc) twDesc.setAttribute('content', desc);
       }
 
-      if (s.siteTitle && (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/index.html')) {
-        document.title = s.siteTitle;
+      var effectiveTitle = s.siteTitle || (name ? name + ' | খাঁটি মধু, ঘি ও অর্গানিক ফুড শপ' : '');
+      if (effectiveTitle && (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/index.html')) {
+        document.title = effectiveTitle;
+        var stEl = document.getElementById('siteTitleTag');
+        if (stEl) stEl.textContent = effectiveTitle;
+        var mtEl = document.querySelector('meta[name="title"]');
+        if (mtEl) mtEl.setAttribute('content', effectiveTitle);
+        var ogtEl = document.querySelector('meta[property="og:title"]');
+        if (ogtEl) ogtEl.setAttribute('content', effectiveTitle);
+        var twtEl = document.querySelector('meta[name="twitter:title"]');
+        if (twtEl) twtEl.setAttribute('content', effectiveTitle);
       } else if (document.title && !window.location.pathname.includes('/product')) {
         if (document.title.indexOf(' | ') !== -1) {
           document.title = name + ' | ' + document.title.split(' | ').slice(1).join(' | ');

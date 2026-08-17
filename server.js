@@ -124,12 +124,14 @@ function injectServerBranding(html, filePath = '') {
 
   // 5. Title Tag injection
   const isHome = !filePath || filePath.endsWith('index.html') || filePath.endsWith('index');
-  if (isHome && settings.siteTitle) {
-    html = html.replace(/<title>([^<]*)<\/title>/gi, `<title>${settings.siteTitle}</title>`);
-    html = html.replace(/<meta\s+property=["']og:title["']\s+content=["'][^"']*["']/gi, `<meta property="og:title" content="${settings.siteTitle}"`);
-    html = html.replace(/<meta\s+name=["']twitter:title["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:title" content="${settings.siteTitle}"`);
+  const targetTitle = settings.siteTitle || (brandName ? `${brandName} | খাঁটি মধু, ঘি, ভেষজ ও প্রিমিয়াম অর্গানিক ফুড` : '');
+  if (isHome && targetTitle) {
+    html = html.replace(/<title[^>]*>([^<]*)<\/title>/gi, `<title id="siteTitleTag">${targetTitle}</title>`);
+    html = html.replace(/<meta[^>]*name=["']title["'][^>]*>/gi, `<meta name="title" id="metaTitle" content="${targetTitle}">`);
+    html = html.replace(/<meta[^>]*property=["']og:title["'][^>]*>/gi, `<meta property="og:title" content="${targetTitle}">`);
+    html = html.replace(/<meta[^>]*name=["']twitter:title["'][^>]*>/gi, `<meta name="twitter:title" content="${targetTitle}">`);
   } else if (brandName && !(filePath && filePath.includes('product.html'))) {
-    html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
+    html = html.replace(/<title[^>]*>([^<]*)<\/title>/gi, (match, currentTitle) => {
       if (currentTitle.includes(' | ')) {
         const parts = currentTitle.split(' | ');
         return `<title>${brandName} | ${parts.slice(1).join(' | ')}</title>`;
