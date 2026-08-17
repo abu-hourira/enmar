@@ -1566,14 +1566,14 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/admin/users') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         return json(res, 200, store.users.map(u => ({
           id: u.id, name: u.name, email: u.email, role: u.role, active: u.active, phone: u.phone || ''
         })));
       }
       if (method === 'POST' && pathname === '/api/admin/users') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const passwordHash = await hashPassword(body.password || 'TempPass123!');
         const newUser = await dbService.createUser({
           name: body.name || 'User',
@@ -1588,7 +1588,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/admin\/users\/\d+$/)) {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         const target = store.users.find(u => u.id === id);
         if (!target) return json(res, 404, { error: 'Not found' });
@@ -1596,13 +1596,13 @@ const server = http.createServer(async (req, res) => {
           return json(res, 403, { error: 'Permanent Superadmin cannot be modified via API. Changes must be made directly in the database.' });
         }
         if (body.active !== undefined) target.active = body.active;
-        if (body.role) target.role = body.role;
+        if (body.role && user.role === 'superadmin') target.role = body.role;
         await dbService.updateUser(id, target);
         return json(res, 200, { ok: true });
       }
       if (method === 'POST' && pathname.match(/^\/api\/admin\/users\/\d+\/reset-password$/)) {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         const target = store.users.find(u => u.id === id);
         if (!target) return json(res, 404, { error: 'Not found' });
@@ -1616,7 +1616,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/users\/\d+$/)) {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         const target = store.users.find(u => u.id === id);
         if (target && target.email && target.email.toLowerCase() === PERMANENT_SUPERADMIN_EMAIL.toLowerCase()) {
@@ -1810,7 +1810,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/orders\/\d+$/)) {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         await dbService.deleteOrder(id);
         const idx = store.orders.findIndex(o => o.id === id);
@@ -1897,12 +1897,12 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         return json(res, 200, store.settings);
       }
       if (method === 'PATCH' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         Object.assign(store.settings, body);
         await dbService.updateSettings(store.settings);
         return json(res, 200, store.settings);
@@ -1951,7 +1951,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/staff') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const { name, email, password, role } = body;
         if (!email || !password) return json(res, 400, { error: 'Email and password required' });
         const passwordHash = await hashPassword(password);
@@ -2096,7 +2096,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/apis/test-sms') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const to = body && body.to;
         if (!to) return json(res, 400, { error: 'Recipient phone number required' });
         return json(res, 200, { ok: true, provider: 'Alpha SMS / SIMULATION (Dev mode active)' });
