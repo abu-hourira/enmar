@@ -730,6 +730,79 @@ function ensureStoreLoaded() {
 // Pre-load store in background
 ensureStoreLoaded();
 
+// ── MULTIPART / FORM-DATA PARSER & IMAGE UPLOAD ──
+function parseMultipart(buffer, contentType) {
+  const fields = {};
+  const files = [];
+  const match = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!match) return { fields, files };
+  const boundary = '--' + (match[1] || match[2]).trim();
+  const boundaryBuf = Buffer.from(boundary);
+  const boundaryLen = boundaryBuf.length;
+
+  let start = 0;
+  while ((start = buffer.indexOf(boundaryBuf, start)) !== -1) {
+    start += boundaryLen;
+    if (buffer.slice(start, start + 2).toString() === '--') break;
+    if (buffer.slice(start, start + 2).toString() === '\r\n') start += 2;
+
+    const headerEnd = buffer.indexOf(Buffer.from('\r\n\r\n'), start);
+    if (headerEnd === -1) break;
+
+    const headerText = buffer.slice(start, headerEnd).toString('utf8');
+    const partDataStart = headerEnd + 4;
+    const partDataEnd = buffer.indexOf(Buffer.from('\r\n' + boundary), partDataStart);
+    if (partDataEnd === -1) break;
+
+    const partData = buffer.slice(partDataStart, partDataEnd);
+    start = partDataEnd;
+
+    const dispMatch = headerText.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
+    if (!dispMatch) continue;
+
+    const name = dispMatch[1];
+    const filename = dispMatch[2];
+
+    if (filename !== undefined && filename !== '') {
+      const typeMatch = headerText.match(/Content-Type:\s*([^\r\n]+)/i);
+      const mimeType = typeMatch ? typeMatch[1].trim() : 'application/octet-stream';
+      files.push({
+        fieldname: name,
+        filename,
+        mimeType,
+        data: partData
+      });
+    } else if (filename === undefined) {
+      fields[name] = partData.toString('utf8');
+    }
+  }
+  return { fields, files };
+}
+
+async function saveUploadedImages(files) {
+  if (!files || !files.length) return [];
+  const uploadsDir = path.join(ROOT, 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+  }
+  const urls = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file || !file.data || !file.data.length) continue;
+    const ext = path.extname(file.filename || '').toLowerCase() || '.png';
+    const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.png';
+    const fname = `prod-${Date.now()}-${i}${cleanExt}`;
+    const targetFile = path.join(uploadsDir, fname);
+    try {
+      fs.writeFileSync(targetFile, file.data);
+      urls.push(`/uploads/${fname}`);
+    } catch (err) {
+      console.error('[Upload] Failed to save product image:', err.message);
+    }
+  }
+  return urls;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const { method, url } = req;
@@ -1520,7 +1593,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/products') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         // Persist any uploaded product images (multipart 'images' field) to /uploads
         const uploadedImages = await saveUploadedImages(req.files);
         const images = (Array.isArray(body.images) ? body.images : (body.images ? [body.images] : [])).concat(uploadedImages);
@@ -1547,7 +1620,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/admin\/products\/\d+$/)) {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         const idx = store.products.findIndex(p => p.id === id);
         if (idx < 0) return json(res, 404, { error: 'Not found' });
@@ -1568,7 +1641,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/products\/\d+$/)) {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = Number(pathname.split('/')[4]);
         const idx = store.products.findIndex(p => p.id === id);
         if (idx < 0) return json(res, 404, { error: 'Not found' });
