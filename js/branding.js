@@ -60,7 +60,9 @@ window.applySiteFavicon = applySiteFavicon;
         if (twDesc) twDesc.setAttribute('content', desc);
       }
 
-      if (document.title && !window.location.pathname.includes('/product')) {
+      if (s.siteTitle && (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/index.html')) {
+        document.title = s.siteTitle;
+      } else if (document.title && !window.location.pathname.includes('/product')) {
         if (document.title.indexOf(' | ') !== -1) {
           document.title = name + ' | ' + document.title.split(' | ').slice(1).join(' | ');
         } else if (document.title.indexOf(' — ') !== -1) {

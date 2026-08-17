@@ -123,7 +123,12 @@ function injectServerBranding(html, filePath = '') {
   }
 
   // 5. Title Tag injection
-  if (brandName && !(filePath && filePath.includes('product.html'))) {
+  const isHome = !filePath || filePath.endsWith('index.html') || filePath.endsWith('index');
+  if (isHome && settings.siteTitle) {
+    html = html.replace(/<title>([^<]*)<\/title>/gi, `<title>${settings.siteTitle}</title>`);
+    html = html.replace(/<meta\s+property=["']og:title["']\s+content=["'][^"']*["']/gi, `<meta property="og:title" content="${settings.siteTitle}"`);
+    html = html.replace(/<meta\s+name=["']twitter:title["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:title" content="${settings.siteTitle}"`);
+  } else if (brandName && !(filePath && filePath.includes('product.html'))) {
     html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
       if (currentTitle.includes(' | ')) {
         const parts = currentTitle.split(' | ');
@@ -877,7 +882,9 @@ function syncThemeToCssFiles(primary, accent) {
 
 function syncBrandingToDisk(settings) {
   if (!settings) return;
+  const siteTitle = settings.siteTitle || '';
   const brandName = settings.brandName || 'ENMAR';
+  const brandLogo = settings.brandLogo || '';
   const favicon = settings.favicon || '';
   const siteDesc = settings.siteDescription || settings.metaDescription || '';
 
@@ -897,7 +904,11 @@ function syncBrandingToDisk(settings) {
         if (favicon) {
           html = html.replace(/<link[^>]*id=["']siteFavicon["'][^>]*>/gi, `<link rel="icon" id="siteFavicon" href="${favicon}">`);
         }
-        if (brandName && !fp.includes('product.html')) {
+        if (fp.endsWith('index.html') && siteTitle) {
+          html = html.replace(/<title>([^<]*)<\/title>/gi, `<title>${siteTitle}</title>`);
+          html = html.replace(/<meta\s+property=["']og:title["']\s+content=["'][^"']*["']/gi, `<meta property="og:title" content="${siteTitle}">`);
+          html = html.replace(/<meta\s+name=["']twitter:title["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:title" content="${siteTitle}">`);
+        } else if (brandName && !fp.includes('product.html')) {
           html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
             if (currentTitle.includes(' | ')) {
               const parts = currentTitle.split(' | ');
@@ -909,12 +920,14 @@ function syncBrandingToDisk(settings) {
             }
             return `<title>${brandName} — ${currentTitle}</title>`;
           });
+        }
+        if (brandName) {
           html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
         }
         if (siteDesc && fp.endsWith('index.html')) {
-          html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}"`);
-          html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}"`);
-          html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}"`);
+          html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}">`);
+          html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}">`);
+          html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}">`);
         }
         fs.writeFileSync(fp, html, 'utf8');
       } catch (e) {

@@ -128,7 +128,12 @@
           </div>
 
           <div class="field span2">
-            <label for="brandName">Storefront Name</label>
+            <label for="siteTitle">Website SEO Title / হোম পেজ টাইটেল (Browser Tab &amp; Search Title)</label>
+            <input type="text" id="siteTitle" maxlength="150" placeholder="e.g. ENMAR | খাঁটি মধু, ঘি, ভেষজ ও প্রিমিয়াম অর্গানিক ফুড - Enmar Shop Bangladesh">
+            <small class="field-hint">ব্রাউজার ট্যাব, বুকমার্ক এবং গুগল সার্চ ফলাফলে ওয়েবসাইটের মূল পেজ টাইটেল হিসেবে প্রদর্শিত হবে।</small>
+          </div>
+          <div class="field span2">
+            <label for="brandName">Storefront Brand Name / ব্র্যান্ড নাম</label>
             <input type="text" id="brandName" maxlength="60" placeholder="ENMAR">
           </div>
           <div class="field span2">
@@ -765,6 +770,7 @@
     fill('newsletterHeading',     s.newsletterHeading);
     fill('newsletterBody',        s.newsletterBody);
     fill('footerTagline',         s.footerTagline);
+    fill('siteTitle',             s.siteTitle || '');
     fill('brandName',             s.brandName || '');
     fill('siteDescription',       s.siteDescription || s.metaDescription || '');
     if (s.brandLogo) { $('brandLogo').value = s.brandLogo; renderBrandLogoPreview(s.brandLogo); }
@@ -1217,6 +1223,7 @@ function val(id) {
     const msg = $('brandingMessage'); notice(msg, '');
     try {
       const payload = {
+        siteTitle: val('siteTitle'),
         brandName: val('brandName'),
         siteDescription: val('siteDescription'),
         brandLogo: val('brandLogo'),
