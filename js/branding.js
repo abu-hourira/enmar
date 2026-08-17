@@ -61,9 +61,13 @@ window.applySiteFavicon = applySiteFavicon;
       }
 
       if (document.title && !window.location.pathname.includes('/product')) {
-        var idx = document.title.indexOf(' — ');
-        if (idx !== -1) {
-          document.title = name + document.title.slice(idx);
+        if (document.title.indexOf(' | ') !== -1) {
+          document.title = name + ' | ' + document.title.split(' | ').slice(1).join(' | ');
+        } else if (document.title.indexOf(' — ') !== -1) {
+          var parts = document.title.split(' — ');
+          document.title = parts[0] + ' — ' + name;
+        } else {
+          document.title = name + ' — ' + document.title;
         }
       }
 

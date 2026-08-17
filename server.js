@@ -84,6 +84,67 @@ function getThemeStyleTag() {
   return `<style id="serverTheme">:root{--forest:${pr} !important;--forest-deep:${shade(pr, 0.72)} !important;--line-dark:${pr} !important;--gold:${ac} !important;}</style>`;
 }
 
+function injectServerBranding(html, filePath = '') {
+  const settings = (store && store.settings) ? store.settings : {};
+  const brandName = settings.brandName || 'ENMAR';
+  const brandLogo = settings.brandLogo || '';
+  const favicon = settings.favicon || '';
+  const siteDesc = settings.siteDescription || settings.metaDescription || '';
+  const footerTag = settings.footerTagline || '';
+  const themeTag = getThemeStyleTag();
+
+  // 1. Inject server theme style tag
+  if (html.includes('</head>')) {
+    html = html.replace('</head>', `${themeTag}\n</head>`);
+  } else {
+    html = themeTag + html;
+  }
+
+  // 2. Favicon injection
+  if (favicon) {
+    html = html.replace(/<link[^>]*id=["']siteFavicon["'][^>]*>/gi, `<link rel="icon" id="siteFavicon" href="${favicon}">`);
+  }
+
+  // 3. Brand name & Logo in Header
+  if (brandName) {
+    html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
+    html = html.replace(/<meta\s+property=["']og:site_name["']\s+content=["'][^"']*["']/gi, `<meta property="og:site_name" content="${brandName}"`);
+  }
+
+  if (brandLogo) {
+    html = html.replace(/<span id=["']logoIcon["']>([^<]*)<\/span>/gi, `<span id="logoIcon"><img class="logo-img" src="${brandLogo}" alt="${brandName}"></span>`);
+  }
+
+  // 4. Meta Description injection
+  if (siteDesc) {
+    html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}"`);
+    html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}"`);
+    html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}"`);
+  }
+
+  // 5. Title Tag injection
+  if (brandName && !(filePath && filePath.includes('product.html'))) {
+    html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
+      if (currentTitle.includes(' | ')) {
+        const parts = currentTitle.split(' | ');
+        return `<title>${brandName} | ${parts.slice(1).join(' | ')}</title>`;
+      }
+      if (currentTitle.includes(' — ')) {
+        const parts = currentTitle.split(' — ');
+        return `<title>${parts[0]} — ${brandName}</title>`;
+      }
+      return `<title>${brandName} — ${currentTitle}</title>`;
+    });
+  }
+
+  // 6. Footer Tagline injection
+  if (footerTag) {
+    html = html.replace(/<span id=["']footerTagline["']>([^<]*)<\/span>/gi, `<span id="footerTagline">${footerTag}</span>`);
+  }
+
+  return html;
+}
+
 function tryServeStatic(req, res, pathname) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   if (pathname.startsWith('/api/')) return false;
@@ -120,12 +181,7 @@ function tryServeStatic(req, res, pathname) {
     const indexPath = path.join(ROOT, 'index.html');
     if (fs.existsSync(indexPath)) {
       let html = fs.readFileSync(indexPath, 'utf8');
-      const themeTag = getThemeStyleTag();
-      if (html.includes('</head>')) {
-        html = html.replace('</head>', `${themeTag}\n</head>`);
-      } else {
-        html = themeTag + html;
-      }
+      html = injectServerBranding(html, indexPath);
       const buf = Buffer.from(html, 'utf8');
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
@@ -179,12 +235,7 @@ function tryServeStatic(req, res, pathname) {
 
   if (ext === '.html' || ext === '.htm') {
     let html = fs.readFileSync(finalPath, 'utf8');
-    const themeTag = getThemeStyleTag();
-    if (html.includes('</head>')) {
-      html = html.replace('</head>', `${themeTag}\n</head>`);
-    } else {
-      html = themeTag + html;
-    }
+    html = injectServerBranding(html, finalPath);
     const buf = Buffer.from(html, 'utf8');
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',
@@ -824,6 +875,55 @@ function syncThemeToCssFiles(primary, accent) {
   }
 }
 
+function syncBrandingToDisk(settings) {
+  if (!settings) return;
+  const brandName = settings.brandName || 'ENMAR';
+  const favicon = settings.favicon || '';
+  const siteDesc = settings.siteDescription || settings.metaDescription || '';
+
+  const htmlFiles = [
+    path.join(ROOT, 'index.html'),
+    path.join(ROOT, 'pages', 'product.html'),
+    path.join(ROOT, 'pages', 'checkout.html'),
+    path.join(ROOT, 'pages', 'my-orders.html'),
+    path.join(ROOT, 'pages', 'developer-info.html'),
+    path.join(ROOT, 'pages', 'bmi-calculator.html')
+  ];
+
+  htmlFiles.forEach(fp => {
+    if (fs.existsSync(fp)) {
+      try {
+        let html = fs.readFileSync(fp, 'utf8');
+        if (favicon) {
+          html = html.replace(/<link[^>]*id=["']siteFavicon["'][^>]*>/gi, `<link rel="icon" id="siteFavicon" href="${favicon}">`);
+        }
+        if (brandName && !fp.includes('product.html')) {
+          html = html.replace(/<title>([^<]*)<\/title>/gi, (match, currentTitle) => {
+            if (currentTitle.includes(' | ')) {
+              const parts = currentTitle.split(' | ');
+              return `<title>${brandName} | ${parts.slice(1).join(' | ')}</title>`;
+            }
+            if (currentTitle.includes(' — ')) {
+              const parts = currentTitle.split(' — ');
+              return `<title>${parts[0]} — ${brandName}</title>`;
+            }
+            return `<title>${brandName} — ${currentTitle}</title>`;
+          });
+          html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
+        }
+        if (siteDesc && fp.endsWith('index.html')) {
+          html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}"`);
+          html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}"`);
+          html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}"`);
+        }
+        fs.writeFileSync(fp, html, 'utf8');
+      } catch (e) {
+        console.error('[Branding Sync] Error writing', fp, e.message);
+      }
+    }
+  });
+}
+
 // ── HTTP SERVER ──
 let store = {
   users: [],
@@ -841,8 +941,11 @@ function ensureStoreLoaded() {
     storeLoadedPromise = readStore().then(s => {
       if (s) {
         Object.assign(store, s);
-        if (store.settings && (store.settings.themePrimary || store.settings.themeAccent)) {
-          syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
+        if (store.settings) {
+          if (store.settings.themePrimary || store.settings.themeAccent) {
+            syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
+          }
+          syncBrandingToDisk(store.settings);
         }
       }
       console.log(`[Store] Loaded: ${store.users.length} users, ${store.products.length} products, ${store.orders.length} orders`);
@@ -2017,9 +2120,10 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         Object.assign(store.settings, body);
-        if (body.themePrimary || body.themeAccent) {
+        if (store.settings.themePrimary || store.settings.themeAccent) {
           syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
         }
+        syncBrandingToDisk(store.settings);
         await dbService.updateSettings(store.settings);
         return json(res, 200, store.settings);
       }
