@@ -594,7 +594,13 @@
 
     const images = (product.images && product.images.length) ? product.images : [];
     const galleryContent = images.length
-      ? `<div class="gallery-main"><img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img"></div>
+      ? `<div class="gallery-main">
+          <img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img">
+          <button type="button" class="btn-gallery-fullscreen" id="btnGalleryFullscreen" aria-label="View full screen photo" title="ফুল স্ক্রিন ছবি দেখুন">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <span>Full Screen</span>
+          </button>
+        </div>
          ${images.length > 1 ? `<div class="gallery-nav">
            <button type="button" class="gallery-arrow" id="galleryPrev" aria-label="Previous image">&#8249;</button>
            <div class="gallery-dots" id="galleryDots"></div>
@@ -788,6 +794,15 @@
     });
 
     document.addEventListener('click', (e) => {
+      const fsBtn = e.target.closest('#btnGalleryFullscreen, .btn-gallery-fullscreen');
+      if (fsBtn) {
+        const currentGal = document.getElementById('galleryImg');
+        if (currentGal && currentGal.src) {
+          img.src = currentGal.src;
+          modal.style.display = 'flex';
+          return;
+        }
+      }
       const thumb = e.target.closest('.review-img-thumb');
       if (thumb && thumb.dataset.src) {
         img.src = thumb.dataset.src;

@@ -760,6 +760,50 @@ async function sendPasswordResetCode(email, store) {
   }
 }
 
+function syncThemeToCssFiles(primary, accent) {
+  const pr = primary || '#631e2a';
+  const ac = accent || '#C0912E';
+  
+  function shade(hex, f) {
+    const clean = String(hex || '').replace('#', '');
+    const n = parseInt(clean, 16);
+    if (isNaN(n)) return hex;
+    const r = Math.min(255, Math.round(((n >> 16) & 255) * f));
+    const g = Math.min(255, Math.round(((n >> 8) & 255) * f));
+    const b = Math.min(255, Math.round((n & 255) * f));
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  const deep = shade(pr, 0.72);
+
+  const hmCssPath = path.join(ROOT, 'css', 'harvest-market.css');
+  if (fs.existsSync(hmCssPath)) {
+    try {
+      let content = fs.readFileSync(hmCssPath, 'utf8');
+      content = content.replace(/--forest:\s*[^;]+;/, `--forest: ${pr};`);
+      content = content.replace(/--forest-deep:\s*[^;]+;/, `--forest-deep: ${deep};`);
+      content = content.replace(/--line-dark:\s*[^;]+;/, `--line-dark: ${pr};`);
+      content = content.replace(/--gold:\s*[^;]+;/, `--gold: ${ac};`);
+      fs.writeFileSync(hmCssPath, content, 'utf8');
+    } catch (e) {
+      console.error('[Theme] Could not write harvest-market.css:', e.message);
+    }
+  }
+
+  const adminCssPath = path.join(ROOT, 'admin', 'admin.css');
+  if (fs.existsSync(adminCssPath)) {
+    try {
+      let content = fs.readFileSync(adminCssPath, 'utf8');
+      content = content.replace(/--forest:\s*[^;]+;/, `--forest: ${pr};`);
+      content = content.replace(/--forest-deep:\s*[^;]+;/, `--forest-deep: ${deep};`);
+      content = content.replace(/--line-dark:\s*[^;]+;/, `--line-dark: ${pr};`);
+      content = content.replace(/--gold:\s*[^;]+;/, `--gold: ${ac};`);
+      fs.writeFileSync(adminCssPath, content, 'utf8');
+    } catch (e) {
+      console.error('[Theme] Could not write admin.css:', e.message);
+    }
+  }
+}
+
 // ── HTTP SERVER ──
 let store = {
   users: [],
@@ -775,7 +819,12 @@ let storeLoadedPromise = null;
 function ensureStoreLoaded() {
   if (!storeLoadedPromise) {
     storeLoadedPromise = readStore().then(s => {
-      if (s) Object.assign(store, s);
+      if (s) {
+        Object.assign(store, s);
+        if (store.settings && (store.settings.themePrimary || store.settings.themeAccent)) {
+          syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
+        }
+      }
       console.log(`[Store] Loaded: ${store.users.length} users, ${store.products.length} products, ${store.orders.length} orders`);
       return store;
     }).catch(err => {
@@ -1948,6 +1997,9 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         Object.assign(store.settings, body);
+        if (body.themePrimary || body.themeAccent) {
+          syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
+        }
         await dbService.updateSettings(store.settings);
         return json(res, 200, store.settings);
       }
