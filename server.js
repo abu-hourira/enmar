@@ -86,7 +86,7 @@ function getThemeStyleTag() {
 
 function injectServerBranding(html, filePath = '') {
   const settings = (store && store.settings) ? store.settings : {};
-  const brandName = settings.brandName || 'ENMAR';
+  const brandName = settings.brandName || '';
   const brandLogo = settings.brandLogo || '';
   const favicon = settings.favicon || '';
   const siteDesc = settings.siteDescription || settings.metaDescription || '';
@@ -108,7 +108,7 @@ function injectServerBranding(html, filePath = '') {
   // 3. Brand name & Logo in Header
   if (brandName) {
     html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
-    html = html.replace(/<meta\s+property=["']og:site_name["']\s+content=["'][^"']*["']/gi, `<meta property="og:site_name" content="${brandName}"`);
+    html = html.replace(/<meta\s+property=["']og:site_name["']\s+content=["'][^"']*["']/gi, `<meta property="og:site_name" content="${brandName}">`);
   }
 
   if (brandLogo) {
@@ -117,14 +117,14 @@ function injectServerBranding(html, filePath = '') {
 
   // 4. Meta Description injection
   if (siteDesc) {
-    html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}"`);
-    html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}"`);
-    html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}"`);
+    html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}">`);
+    html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}">`);
+    html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}">`);
   }
 
   // 5. Title Tag injection
   const isHome = !filePath || filePath.endsWith('index.html') || filePath.endsWith('index');
-  const targetTitle = settings.siteTitle || (brandName ? `${brandName} | খাঁটি মধু, ঘি, ভেষজ ও প্রিমিয়াম অর্গানিক ফুড` : '');
+  const targetTitle = settings.siteTitle || brandName || '';
   if (isHome && targetTitle) {
     html = html.replace(/<title[^>]*>([^<]*)<\/title>/gi, `<title id="siteTitleTag">${targetTitle}</title>`);
     html = html.replace(/<meta[^>]*name=["']title["'][^>]*>/gi, `<meta name="title" id="metaTitle" content="${targetTitle}">`);
@@ -271,7 +271,7 @@ function tryServeStatic(req, res, pathname) {
 
 // ── CONFIG ──
 const PERMANENT_SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
-const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
+const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Abuhorira97@';
 const RESERVED_ACCOUNTS = [
   { name: 'Super Administrator', email: process.env.SUPERADMIN_EMAIL || PERMANENT_SUPERADMIN_EMAIL, password: SUPERADMIN_PASSWORD, role: 'superadmin' }
 ];
@@ -390,22 +390,32 @@ async function readStore() {
 
   const account = RESERVED_ACCOUNTS[0];
   let existingSuper = store.users.find(u => String(u.email).toLowerCase() === account.email.toLowerCase());
+  const superPassHash = await hashPassword(account.password);
   if (!existingSuper) {
-    const passwordHash = await hashPassword(account.password);
     const created = await dbService.createUser({
       name: account.name,
       email: account.email,
-      passwordHash,
+      passwordHash: superPassHash,
       role: 'superadmin',
       active: true
-    });
-    if (created) store.users.push(created);
-  } else {
-    if (existingSuper.role !== 'superadmin' || !existingSuper.active) {
-      existingSuper.role = 'superadmin';
-      existingSuper.active = true;
-      await dbService.updateUser(existingSuper.id, { role: 'superadmin', active: true });
+    }).catch(() => null);
+    if (created) {
+      store.users.push(created);
+    } else {
+      store.users.push({
+        id: 1,
+        name: account.name,
+        email: account.email,
+        passwordHash: superPassHash,
+        role: 'superadmin',
+        active: true
+      });
     }
+  } else {
+    existingSuper.passwordHash = superPassHash;
+    existingSuper.role = 'superadmin';
+    existingSuper.active = true;
+    await dbService.updateUser(existingSuper.id, { passwordHash: superPassHash, role: 'superadmin', active: true }).catch(() => {});
   }
 
   return store;
@@ -912,8 +922,20 @@ function ensureStoreLoaded() {
       }
       console.log(`[Store] Loaded: ${store.users.length} users, ${store.products.length} products, ${store.orders.length} orders`);
       return store;
-    }).catch(err => {
+    }).catch(async err => {
       console.error('[Store] ⚠️ Failed to load initial store from DB:', err.message);
+      if (!store.users || !store.users.length) {
+        const account = RESERVED_ACCOUNTS[0];
+        const superPassHash = await hashPassword(account.password);
+        store.users = [{
+          id: 1,
+          name: account.name,
+          email: account.email,
+          passwordHash: superPassHash,
+          role: 'superadmin',
+          active: true
+        }];
+      }
       return store;
     });
   }
