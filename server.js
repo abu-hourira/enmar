@@ -94,6 +94,26 @@ function tryServeStatic(req, res, pathname) {
     return true;
   }
 
+  // Automatic 301 Permanent Redirect for any direct .html requests to clean URLs
+  if (pathname.endsWith('.html') || pathname.endsWith('.htm')) {
+    const rawClean = pathname.replace(/\.html?$/i, '');
+    let target = rawClean.startsWith('/pages/') ? rawClean.replace(/^\/pages\//, '/') : rawClean;
+    if (target === '/index') target = '';
+    if (!target) target = '/';
+    
+    let redirectUrl = target;
+    if (req.url && req.url.includes('?')) {
+      redirectUrl += '?' + req.url.split('?')[1];
+    }
+    
+    res.writeHead(301, {
+      'Location': redirectUrl,
+      'Cache-Control': 'no-cache'
+    });
+    res.end();
+    return true;
+  }
+
   const cleanPath = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   
   if (!cleanPath) {
@@ -1198,7 +1218,7 @@ const server = http.createServer(async (req, res) => {
           type: 'subscriber',
           title: '📰 New Newsletter Subscriber',
           message: `${email} subscribed to seasonal crop updates.`,
-          link: '/admin/subscribers.html'
+          link: '/admin/subscribers'
         }).catch(() => {});
 
         return json(res, 201, { ok: true, message: 'Thank you for subscribing to ENMAR newsletter!' });
@@ -1248,7 +1268,7 @@ const server = http.createServer(async (req, res) => {
           type: 'new_user',
           title: '👤 New Customer Registered',
           message: `${user.name} (${user.email}) just created an account.`,
-          link: '/admin/customers.html'
+          link: '/admin/customers'
         }).catch(() => {});
 
         broadcastSmartNotification({
@@ -1424,7 +1444,7 @@ const server = http.createServer(async (req, res) => {
           type: 'order_placed',
           title: `🛒 New Order #${order.number || order.id}`,
           message: `Order of ৳${order.total} placed by ${user.name || 'Customer'}`,
-          link: '/admin/orders.html',
+          link: '/admin/orders',
           payload: order
         }).catch(() => {});
 
@@ -1435,7 +1455,7 @@ const server = http.createServer(async (req, res) => {
           type: 'order_placed',
           title: `📦 Order #${order.number || order.id} Placed!`,
           message: `Thank you! Your order for ৳${order.total} has been received.`,
-          link: '/pages/my-orders.html'
+          link: '/my-orders'
         }).catch(() => {});
 
         return json(res, 201, { ok: true, order });
@@ -1549,7 +1569,7 @@ const server = http.createServer(async (req, res) => {
           type: 'order_message',
           title: `💬 Message on Order #${order.number || order.id}`,
           message: `${user.name || 'Customer'}: ${text}`,
-          link: '/admin/orders.html'
+          link: '/admin/orders'
         }).catch(() => {});
 
         return json(res, 201, { ok: true, message: msgObj });
@@ -1577,7 +1597,7 @@ const server = http.createServer(async (req, res) => {
           type: 'review',
           title: `⭐ New ${body.rating || 5}★ Review`,
           message: `${user.name || 'Customer'}: ${body.comment || 'Submitted a rating'}`,
-          link: '/admin/reviews.html'
+          link: '/admin/reviews'
         }).catch(() => {});
 
         return json(res, 201, review || { error: 'Failed' });
@@ -1603,7 +1623,7 @@ const server = http.createServer(async (req, res) => {
           type: 'comment',
           title: '💬 New Community Voice Comment',
           message: `${user.name || 'User'}: ${body.text || ''}`,
-          link: '/admin/comments.html'
+          link: '/admin/comments'
         }).catch(() => {});
 
         return json(res, 201, { ok: true, comment });
@@ -1860,7 +1880,7 @@ const server = http.createServer(async (req, res) => {
             type: 'order_status',
             title: statusTitle,
             message: statusMsg,
-            link: '/pages/my-orders.html'
+            link: '/my-orders'
           }).catch(() => {});
         }
 
@@ -1896,7 +1916,7 @@ const server = http.createServer(async (req, res) => {
           type: 'order_message',
           title: `💬 Support Reply on Order #${order.number || order.id}`,
           message: `${user.name || 'Staff'}: ${text}`,
-          link: '/pages/my-orders.html'
+          link: '/my-orders'
         }).catch(() => {});
 
         return json(res, 201, { ok: true, message: msgObj });

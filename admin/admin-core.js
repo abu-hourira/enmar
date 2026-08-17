@@ -575,7 +575,7 @@ function buildOrderTable(orders, showPayment, canDel = false) {
     <td>${countdownHTML(o)}</td>
     <td style="white-space:nowrap">
       <button type="button" class="btn-soft btn-order-detail" data-oid="${o.id}" style="margin-right:3px">Detail</button>
-      <a href="/receipt.html?id=${o.id}" target="_blank" class="btn-soft" style="margin-right:3px;text-decoration:none;color:var(--forest,#16a34a);font-weight:600" title="Open &amp; Print Official Money Receipt">🧾 Receipt</a>
+      <a href="/receipt?id=${o.id}" target="_blank" class="btn-soft" style="margin-right:3px;text-decoration:none;color:var(--forest,#16a34a);font-weight:600" title="Open &amp; Print Official Money Receipt">🧾 Receipt</a>
       ${canDel ? `<button type="button" class="btn-danger btn-order-delete" data-oid="${o.id}">Del</button>` : ''}
     </td>
   </tr>`;

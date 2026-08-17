@@ -313,7 +313,7 @@ function toLocalDatetimeInput(msOrIso) {
 
 function openOrderDetail(oid) {
   const o = allOrders.find(x => x.id === oid); if (!o) return;
-  $('orderDetailTitle').innerHTML = `Order ${esc(o.number)} <a href="/receipt.html?id=${o.id}" target="_blank" class="btn-soft" style="margin-left:12px;font-size:0.72rem;padding:3px 10px;text-decoration:none;color:var(--forest,#16a34a);font-weight:600;display:inline-flex;align-items:center;gap:4px">🧾 View / Print Receipt</a>`;
+  $('orderDetailTitle').innerHTML = `Order ${esc(o.number)} <a href="/receipt?id=${o.id}" target="_blank" class="btn-soft" style="margin-left:12px;font-size:0.72rem;padding:3px 10px;text-decoration:none;color:var(--forest,#16a34a);font-weight:600;display:inline-flex;align-items:center;gap:4px">🧾 View / Print Receipt</a>`;
   $('orderNoteId').value = oid;
   if ($('adminReplyInput')) $('adminReplyInput').value = '';
   // show currently saved EST date

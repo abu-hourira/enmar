@@ -2,23 +2,30 @@
   RewriteEngine On
   RewriteBase /
 
-  # Redirect /admin or /admin/ to /admin/dashboard
+  # 1. Redirect /admin or /admin/ to /admin/dashboard
   RewriteRule ^admin/?$ /admin/dashboard [R=302,L]
 
-  # If an existing file or directory exists, serve it directly
+  # 2. 301 Redirect direct .html requests to clean extensionless URLs
+  RewriteCond %{THE_REQUEST} \s/+(?:pages/)?([^\s\?]+)\.html([^\s]*)\s [NC]
+  RewriteRule ^ /%1%2 [R=301,L,NE]
+
+  RewriteCond %{THE_REQUEST} \s/+admin/([^\s\?]+)\.html([^\s]*)\s [NC]
+  RewriteRule ^ /admin/%1%2 [R=301,L,NE]
+
+  # 3. Clean routing for root .html files
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L,QSA]
+
+  # 4. Clean routing for pages/*.html files
+  RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f
+  RewriteRule ^([^/]+)/?$ pages/$1.html [L,QSA]
+
+  # 5. Clean routing for admin/*.html files
+  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f
+  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L,QSA]
+
+  # 6. If an existing file or directory exists, serve it directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
-
-  # Check if .html file exists in root
-  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-  RewriteRule ^([^/]+)/?$ $1.html [L]
-
-  # Check if .html file exists in pages/
-  RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f
-  RewriteRule ^([^/]+)/?$ pages/$1.html [L]
-
-  # Check if .html file exists in admin/
-  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f
-  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L]
 </IfModule>

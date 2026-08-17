@@ -558,7 +558,7 @@ function renderConfirmation(order, userName) {
   const msg = (typeof order === 'object' && (order.customerMessage || order.note)) || (_siteSettings && _siteSettings.defaultOrderMessage) || 'Thank you for your order.';
   const heading = (_siteSettings && _siteSettings.orderSuccessHeading) || 'Order Placed Successfully!';
   const subtext = (_siteSettings && _siteSettings.orderSuccessMessage) || 'Your order is confirmed and currently in process. Our dispatch team will deliver farm-fresh produce to your doorstep.';
-  const receiptUrl = `/receipt.html?id=${orderId || orderNumber}`;
+  const receiptUrl = `/receipt?id=${orderId || orderNumber}`;
 
   document.getElementById('main').innerHTML = `
     <div class="confirmation">
