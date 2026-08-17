@@ -180,9 +180,9 @@ function refreshAccountButton() {
     button.onclick = () => {
       if (currentUser) {
         if (['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role)) {
-          window.location.href = '/admin/dashboard.html';
+          window.location.href = '/admin/dashboard';
         } else {
-          window.location.href = '/my-orders.html';
+          window.location.href = '/my-orders';
         }
       } else {
         openAuthModal('login');
@@ -636,7 +636,7 @@ function initAuthModalSystem() {
 
           const isStaff = currentUser && ['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role);
           if (isStaff) {
-            window.location.href = '/admin/dashboard.html';
+            window.location.href = '/admin/dashboard';
           }
         } catch (err) {
           message(noticeEl, err.message);
@@ -680,7 +680,7 @@ function initAuthModalSystem() {
 
           const isStaff = currentUser && ['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role);
           if (isStaff) {
-            window.location.href = '/admin/dashboard.html';
+            window.location.href = '/admin/dashboard';
           } else if (typeof showNewArrivalToast === 'function') {
             showNewArrivalToast({
               name: 'Password Reset Successful!',
@@ -861,7 +861,7 @@ async function showAccount() {
                 <td>${userCountdownHTML(o)}</td>
                 <td>
                   <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-                    <a href="/receipt.html?id=${o.id}" target="_blank" class="btn-soft" style="font-size:.62rem;padding:4px 8px;text-decoration:none;color:var(--forest);font-weight:700" title="Open &amp; Print Money Receipt">🧾 Receipt</a>
+                    <a href="/receipt?id=${o.id}" target="_blank" class="btn-soft" style="font-size:.62rem;padding:4px 8px;text-decoration:none;color:var(--forest);font-weight:700" title="Open &amp; Print Money Receipt">🧾 Receipt</a>
                     ${editable ? `
                     <button class="btn-soft btn-edit-delivery" data-oid="${o.id}"
                       data-name="${escapeHTML(o.customer.name)}"
@@ -1018,11 +1018,11 @@ async function showAccount() {
               <div class="review-card review-card--mine" id="userRev-${r.id}">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
                   <div>
-                    <strong><a href="/product.html?id=${r.productId}" style="color:inherit;text-decoration:underline">${escapeHTML(r.productName)}</a></strong>
+                    <strong><a href="/product?id=${r.productId}" style="color:inherit;text-decoration:underline">${escapeHTML(r.productName)}</a></strong>
                     <div style="color:var(--gold);font-size:.9rem;margin-top:2px">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)} <small style="color:var(--ink-soft)">${new Date(r.createdAt).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric' })}</small></div>
                   </div>
                   <div style="display:flex;gap:6px">
-                    <a href="/product.html?id=${r.productId}#reviewsSection" class="btn-soft" style="font-size:.65rem;text-decoration:none;padding:4px 8px">Edit on Product Page</a>
+                    <a href="/product?id=${r.productId}#reviewsSection" class="btn-soft" style="font-size:.65rem;text-decoration:none;padding:4px 8px">Edit on Product Page</a>
                     <button type="button" class="btn-danger btn-del-my-rev" data-id="${r.id}" style="font-size:.65rem;padding:4px 8px">Delete</button>
                   </div>
                 </div>
@@ -1089,7 +1089,7 @@ function renderConfirmation(orderNumber, email, status) {
 }
 
 function renderBangladeshCheckout() {
-  window.location.href = '/checkout.html';
+  window.location.href = '/checkout';
 }
 
 async function showAdmin() {
@@ -1279,11 +1279,21 @@ function adHeadlineHtml(t) {
 }
 
 function buildCustomAdSlide(a) {
+  const isFullBanner = a.image && (!a.headline && !a.tag && !a.body);
+  const clickCat = (a.buttonCat && a.buttonCat !== 'None') ? a.buttonCat : '';
+  const clickAttr = clickCat ? `data-ad-cat="${escapeHTML(clickCat)}" style="cursor:pointer"` : '';
+
+  if (isFullBanner) {
+    return `<div class="ad-slide"><div class="dummy-ad dummy-ad--full-banner" ${clickAttr} style="background:${escapeHTML(a.bg || 'transparent')}">
+      <img src="${escapeHTML(a.image)}" alt="${escapeHTML(a.name || 'Banner Ad')}" loading="lazy">
+    </div></div>`;
+  }
+
   const size = Number(a.imageSize) || 130;
   const image = a.image
-    ? `<div class="dummy-ad-img" style="width:${size}px;height:${size}px"><img src="${escapeHTML(a.image)}" alt=""></div>`
+    ? `<div class="dummy-ad-img" style="width:${size}px;height:${size}px"><img src="${escapeHTML(a.image)}" alt="" loading="lazy"></div>`
     : `<div class="dummy-ad-img" style="width:${size}px;height:${size}px"></div>`;
-  const btn = (a.buttonText && a.buttonCat)
+  const btn = (a.buttonText && a.buttonCat && a.buttonCat !== 'None')
     ? `<button type="button" class="dummy-ad-btn" data-ad-cat="${escapeHTML(a.buttonCat)}">${escapeHTML(a.buttonText)}</button>`
     : '';
   return `<div class="ad-slide"><div class="dummy-ad" style="--ad-text:${escapeHTML(a.textColor || '#ffffff')};background:${escapeHTML(a.bg) || '#f5a623'}">
@@ -1561,6 +1571,7 @@ function buildAdSlideshow(media, trackId, dotsId, prevId, nextId, containerId) {
 }
 
 async function loadAdBanner() {
+  const container = document.getElementById('adBanner');
   // 1) Custom ads created in the Admin "Ads Maker" take priority
   try {
     const custom = await request('/api/ads');
@@ -1568,115 +1579,22 @@ async function loadAdBanner() {
       buildCustomAdSlideshow(custom, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
       return;
     }
-  } catch (e) { /* fall through to uploaded media / built-in slides */ }
+  } catch (e) { /* fall through to uploaded media */ }
 
   try {
     const media = await request('/api/ad-media');
     if (media && media.length) {
       // Use uploaded admin media
       buildAdSlideshow(media, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
-    } else {
-      // No uploaded media — initialise the built-in dummy slides with the same slideshow engine
-      const track = document.getElementById('adTrack');
-      if (!track) return;
-      const slides = Array.from(track.querySelectorAll('.ad-slide'));
-      if (!slides.length) return;
-      // Build a synthetic media array so buildAdSlideshow can own the buttons
-      // We pass null urls — the slides are already in the DOM, we just need the controller
-      _initDummySlideshow(track, document.getElementById('adDots'), document.getElementById('adPrev'), document.getElementById('adNext'));
-    }
-  } catch (e) { /* non-critical */
-    // On error still try to drive the dummy slides
-    _initDummySlideshow(
-      document.getElementById('adTrack'),
-      document.getElementById('adDots'),
-      document.getElementById('adPrev'),
-      document.getElementById('adNext')
-    );
-  }
-}
-
-function _initDummySlideshow(track, dotsEl, prevBtn, nextBtn) {
-  if (!track) return;
-  const container = track.closest('.ad-banner') || track.parentElement;
-  const slides = track.querySelectorAll('.ad-slide');
-  const total = slides.length;
-  if (!total) return;
-
-  const pairs = Math.ceil(total / 2);
-  let current = 0;
-  let direction = 1;
-  let timer;
-
-  if (dotsEl) {
-    dotsEl.innerHTML = Array.from({ length: pairs }, (_, i) =>
-      `<button type="button" class="ad-dot${i === 0 ? ' active' : ''}" data-i="${i}" aria-label="Go to slide ${i + 1}"></button>`
-    ).join('');
-  }
-
-  function goTo(idx) {
-    if (pairs <= 1) {
-      track.style.transform = 'translateX(0)';
       return;
     }
-    current = Math.max(0, Math.min(idx, pairs - 1));
-    track.style.transform = `translateX(-${current * 100}%)`;
-    if (dotsEl) dotsEl.querySelectorAll('.ad-dot').forEach((d, i) => d.classList.toggle('active', i === current));
-    resetTimer();
-  }
+  } catch (e) { /* non-critical */ }
 
-  function nextStep() {
-    if (pairs <= 1) return;
-    if (current >= pairs - 1) {
-      direction = -1; // reached the last slide -> reverse!
-    } else if (current <= 0) {
-      direction = 1;  // reached the first slide -> go forward!
-    }
-    goTo(current + direction);
-  }
-
-  function resetTimer() {
-    clearInterval(timer);
-    if (pairs > 1) {
-      timer = setInterval(nextStep, 4000);
-    }
-  }
-
-  if (prevBtn) {
-    prevBtn.hidden = false;
-    prevBtn.onclick = () => { direction = -1; goTo(current - 1); };
-  }
-  if (nextBtn) {
-    nextBtn.hidden = false;
-    nextBtn.onclick = () => { direction = 1; goTo(current + 1); };
-  }
-  if (dotsEl) dotsEl.addEventListener('click', e => {
-    const btn = e.target.closest('.ad-dot');
-    if (btn) {
-      const target = Number(btn.dataset.i);
-      if (target > current) direction = 1;
-      if (target < current) direction = -1;
-      goTo(target);
-    }
-  });
-
-  if (container) {
-    container.addEventListener('mouseenter', () => clearInterval(timer));
-    container.addEventListener('mouseleave', () => resetTimer());
-    container.addEventListener('touchstart', () => clearInterval(timer), { passive: true });
-    container.addEventListener('touchend', () => resetTimer(), { passive: true });
-
-    attachSwipeHandler(
-      container,
-      () => { direction = -1; goTo(current - 1); },
-      () => { direction = 1; goTo(current + 1); }
-    );
-  }
-
-  goTo(0);
+  // If no custom ads or media are configured, hide the ad banner section completely
+  if (container) container.style.display = 'none';
 }
 
-document.getElementById('accountBtn').onclick = () => currentUser ? (['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role) ? (window.location.href = '/admin/dashboard.html') : (window.location.href = '/my-orders.html')) : showAuth();
+document.getElementById('accountBtn').onclick = () => currentUser ? (['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role) ? (window.location.href = '/admin/dashboard') : (window.location.href = '/my-orders')) : showAuth();
 
 /* ── Ad banner CTA buttons — filter shop by category ── */
 document.getElementById('adBanner').addEventListener('click', e => {
@@ -1947,7 +1865,7 @@ function showProductArrivalToast(p) {
       <div class="arrival-toast-meta">
         ${farmHtml ? `${farmHtml} · ` : ''}<span class="arrival-toast-price">${priceHtml}</span>
       </div>
-      <a href="/product.html?id=${p.id}" class="arrival-toast-btn">View Product →</a>
+      <a href="/product?id=${p.id}" class="arrival-toast-btn">View Product →</a>
     </div>
     <button type="button" class="arrival-toast-close" title="Dismiss">✕</button>
   `;

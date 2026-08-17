@@ -649,6 +649,67 @@
 
       <div id="reviewsContainer"></div>`;
 
+    // ── Dynamic SEO & Schema.org Rich Snippet for Google ──
+    try {
+      document.title = `${product.name} | ১০০% খাঁটি অর্গানিক - ENMAR Shop`;
+      let descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) {
+        descMeta.setAttribute('content', `কিনুন ${product.name} সেরা দামে। ১০০% খাঁটি ও নির্ভেজাল পণ্য সরাসরি কৃষকের খামার থেকে হোম ডেলিভারি।`);
+      }
+      
+      let canonicalLink = document.querySelector('link[rel="canonical"]');
+      if (!canonicalLink) {
+        canonicalLink = document.createElement('link');
+        canonicalLink.rel = 'canonical';
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.href = `https://enmar.shop/product?id=${product.id}`;
+
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": images.length ? images : ["https://enmar.shop/favicon.ico"],
+        "description": product.description || `১০০% খাঁটি ও ফ্রেশ ${product.name}`,
+        "brand": {
+          "@type": "Brand",
+          "name": "ENMAR"
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": `https://enmar.shop/product?id=${product.id}`,
+          "priceCurrency": "BDT",
+          "price": ep,
+          "priceValidUntil": "2030-12-31",
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "ENMAR"
+          }
+        }
+      };
+
+      if (count > 0) {
+        schemaData.aggregateRating = {
+          "@type": "AggregateRating",
+          "ratingValue": avg.toFixed(1),
+          "reviewCount": count,
+          "bestRating": "5",
+          "worstRating": "1"
+        };
+      }
+
+      let scriptTag = document.getElementById('productSchemaTag');
+      if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.id = 'productSchemaTag';
+        scriptTag.type = 'application/ld+json';
+        document.head.appendChild(scriptTag);
+      }
+      scriptTag.textContent = JSON.stringify(schemaData);
+    } catch (err) {}
+
     // gallery interactivity
     if (images.length > 1) {
       let idx = 0;
@@ -682,7 +743,7 @@
     });
     document.getElementById('buyNowBtn').addEventListener('click', () => {
       addToCart(product.id, currentQty());
-      window.location.href = '/checkout.html';
+      window.location.href = '/checkout';
     });
 
     // reviews
@@ -730,6 +791,12 @@
       const thumb = e.target.closest('.review-img-thumb');
       if (thumb && thumb.dataset.src) {
         img.src = thumb.dataset.src;
+        modal.style.display = 'flex';
+        return;
+      }
+      const galleryImg = e.target.closest('#galleryImg, .gallery-img');
+      if (galleryImg && galleryImg.src) {
+        img.src = galleryImg.src;
         modal.style.display = 'flex';
       }
     });

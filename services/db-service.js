@@ -1702,6 +1702,21 @@ const dbService = {
     }
   },
 
+  async deleteEmailGatewayConfig() {
+    try {
+      await pool.query("DELETE FROM email_gateway_config WHERE id = 1");
+    } catch {}
+    try {
+      const [rows] = await pool.query("SELECT setting_val FROM store_settings WHERE setting_key = 'apiConfigs'");
+      if (rows.length && rows[0].setting_val) {
+        const parsed = safeJsonParse(rows[0].setting_val, {});
+        delete parsed.email;
+        await pool.query("UPDATE store_settings SET setting_val = ? WHERE setting_key = 'apiConfigs'", [JSON.stringify(parsed)]);
+      }
+    } catch {}
+    return true;
+  },
+
   // ─── 16. PERSISTENT SESSIONS ───
   async ensureSessionsTable() {
     await pool.query(`
@@ -1745,6 +1760,110 @@ const dbService = {
       await this.ensureSessionsTable();
       await pool.query('DELETE FROM user_sessions WHERE token = ?', [token]);
     } catch {}
+  },
+
+  // ─── 17. RECYCLE BIN ───
+  async ensureRecycleBinTable() {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS recycle_bin (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        type VARCHAR(40) NOT NULL,
+        original_id BIGINT UNSIGNED NOT NULL,
+        title VARCHAR(300) NOT NULL DEFAULT '',
+        subtitle VARCHAR(500) NOT NULL DEFAULT '',
+        data LONGTEXT DEFAULT NULL,
+        deleted_by VARCHAR(120) NOT NULL DEFAULT 'System',
+        deleted_by_email VARCHAR(255) NOT NULL DEFAULT '',
+        deleted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NULL DEFAULT NULL,
+        PRIMARY KEY (id),
+        KEY recycle_bin_type_index (type),
+        KEY recycle_bin_deleted_at_index (deleted_at)
+      ) ENGINE=InnoDB
+    `);
+  },
+
+  async getBinItems() {
+    await this.ensureRecycleBinTable();
+    const [rows] = await pool.query('SELECT * FROM recycle_bin ORDER BY id DESC');
+    return rows.map(r => ({
+      id: Number(r.id),
+      type: r.type,
+      originalId: Number(r.original_id),
+      title: r.title,
+      subtitle: r.subtitle,
+      data: safeJsonParse(r.data, {}),
+      deletedBy: r.deleted_by,
+      deletedByEmail: r.deleted_by_email,
+      deletedAt: r.deleted_at,
+      expiresAt: r.expires_at || new Date(new Date(r.deleted_at).getTime() + 30 * 86400000).toISOString()
+    }));
+  },
+
+  async getBinCounts() {
+    await this.ensureRecycleBinTable();
+    const [rows] = await pool.query('SELECT type, COUNT(*) as count FROM recycle_bin GROUP BY type');
+    const counts = { all: 0, order: 0, product: 0, user: 0, comment: 0, review: 0, subscriber: 0, ad: 0 };
+    rows.forEach(r => {
+      const t = String(r.type || '').toLowerCase();
+      const c = Number(r.count || 0);
+      counts[t] = c;
+      counts.all += c;
+    });
+    return counts;
+  },
+
+  async getBinItemById(id) {
+    await this.ensureRecycleBinTable();
+    const [rows] = await pool.query('SELECT * FROM recycle_bin WHERE id = ? LIMIT 1', [Number(id)]);
+    if (!rows.length) return null;
+    const r = rows[0];
+    return {
+      id: Number(r.id),
+      type: r.type,
+      originalId: Number(r.original_id),
+      title: r.title,
+      subtitle: r.subtitle,
+      data: safeJsonParse(r.data, {}),
+      deletedBy: r.deleted_by,
+      deletedByEmail: r.deleted_by_email,
+      deletedAt: r.deleted_at,
+      expiresAt: r.expires_at
+    };
+  },
+
+  async removeBinItem(id) {
+    await this.ensureRecycleBinTable();
+    await pool.query('DELETE FROM recycle_bin WHERE id = ?', [Number(id)]);
+    return true;
+  },
+
+  async emptyBin(type = 'all') {
+    await this.ensureRecycleBinTable();
+    if (!type || type === 'all') {
+      await pool.query('DELETE FROM recycle_bin');
+    } else {
+      await pool.query('DELETE FROM recycle_bin WHERE type = ?', [String(type).toLowerCase()]);
+    }
+    return true;
+  },
+
+  async addBinItem({ type, originalId = 0, title = '', subtitle = '', data = {}, deletedBy = 'System', deletedByEmail = '' }) {
+    await this.ensureRecycleBinTable();
+    const [res] = await pool.query(
+      `INSERT INTO recycle_bin (type, original_id, title, subtitle, data, deleted_by, deleted_by_email, deleted_at, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY))`,
+      [
+        String(type || 'item'),
+        Number(originalId || 0),
+        String(title || ''),
+        String(subtitle || ''),
+        JSON.stringify(data || {}),
+        String(deletedBy || 'Admin'),
+        String(deletedByEmail || '')
+      ]
+    );
+    return res.insertId;
   },
 
   // ─── 15. NOTIFICATIONS ───

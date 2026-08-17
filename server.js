@@ -19,7 +19,7 @@ const emailEncryption = require('./services/email-encryption.js');
       if (eq === -1) continue;
       const key = line.slice(0, eq).trim();
       const value = line.slice(eq + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
-      if (key) process.env[key] = value;
+      if (key && process.env[key] === undefined) process.env[key] = value;
     }
   } catch { /* ignore */ }
 })();
@@ -71,47 +71,62 @@ function tryServeStatic(req, res, pathname) {
   if (pathname.startsWith('/api/')) return false;
 
   if (pathname === '/admin' || pathname === '/admin/') {
-    res.writeHead(302, { 'Location': '/admin/dashboard.html' });
+    res.writeHead(302, { 'Location': '/admin/dashboard' });
     res.end();
     return true;
   }
 
-  const safePath = pathname.replace(/^[\/\\]+/, '');
-  let targetPath = path.join(ROOT, safePath);
-  const resolvedPath = path.resolve(targetPath);
-
-  if (!resolvedPath.toLowerCase().startsWith(ROOT.toLowerCase())) return false;
-
-  const relPath = path.relative(ROOT, resolvedPath).replace(/\\/g, '/');
-
-  const parts = relPath.split('/');
-  if (parts.some(p => p.startsWith('.'))) return false;
-  if (SENSITIVE_PATTERNS.some(pat => pat.test(relPath))) return false;
-
-  let finalPath = resolvedPath;
-  let stat;
-  try {
-    stat = fs.statSync(finalPath);
-    if (stat.isDirectory()) {
-      finalPath = path.join(finalPath, 'index.html');
-      stat = fs.statSync(finalPath);
+  const cleanPath = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  
+  if (!cleanPath) {
+    const indexPath = path.join(ROOT, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      const stat = fs.statSync(indexPath);
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Length': stat.size,
+        'Cache-Control': 'no-cache'
+      });
+      if (req.method === 'HEAD') { res.end(); return true; }
+      fs.createReadStream(indexPath).pipe(res);
+      return true;
     }
-  } catch {
-    // If not found directly in root, attempt to serve from pages/ directory
-    try {
-      const pagePath = path.join(ROOT, 'pages', safePath);
-      stat = fs.statSync(pagePath);
-      if (stat.isFile()) {
-        finalPath = pagePath;
-      } else {
-        return false;
-      }
-    } catch {
-      return false;
-    }
+    return false;
   }
 
-  if (!stat.isFile()) return false;
+  const candidates = [
+    path.join(ROOT, cleanPath),
+    path.join(ROOT, cleanPath + '.html'),
+    path.join(ROOT, 'pages', cleanPath),
+    path.join(ROOT, 'pages', cleanPath + '.html'),
+    cleanPath.startsWith('pages/') ? path.join(ROOT, cleanPath.replace(/^pages\//, '') + '.html') : null,
+    cleanPath.startsWith('admin/') ? path.join(ROOT, 'admin', cleanPath.replace(/^admin\//, '') + '.html') : path.join(ROOT, 'admin', cleanPath + '.html'),
+    path.join(ROOT, cleanPath, 'index.html')
+  ].filter(Boolean);
+
+  let finalPath = null;
+  let stat = null;
+
+  for (const cand of candidates) {
+    const resolvedPath = path.resolve(cand);
+    if (!resolvedPath.toLowerCase().startsWith(ROOT.toLowerCase())) continue;
+
+    const relPath = path.relative(ROOT, resolvedPath).replace(/\\/g, '/');
+    const parts = relPath.split('/');
+    if (parts.some(p => p.startsWith('.'))) continue;
+    if (SENSITIVE_PATTERNS.some(pat => pat.test(relPath))) continue;
+
+    try {
+      const s = fs.statSync(resolvedPath);
+      if (s.isFile()) {
+        finalPath = resolvedPath;
+        stat = s;
+        break;
+      }
+    } catch {}
+  }
+
+  if (!finalPath || !stat) return false;
 
   const ext = path.extname(finalPath).toLowerCase();
   const mimeType = MIME_TYPES[ext];
@@ -968,6 +983,43 @@ const server = http.createServer(async (req, res) => {
         }
         return json(res, 200, { ok: true, icons });
       }
+      if (method === 'GET' && pathname === '/sitemap.xml') {
+        try {
+          const prods = await dbService.getAllProductsAdmin().catch(() => store.products || []);
+          const baseUrl = 'https://enmar.shop';
+          const now = new Date().toISOString().split('T')[0];
+          
+          let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+          xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+          
+          const staticPages = [
+            { path: '/', priority: '1.0', changefreq: 'daily' },
+            { path: '/combos', priority: '0.9', changefreq: 'daily' },
+            { path: '/checkout', priority: '0.7', changefreq: 'weekly' },
+            { path: '/my-orders', priority: '0.6', changefreq: 'weekly' },
+            { path: '/bmi-calculator', priority: '0.6', changefreq: 'monthly' }
+          ];
+          
+          for (const sp of staticPages) {
+            xml += `  <url>\n    <loc>${baseUrl}${sp.path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>${sp.changefreq}</changefreq>\n    <priority>${sp.priority}</priority>\n  </url>\n`;
+          }
+          
+          for (const p of prods) {
+            const pDate = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : now;
+            xml += `  <url>\n    <loc>${baseUrl}/product?id=${p.id}</loc>\n    <lastmod>${pDate}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+          }
+          
+          xml += `</urlset>`;
+          
+          res.writeHead(200, {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600'
+          });
+          return res.end(xml);
+        } catch (e) {
+          return json(res, 500, { error: 'Failed to generate sitemap' });
+        }
+      }
       if (method === 'GET' && pathname === '/api/comments') {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
         return json(res, 200, comments);
@@ -1210,7 +1262,7 @@ const server = http.createServer(async (req, res) => {
       if (method === 'GET' && pathname === '/api/orders') {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
-        const orders = store.orders.filter(o => o.userId === user.id && !o.customerHidden);
+        const orders = store.orders.filter(o => String(o.userId) === String(user.id) && !o.customerHidden);
         return json(res, 200, orders);
       }
       if (method === 'POST' && pathname === '/api/orders') {
@@ -1299,14 +1351,14 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id && (o.userId === user.id || user.role !== 'customer'));
+        const order = store.orders.find(o => Number(o.id) === id && (String(o.userId) === String(user.id) || user.role !== 'customer'));
         return json(res, order ? 200 : 404, order || { error: 'Not found' });
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/orders\/\d+$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id && o.userId === user.id);
+        const order = store.orders.find(o => Number(o.id) === id && String(o.userId) === String(user.id));
         if (!order) return json(res, 404, { error: 'Not found' });
         if (!order.customer) order.customer = {};
         if (!order.delivery) order.delivery = {};
@@ -1327,7 +1379,7 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id && o.userId === user.id);
+        const order = store.orders.find(o => Number(o.id) === id && String(o.userId) === String(user.id));
         if (!order) return json(res, 404, { error: 'Not found' });
         if (order.status === 'Cancelled') return json(res, 400, { error: 'Already cancelled' });
         order.status = 'Cancelled';
@@ -1350,7 +1402,7 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id && o.userId === user.id);
+        const order = store.orders.find(o => Number(o.id) === id && String(o.userId) === String(user.id));
         if (!order) return json(res, 404, { error: 'Not found' });
         if (!['Delivered', 'Cancelled'].includes(order.status)) {
           return json(res, 400, { error: 'Can only delete history for Delivered or Cancelled orders' });
@@ -1372,15 +1424,15 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id);
-        if (!order || (user.role === 'customer' && order.userId !== user.id)) return json(res, 401, { error: 'Unauthorized' });
+        const order = store.orders.find(o => Number(o.id) === id);
+        if (!order || (user.role === 'customer' && String(order.userId) !== String(user.id))) return json(res, 401, { error: 'Unauthorized' });
         return json(res, 200, { ok: true, order, receiptNumber: `REC-${order.id}`, store: { brandName: store.settings.brandName || 'ENMAR' } });
       }
       if (method === 'POST' && pathname.match(/^\/api\/orders\/\d+\/messages$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const id = Number(pathname.split('/')[3]);
-        const order = store.orders.find(o => o.id === id && o.userId === user.id);
+        const order = store.orders.find(o => Number(o.id) === id && String(o.userId) === String(user.id));
         if (!order) return json(res, 404, { error: 'Not found' });
         const text = body.text || body.message || '';
         if (!text) return json(res, 400, { error: 'Message text required' });
@@ -1955,7 +2007,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/bin/empty') {
         const user = currentUser(req, store);
-        if (!user || user.role !== 'superadmin') return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'superadmin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         await dbService.emptyBin(body.type);
         return json(res, 200, { ok: true, message: 'Recycle bin emptied' });
       }
@@ -2010,6 +2062,16 @@ const server = http.createServer(async (req, res) => {
         }
         await dbService.saveAllSettings(null, store.apiConfigs);
         return json(res, 200, { ok: true, message: 'Settings saved successfully' });
+      }
+      if ((method === 'DELETE' && pathname === '/api/admin/apis/email') || (method === 'POST' && pathname === '/api/admin/apis/clear-email')) {
+        const user = currentUser(req, store);
+        if (!user || !['superadmin', 'admin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (store.apiConfigs) {
+          delete store.apiConfigs.email;
+        }
+        await dbService.deleteEmailGatewayConfig();
+        await dbService.saveAllSettings(null, store.apiConfigs);
+        return json(res, 200, { ok: true, message: 'Gmail & Email gateway connection deleted successfully' });
       }
       if (method === 'POST' && pathname === '/api/admin/apis/test-email') {
         const user = currentUser(req, store);

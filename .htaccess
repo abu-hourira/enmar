@@ -1,0 +1,24 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Redirect /admin or /admin/ to /admin/dashboard
+  RewriteRule ^admin/?$ /admin/dashboard [R=302,L]
+
+  # If an existing file or directory exists, serve it directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Check if .html file exists in root
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L]
+
+  # Check if .html file exists in pages/
+  RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f
+  RewriteRule ^([^/]+)/?$ pages/$1.html [L]
+
+  # Check if .html file exists in admin/
+  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f
+  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L]
+</IfModule>

@@ -340,7 +340,7 @@ function renderRecentProducts() {
   track.innerHTML = recentList.map(p => {
     const hasDiscount = p.discount && p.discount > 0;
     const tag = p.tag || (hasDiscount ? `${p.discount}% OFF` : defaultBadge);
-    const href = `/product.html?id=${p.id}`;
+    const href = `/product?id=${p.id}`;
     const rCount = Number(p.reviewCount) || 0;
     const rAvg = Number(p.rating) || 0;
     const ratingHTML = rCount > 0
@@ -504,7 +504,7 @@ function renderProducts() {
     productGrid.innerHTML = list.map(p => {
       const hasDiscount = p.discount && p.discount > 0;
       const tag = p.tag || (hasDiscount ? 'Sale' : '');
-      const href = `/product.html?id=${p.id}`;
+      const href = `/product?id=${p.id}`;
       const rCount = Number(p.reviewCount) || 0;
       const rAvg = Number(p.rating) || 0;
       const ratingHTML = rCount > 0
@@ -551,7 +551,7 @@ function attachGridCartListeners(gridEl) {
     const buyBtn = e.target.closest('.btn-buy');
     if (buyBtn) {
       addToCart(Number(buyBtn.dataset.buy), 1);
-      window.location.href = '/checkout.html';
+      window.location.href = '/checkout';
       return;
     }
 
@@ -597,7 +597,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart();
 checkoutBtn.addEventListener('click', () => {
   if (!getCartLines().length) return;
   closeCart();
-  window.location.href = '/checkout.html';
+  window.location.href = '/checkout';
 });
 
 function renderCart() {

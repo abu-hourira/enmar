@@ -50,9 +50,21 @@ window.applySiteFavicon = applySiteFavicon;
 
       applySiteFavicon(s.favicon || '');
 
-      if (document.title) {
+      var desc = (s.siteDescription || s.metaDescription || '').trim();
+      if (desc) {
+        var descEl = document.querySelector('meta[name="description"]');
+        if (descEl) descEl.setAttribute('content', desc);
+        var ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogDesc) ogDesc.setAttribute('content', desc);
+        var twDesc = document.querySelector('meta[name="twitter:description"]');
+        if (twDesc) twDesc.setAttribute('content', desc);
+      }
+
+      if (document.title && !window.location.pathname.includes('/product')) {
         var idx = document.title.indexOf(' — ');
-        document.title = idx === -1 ? name + ' — ' + document.title : name + document.title.slice(idx);
+        if (idx !== -1) {
+          document.title = name + document.title.slice(idx);
+        }
       }
 
       renderRegistrationGuide(s);

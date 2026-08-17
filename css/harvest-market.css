@@ -372,13 +372,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   justify-content: center;
   overflow: hidden;
   position: relative;
-  padding: 10px;
+  padding: 0;
   flex-shrink: 0;
 }
 .recent-card-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   transition: transform 0.3s ease;
 }
 .recent-product-card:hover .recent-card-img img {
@@ -506,7 +506,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     height: 180px;
     min-height: 180px;
     max-height: 180px;
-    padding: 14px;
+    padding: 0;
     background: #ffffff;
     border-bottom: 1px solid #f0eded;
     display: flex;
@@ -518,8 +518,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .recent-card-img img {
     width: 100%;
     height: 100%;
-    max-height: 150px;
-    object-fit: contain;
+    max-height: 100%;
+    object-fit: cover;
     display: block;
     margin: 0 auto;
   }
@@ -666,11 +666,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   width: 220px; min-height: 180px;
   background: #fff;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; position: relative; padding: 12px;
+  overflow: hidden; position: relative; padding: 0;
 }
 .card-img-fill {
   width: 100%; height: 100%;
-  object-fit: contain; display: block;
+  object-fit: cover; display: block;
   cursor: pointer; transition: transform .3s ease;
 }
 .card-img-fill:hover { transform: scale(1.05); }
@@ -1069,7 +1069,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (min-width: 641px) and (max-width: 860px) {
   .product-grid { grid-template-columns: 1fr; gap: 14px; }
   .product-card { min-height: 170px; }
-  .card-image { width: 180px; min-width: 180px; min-height: 170px; padding: 12px; }
+  .card-image { width: 180px; min-width: 180px; min-height: 170px; padding: 0; }
 }
 @media (max-width: 640px) {
   .products-section { padding: 24px 16px 48px; }
@@ -1088,7 +1088,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     height: 200px;
     min-height: 200px;
     max-height: 200px;
-    padding: 16px;
+    padding: 0;
     background: #ffffff;
     border-bottom: 1px solid #f0eded;
     display: flex;
@@ -1100,8 +1100,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .card-img-fill {
     width: 100%;
     height: 100%;
-    max-height: 170px;
-    object-fit: contain;
+    max-height: 100%;
+    object-fit: cover;
     display: block;
     margin: 0 auto;
   }
@@ -1191,6 +1191,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .dummy-ad-img svg { width: 70px; height: 70px; }
 }
 
+.dummy-ad--full-banner {
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: transparent !important;
+}
+.dummy-ad--full-banner::before {
+  display: none !important;
+}
+.dummy-ad--full-banner img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 0 !important;
+}
+
 /* ── Dummy ad colour variants (replaces inline styles) ── */
 .dummy-ad--orange { background: linear-gradient(135deg,#f5a623 0%,#f76b1c 100%); }
 .dummy-ad--yellow { background: linear-gradient(135deg,#f9c74f 0%,#f8961e 100%); }
@@ -1218,9 +1236,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .gallery-main {
   aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; display: flex; align-items: center; justify-content: center; background: #ffffff;
-  padding: 12px; box-sizing: border-box;
+  padding: 0; box-sizing: border-box;
 }
-.gallery-img { width: 100%; height: 100%; object-fit: contain; display: block; margin: 0 auto; }
+.gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; margin: 0 auto; cursor: zoom-in; transition: transform .3s ease; }
+.gallery-img:hover { transform: scale(1.02); }
 .gallery-icon { color: var(--forest); }
 .gallery-nav { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .gallery-arrow {
@@ -1366,19 +1385,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     aspect-ratio: 1 / 1;
     width: 100%;
     max-width: 100%;
-    max-height: 340px;
+    max-height: 360px;
     margin: 0 auto;
     border: 1px solid var(--line);
     border-radius: 10px;
     background: #ffffff;
-    padding: 12px;
+    padding: 0;
     box-sizing: border-box;
   }
   .gallery-img {
     width: 100%;
     height: 100%;
-    max-height: 310px;
-    object-fit: contain;
+    max-height: 360px;
+    object-fit: cover;
     display: block;
     margin: 0 auto;
   }
