@@ -321,10 +321,10 @@
           <span class="mono-tag">Footer tagline and delivery pricing</span>
         </div>
         <div id="footerMessage"></div>
-        <form class="product-form" id="footerForm" novalidate>
           <div class="field span2">
-            <label for="footerTagline">Footer tagline</label>
-            <input type="text" id="footerTagline" maxlength="120" required>
+            <label for="footerTagline">Footer bottom text / ফুটার বটম ও কপিরাইট লেখা</label>
+            <input type="text" id="footerTagline" maxlength="160" required>
+            <small class="field-hint">ওয়েবসাইটের একদম নিচের ফুটার বারে প্রদর্শিত টেক্সট (This text appears at the very bottom of every page).</small>
           </div>
           <div class="field">
             <label for="shippingFlat">Flat shipping fee (৳)</label>
@@ -674,6 +674,54 @@
         </form>
       </div>
 
+      <!-- DEVELOPER INFORMATION (SUPER ADMIN ONLY) -->
+      <div class="panel-card" id="developerInfoPanel">
+        <div class="section-head">
+          <div>
+            <h2>Developer Information / ডেভেলপার তথ্য</h2>
+            <span class="mono-tag">Public developer profile &amp; engineering credentials (/developer-info page) — Super Admin</span>
+          </div>
+        </div>
+        <div id="developerMessage"></div>
+        <form class="product-form" id="developerForm" novalidate>
+          <div class="field">
+            <label for="developerName">Developer Name / ডেভেলপার নাম</label>
+            <input type="text" id="developerName" placeholder="Abu Hourira" required>
+          </div>
+          <div class="field">
+            <label for="developerRole">Designation / Role</label>
+            <input type="text" id="developerRole" placeholder="Lead Full-Stack Web Application Architect" required>
+          </div>
+          <div class="field">
+            <label for="developerEmail">Developer Contact Email</label>
+            <input type="email" id="developerEmail" placeholder="info@enmar.bd">
+          </div>
+          <div class="field">
+            <label for="developerPhone">Developer Phone / WhatsApp</label>
+            <input type="text" id="developerPhone" placeholder="+880 1614 113082">
+          </div>
+          <div class="field span2">
+            <label for="developerPortfolio">Portfolio / GitHub / Website Link</label>
+            <input type="url" id="developerPortfolio" placeholder="https://github.com/abu-hourira">
+          </div>
+          <div class="field span2">
+            <label for="developerSkills">Technical Skills &amp; Stack (Comma separated)</label>
+            <input type="text" id="developerSkills" placeholder="Node.js, JavaScript, MySQL, Full-Stack Architecture, REST API, SEO">
+          </div>
+          <div class="field span2">
+            <label for="developerBio">Developer Bio / About Description</label>
+            <textarea id="developerBio" rows="4" class="textarea-full" placeholder="Developer background, role in platform creation and maintenance..."></textarea>
+          </div>
+          <div class="field span2">
+            <label for="developerMessageText">Engineering Note / Message to Visitors</label>
+            <textarea id="developerMessageText" rows="3" class="textarea-full" placeholder="A personal note or message regarding the craft, security, and performance of this website..."></textarea>
+          </div>
+          <div class="span2">
+            <button type="submit" class="btn-primary">Save Developer Information</button>
+          </div>
+        </form>
+      </div>
+
       <!-- AD BANNER -->
       <div class="panel-card" id="adBannerCard">
         <div class="section-head">
@@ -801,6 +849,16 @@
     fill('regGuideTitle',           s.regGuideTitle || 'How to Register / Create Account');
     fill('regGuideSubtitle',        s.regGuideSubtitle || 'New to our shop? Follow these simple steps to create your customer account:');
     fill('regGuideSteps',           s.regGuideSteps || '');
+
+    // Developer Information (Super Admin)
+    fill('developerName',           s.developerName || 'Abu Hourira');
+    fill('developerRole',           s.developerRole || 'Lead Full-Stack Web Application Architect');
+    fill('developerEmail',          s.developerEmail || 'info@enmar.bd');
+    fill('developerPhone',          s.developerPhone || '+880 1614 113082');
+    fill('developerPortfolio',      s.developerPortfolio || 'https://github.com/abu-hourira');
+    fill('developerSkills',         s.developerSkills || 'Node.js, JavaScript, MySQL, Full-Stack Architecture, REST API, SEO');
+    fill('developerBio',            s.developerBio || '');
+    fill('developerMessageText',    s.developerMessageText || '');
   } catch (err) {
     notice($('globalMessage'), 'Could not load settings: ' + err.message);
   }
@@ -1053,6 +1111,36 @@
         notice(msg, 'Registration instructions saved successfully.', true);
       } catch (err) { notice(msg, err.message); }
     });
+  }
+
+  // Developer information form (Super Admin)
+  if ($('developerForm')) {
+    if (user.role !== 'superadmin') {
+      const pnl = $('developerInfoPanel');
+      if (pnl) pnl.style.display = 'none';
+    } else {
+      $('developerForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const msg = $('developerMessage');
+        notice(msg, '');
+        try {
+          await api('/api/admin/settings', {
+            method: 'PATCH',
+            body: JSON.stringify({
+              developerName:        val('developerName'),
+              developerRole:        val('developerRole'),
+              developerEmail:       val('developerEmail'),
+              developerPhone:       val('developerPhone'),
+              developerPortfolio:   val('developerPortfolio'),
+              developerSkills:      val('developerSkills'),
+              developerBio:         val('developerBio'),
+              developerMessageText: val('developerMessageText')
+            })
+          });
+          notice(msg, 'Developer information saved & updated on live page (/developer-info)!', true);
+        } catch (err) { notice(msg, err.message); }
+      });
+    }
   }
 
 })();

@@ -67,6 +67,15 @@ window.applySiteFavicon = applySiteFavicon;
         }
       }
 
+      if (s.footerTagline) {
+        var footerElements = document.querySelectorAll('#footerTagline, .footer-bottom span, .site-footer .footer-bottom');
+        footerElements.forEach(function(el) {
+          if (el.tagName === 'SPAN' || el.id === 'footerTagline') {
+            el.textContent = s.footerTagline;
+          }
+        });
+      }
+
       renderRegistrationGuide(s);
     })
     .catch(function () { /* non-critical */ });

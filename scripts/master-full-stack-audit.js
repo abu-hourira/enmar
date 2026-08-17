@@ -58,6 +58,7 @@ async function runMasterAudit() {
     '/receipt',
     '/bmi-calculator',
     '/product',
+    '/developer-info',
     '/admin/dashboard',
     '/admin/orders',
     '/admin/products',

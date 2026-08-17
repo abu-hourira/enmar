@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Information — ENMAR</title>
+<meta name="description" content="Meet the developer and engineering architect behind the ENMAR organic grocery and farm-to-table platform.">
+<link rel="icon" id="siteFavicon" href="/favicon.ico">
+<link rel="stylesheet" href="/css/harvest-market.css">
+<script src="/js/devtools-guard.js"></script>
+<script src="/js/theme.js"></script>
+<script src="/js/branding.js"></script>
+<style>
+  .dev-page-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  .dev-hero-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 36px 32px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .dev-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .dev-avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--forest), var(--forest-deep));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border: 4px solid var(--paper);
+    outline: 2px solid var(--gold);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .dev-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .dev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .dev-meta-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .dev-name {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+  }
+  .dev-role {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--forest);
+    margin: 0 0 16px 0;
+  }
+  .dev-contacts-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .dev-contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+    border: 1px solid var(--line);
+    background: var(--paper-alt);
+    color: var(--ink);
+  }
+  .dev-contact-btn.primary {
+    background: var(--forest);
+    color: #ffffff;
+    border-color: var(--forest);
+  }
+  .dev-contact-btn.primary:hover {
+    background: var(--forest-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .dev-contact-btn:hover {
+    background: var(--paper);
+    border-color: var(--forest);
+    color: var(--forest);
+    transform: translateY(-2px);
+  }
+  .dev-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .dev-content-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  }
+  .dev-card-heading {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 14px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dev-card-heading svg {
+    color: var(--forest);
+  }
+  .dev-bio-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    white-space: pre-line;
+  }
+  .dev-skills-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .dev-skill-pill {
+    background: var(--paper-alt);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+  }
+  .dev-feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .dev-feature-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .breadcrumb {
+    margin-bottom: 24px;
+  }
+  .breadcrumb a {
+    color: var(--forest);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .dev-page-wrap {
+      padding: 16px 14px 60px;
+    }
+    .dev-hero-card {
+      grid-template-columns: 1fr;
+      text-align: center;
+      padding: 24px 18px;
+      gap: 20px;
+    }
+    .dev-contacts-grid {
+      justify-content: center;
+    }
+    .dev-card-grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    .dev-content-card {
+      padding: 20px 16px;
+    }
+    .dev-name {
+      font-size: 1.7rem;
+    }
+    .dev-role {
+      font-size: 0.95rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <a class="logo" href="/" aria-label="ENMAR home">
+    <span id="logoIcon"></span>
+    <span id="brandName">ENMAR</span>
+  </a>
+  <nav class="header-nav" aria-label="Main">
+    <a class="account-btn" href="/">Shop Home</a>
+  </nav>
+  <div class="header-right">
+    <a class="account-btn" href="/" id="accountBtn">Storefront</a>
+    <a class="cart-btn" href="/checkout" aria-label="Go to checkout" style="position:relative;display:flex">
+      <span id="basketIcon"></span>
+      <span class="cart-count" id="cartCount" hidden>0</span>
+    </a>
+  </div>
+</header>
+
+<main class="dev-page-wrap">
+  <div class="breadcrumb">
+    <a href="/">&#8592; Back to Shop / শপ-এ ফিরে যান</a>
+  </div>
+
+  <!-- HERO DEVELOPER CARD -->
+  <section class="dev-hero-card">
+    <div class="dev-avatar-wrap">
+      <div class="dev-avatar" id="devAvatarEl">
+        <span id="devAvatarLetter">A</span>
+      </div>
+      <div class="dev-badge">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        <span>Verified Architect</span>
+      </div>
+    </div>
+    <div class="dev-hero-info">
+      <div class="dev-meta-title">Software Engineering &amp; Platform Architect</div>
+      <h1 class="dev-name" id="devName">Abu Hourira</h1>
+      <p class="dev-role" id="devRole">Lead Full-Stack Web Application &amp; Cloud Systems Architect</p>
+      <div class="dev-bio-text" id="devShortBio">
+        Specialized in modern, ultra-fast, security-audited full-stack web applications, database scalability, responsive e-commerce platforms, and cloud infrastructure pipelines.
+      </div>
+      <div class="dev-contacts-grid" id="devContactButtons">
+        <a href="tel:+8801614113082" class="dev-contact-btn primary" id="devCallBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span id="devPhoneText">Direct Call</span>
+        </a>
+        <a href="https://wa.me/8801614113082" target="_blank" rel="noopener" class="dev-contact-btn" id="devWhatsappBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>WhatsApp Chat</span>
+        </a>
+        <a href="mailto:info@enmar.bd" class="dev-contact-btn" id="devEmailBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span id="devEmailText">Send Email</span>
+        </a>
+        <a href="https://github.com/abu-hourira" target="_blank" rel="noopener" class="dev-contact-btn" id="devPortfolioBtn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <span>GitHub / Portfolio</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENT GRID -->
+  <div class="dev-card-grid">
+    <!-- ABOUT & BIO -->
+    <div class="dev-content-card">
+      <h2 class="dev-card-heading">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>About the Developer / পরিচিতি</span>
+      </h2>
+      <div class="dev-bio-text" id="devFullBio">
+        The ENMAR platform is engineered from the ground up to deliver a lightning-fast, highly intuitive organic e-commerce experience. With a strict focus on code cleanliness, data integrity, and high-performance server architectures, every feature—from zero-flicker dynamic theme switching to live order tracking and admin management—is custom-crafted with enterprise standards.
+      </div>
+      <div style="margin-top:20px;">
+        <h4 style="margin:0 0 8px;font-size:0.85rem;text-transform:uppercase;color:var(--gold);font-family:var(--font-mono)">Core Technologies &amp; Stack</h4>
+        <div class="dev-skills-wrap" id="devSkillsList">
+          <span class="dev-skill-pill">Node.js (Backend)</span>
+          <span class="dev-skill-pill">Vanilla JavaScript (ES6+)</span>
+          <span class="dev-skill-pill">MySQL Database</span>
+          <span class="dev-skill-pill">SSR Theme Engine</span>
+          <span class="dev-skill-pill">RESTful API Design</span>
+          <span class="dev-skill-pill">Responsive Mobile UI/UX</span>
+          <span class="dev-skill-pill">Search Engine Optimization (SEO)</span>
+          <span class="dev-skill-pill">cPanel &amp; Git Deployment</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENGINEERING & ARCHITECTURE HIGHLIGHTS -->
+    <div class="dev-content-card">
+      <h2 class="dev-card-heading">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>Platform Engineering Highlights</span>
+      </h2>
+      <div class="dev-feature-item">
+        <div class="dev-feature-icon">✓</div>
+        <div><strong>Server-Side Theme Injection (SSR):</strong> Instant, zero-latency custom palette rendering with zero flash of unstyled content across all devices.</div>
+      </div>
+      <div class="dev-feature-item">
+        <div class="dev-feature-icon">✓</div>
+        <div><strong>Role-Based Access Control:</strong> Multi-tiered permission security separating Super Admin, Admin, Manager, and Customer actions.</div>
+      </div>
+      <div class="dev-feature-item">
+        <div class="dev-feature-icon">✓</div>
+        <div><strong>Full-Frame Mobile Gallery:</strong> Ultra-responsive mobile view with edge-to-edge touch gallery and high-resolution fullscreen lightbox viewer.</div>
+      </div>
+      <div class="dev-feature-item">
+        <div class="dev-feature-icon">✓</div>
+        <div><strong>SEO &amp; Google Search Console Ready:</strong> Automated sitemap generation, robots.txt, dynamic OpenGraph meta tags, and structured data indexing.</div>
+      </div>
+      <div class="dev-feature-item">
+        <div class="dev-feature-icon">✓</div>
+        <div><strong>Safe Recycle Bin Engine:</strong> Safeguards against accidental data deletion with instant one-click restoration for catalog items.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONAL NOTE / COMMITMENT -->
+  <div class="dev-content-card" style="margin-bottom: 0;">
+    <h2 class="dev-card-heading">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Engineering Note / বিশেষ বার্তা</span>
+    </h2>
+    <div class="dev-bio-text" id="devPersonalNote">
+      "Engineering a platform is not just about writing code; it is about building a secure, reliable, and delightful experience for every farmer, admin, and customer who interacts with ENMAR. Every line of code is continuously maintained and optimized for peak speed and usability."
+    </div>
+  </div>
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="footer-bottom">
+    <span id="footerTagline">© 2026 ENMAR — Organic, Field to Door</span>
+  </div>
+</footer>
+
+<script>
+  (async function loadDeveloperPage() {
+    try {
+      const res = await fetch('/api/settings', { credentials: 'include' });
+      if (!res.ok) return;
+      const s = await res.json();
+      if (!s) return;
+
+      const name = s.developerName || 'Abu Hourira';
+      const role = s.developerRole || 'Lead Full-Stack Web Application & Cloud Systems Architect';
+      const email = s.developerEmail || 'info@enmar.bd';
+      const phone = s.developerPhone || '+880 1614 113082';
+      const portfolio = s.developerPortfolio || 'https://github.com/abu-hourira';
+      const bio = s.developerBio;
+      const note = s.developerMessageText;
+      const skills = s.developerSkills;
+
+      document.getElementById('devName').textContent = name;
+      document.getElementById('devRole').textContent = role;
+      document.getElementById('devAvatarLetter').textContent = (name.trim()[0] || 'A').toUpperCase();
+
+      if (s.developerPhoto) {
+        const av = document.getElementById('devAvatarEl');
+        av.innerHTML = `<img src="${s.developerPhoto}" alt="${name}">`;
+      }
+
+      if (phone) {
+        const cleanPhone = phone.replace(/[^0-9+]/g, '');
+        const callBtn = document.getElementById('devCallBtn');
+        if (callBtn) {
+          callBtn.href = 'tel:' + cleanPhone;
+          document.getElementById('devPhoneText').textContent = phone;
+        }
+        const waBtn = document.getElementById('devWhatsappBtn');
+        if (waBtn) waBtn.href = 'https://wa.me/' + cleanPhone.replace('+', '');
+      }
+
+      if (email) {
+        const emailBtn = document.getElementById('devEmailBtn');
+        if (emailBtn) {
+          emailBtn.href = 'mailto:' + email;
+          document.getElementById('devEmailText').textContent = email;
+        }
+      }
+
+      if (portfolio) {
+        const pBtn = document.getElementById('devPortfolioBtn');
+        if (pBtn) pBtn.href = portfolio;
+      }
+
+      if (bio) {
+        document.getElementById('devFullBio').textContent = bio;
+        document.getElementById('devShortBio').textContent = bio.slice(0, 180) + (bio.length > 180 ? '…' : '');
+      }
+
+      if (note) {
+        document.getElementById('devPersonalNote').textContent = note;
+      }
+
+      if (skills) {
+        const wrap = document.getElementById('devSkillsList');
+        if (wrap) {
+          const items = skills.split(',').map(x => x.trim()).filter(Boolean);
+          if (items.length) {
+            wrap.innerHTML = items.map(sk => `<span class="dev-skill-pill">${sk}</span>`).join('');
+          }
+        }
+      }
+
+      if (s.footerTagline) {
+        const ft = document.getElementById('footerTagline');
+        if (ft) ft.textContent = s.footerTagline;
+      }
+    } catch (e) {
+      console.warn('Developer info load note:', e);
+    }
+  })();
+</script>
+</body>
+</html>
