@@ -66,6 +66,24 @@ const SENSITIVE_PATTERNS = [
   /^(server|db|db-service|email-encryption|migrate-to-mysql|server-backup|test-db-callback|verify-mysql-data|reset-superadmin-password|fix-superadmin-email|diagnose-superadmin)\.js$/i
 ];
 
+function getThemeStyleTag() {
+  const settings = (store && store.settings) ? store.settings : {};
+  const pr = settings.themePrimary || '#631e2a';
+  const ac = settings.themeAccent || '#C0912E';
+  
+  function shade(hex, f) {
+    const clean = String(hex || '').replace('#', '');
+    const n = parseInt(clean, 16);
+    if (isNaN(n)) return hex;
+    const r = Math.min(255, Math.round(((n >> 16) & 255) * f));
+    const g = Math.min(255, Math.round(((n >> 8) & 255) * f));
+    const b = Math.min(255, Math.round((n & 255) * f));
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  return `<style id="serverTheme">:root{--forest:${pr} !important;--forest-deep:${shade(pr, 0.72)} !important;--line-dark:${pr} !important;--gold:${ac} !important;}</style>`;
+}
+
 function tryServeStatic(req, res, pathname) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   if (pathname.startsWith('/api/')) return false;
@@ -81,14 +99,21 @@ function tryServeStatic(req, res, pathname) {
   if (!cleanPath) {
     const indexPath = path.join(ROOT, 'index.html');
     if (fs.existsSync(indexPath)) {
-      const stat = fs.statSync(indexPath);
+      let html = fs.readFileSync(indexPath, 'utf8');
+      const themeTag = getThemeStyleTag();
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${themeTag}\n</head>`);
+      } else {
+        html = themeTag + html;
+      }
+      const buf = Buffer.from(html, 'utf8');
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Length': stat.size,
+        'Content-Length': buf.length,
         'Cache-Control': 'no-cache'
       });
       if (req.method === 'HEAD') { res.end(); return true; }
-      fs.createReadStream(indexPath).pipe(res);
+      res.end(buf);
       return true;
     }
     return false;
@@ -132,10 +157,29 @@ function tryServeStatic(req, res, pathname) {
   const mimeType = MIME_TYPES[ext];
   if (!mimeType) return false;
 
+  if (ext === '.html' || ext === '.htm') {
+    let html = fs.readFileSync(finalPath, 'utf8');
+    const themeTag = getThemeStyleTag();
+    if (html.includes('</head>')) {
+      html = html.replace('</head>', `${themeTag}\n</head>`);
+    } else {
+      html = themeTag + html;
+    }
+    const buf = Buffer.from(html, 'utf8');
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Length': buf.length,
+      'Cache-Control': 'no-cache'
+    });
+    if (req.method === 'HEAD') { res.end(); return true; }
+    res.end(buf);
+    return true;
+  }
+
   res.writeHead(200, {
     'Content-Type': mimeType,
     'Content-Length': stat.size,
-    'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=86400'
+    'Cache-Control': 'public, max-age=86400'
   });
 
   if (req.method === 'HEAD') {

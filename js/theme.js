@@ -27,6 +27,10 @@
     root.setProperty('--forest-deep', shade(pr, 0.72));
     root.setProperty('--line-dark', pr);
     root.setProperty('--gold', ac);
+    var st = document.getElementById('serverTheme');
+    if (st) {
+      st.textContent = ':root{--forest:' + pr + ' !important;--forest-deep:' + shade(pr, 0.72) + ' !important;--line-dark:' + pr + ' !important;--gold:' + ac + ' !important;}';
+    }
   }
 
   // 1. INSTANT SYNCHRONOUS APPLY from localStorage (Zero delay on page reload)
