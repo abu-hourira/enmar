@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Storefront Settings — ENMAR Admin</title>
-<link rel="stylesheet" href="/admin/admin.css">
+<link rel="stylesheet" href="/admin/admin.css?v=2.2">
 </head>
 <body>
 <div class="admin-shell">
@@ -1270,7 +1270,8 @@ function val(id) {
     try {
       await api('/api/admin/settings', { method: 'PATCH', body: JSON.stringify({ themeName: preset ? preset.name : 'Custom', themePrimary: p, themeAccent: a }) });
       try {
-        localStorage.setItem('enmar_site_theme', JSON.stringify({ primary: p, accent: a }));
+        localStorage.removeItem('enmar_site_theme');
+        sessionStorage.removeItem('enmar_site_theme');
       } catch (e) {}
       notice(msg, 'Theme saved and synced instantly across the site.', true);
     } catch (err) { notice(msg, err.message); }

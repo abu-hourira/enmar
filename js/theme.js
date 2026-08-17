@@ -1,7 +1,12 @@
 /* Apply the site colour theme (primary + accent) chosen in the admin panel.
-   Synchronously loads cached theme from localStorage to eliminate any FOUC (flash of unstyled theme),
-   then fetches /api/settings to sync live updates seamlessly. */
+   Purges any stale localStorage caches and fetches active settings from /api/settings. */
 (function applySiteTheme() {
+  // Purge any stale client-side localStorage theme cache
+  try {
+    localStorage.removeItem('enmar_site_theme');
+    sessionStorage.removeItem('enmar_site_theme');
+  } catch (e) {}
+
   function toHex(v) {
     var str = String(v || '').trim();
     if (str.charAt(0) !== '#') return '';
@@ -13,6 +18,7 @@
 
   function shade(hex, f) {
     var n = parseInt(hex.slice(1), 16);
+    if (isNaN(n)) return hex;
     var r = Math.min(255, Math.round(((n >> 16) & 255) * f));
     var g = Math.min(255, Math.round(((n >> 8) & 255) * f));
     var b = Math.min(255, Math.round((n & 255) * f));
@@ -20,42 +26,43 @@
   }
 
   function applyStyles(primary, accent) {
-    var pr = toHex(primary) || '#631e2a';
-    var ac = toHex(accent) || '#C0912E';
+    if (!primary && !accent) return;
+    var pr = toHex(primary);
+    var ac = toHex(accent);
+    if (!pr && !ac) return;
+    
     var root = document.documentElement.style;
-    root.setProperty('--forest', pr);
-    root.setProperty('--forest-deep', shade(pr, 0.72));
-    root.setProperty('--line-dark', pr);
-    root.setProperty('--gold', ac);
-    var st = document.getElementById('serverTheme');
-    if (st) {
-      st.textContent = ':root{--forest:' + pr + ' !important;--forest-deep:' + shade(pr, 0.72) + ' !important;--line-dark:' + pr + ' !important;--gold:' + ac + ' !important;}';
+    if (pr) {
+      root.setProperty('--forest', pr);
+      root.setProperty('--forest-deep', shade(pr, 0.72));
+      root.setProperty('--line-dark', pr);
     }
+    if (ac) {
+      root.setProperty('--gold', ac);
+    }
+
+    var st = document.getElementById('serverTheme');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'serverTheme';
+      document.head.appendChild(st);
+    }
+    var css = ':root{';
+    if (pr) css += '--forest:' + pr + ' !important;--forest-deep:' + shade(pr, 0.72) + ' !important;--line-dark:' + pr + ' !important;';
+    if (ac) css += '--gold:' + ac + ' !important;';
+    css += '}';
+    st.textContent = css;
   }
 
-  // 1. INSTANT SYNCHRONOUS APPLY from localStorage (Zero delay on page reload)
-  try {
-    var cached = localStorage.getItem('enmar_site_theme');
-    if (cached) {
-      var parsed = JSON.parse(cached);
-      if (parsed && parsed.primary) {
-        applyStyles(parsed.primary, parsed.accent);
-      }
-    }
-  } catch (e) {}
-
-  // 2. LIVE SYNC with server settings in background
+  // Fetch live settings from server
   if (typeof fetch === 'undefined') return;
-  fetch('/api/settings', { credentials: 'include' })
+  fetch('/api/settings', { credentials: 'include', cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (s) {
       if (!s) return;
-      var pr = toHex(s.themePrimary) || '#631e2a';
-      var ac = toHex(s.themeAccent) || '#C0912E';
-      applyStyles(pr, ac);
-      try {
-        localStorage.setItem('enmar_site_theme', JSON.stringify({ primary: pr, accent: ac }));
-      } catch (e) {}
+      if (s.themePrimary || s.themeAccent) {
+        applyStyles(s.themePrimary, s.themeAccent);
+      }
     })
     .catch(function () {});
 })();
