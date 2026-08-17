@@ -3,6 +3,25 @@ let currentUser = null;
 let adminRefreshTimer = null;
 const taka = value => `৳${Number(value || 0).toFixed(2)}`;
 const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+
+function slugify(text) {
+  if (!text) return '';
+  return String(text)
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getProductUrl(p) {
+  if (!p) return '/';
+  const id = Number(p.id || p.productId);
+  if (!id) return '/';
+  const name = p.name || p.productName || '';
+  const slug = slugify(name);
+  return slug ? `/product/${id}-${slug}` : `/product/${id}`;
+}
 // Render multi-line content safely: escape HTML then format paragraphs, links, bold, lists
 function safeMultiline(text) {
   if (!text || !String(text).trim()) return '';
@@ -1027,11 +1046,11 @@ async function showAccount() {
               <div class="review-card review-card--mine" id="userRev-${r.id}">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
                   <div>
-                    <strong><a href="/product?id=${r.productId}" style="color:inherit;text-decoration:underline">${escapeHTML(r.productName)}</a></strong>
+                    <strong><a href="${getProductUrl({id: r.productId, name: r.productName})}" style="color:inherit;text-decoration:underline">${escapeHTML(r.productName)}</a></strong>
                     <div style="color:var(--gold);font-size:.9rem;margin-top:2px">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)} <small style="color:var(--ink-soft)">${new Date(r.createdAt).toLocaleDateString('en-BD', { year: 'numeric', month: 'short', day: 'numeric' })}</small></div>
                   </div>
                   <div style="display:flex;gap:6px">
-                    <a href="/product?id=${r.productId}#reviewsSection" class="btn-soft" style="font-size:.65rem;text-decoration:none;padding:4px 8px">Edit on Product Page</a>
+                    <a href="${getProductUrl({id: r.productId, name: r.productName})}#reviewsSection" class="btn-soft" style="font-size:.65rem;text-decoration:none;padding:4px 8px">Edit on Product Page</a>
                     <button type="button" class="btn-danger btn-del-my-rev" data-id="${r.id}" style="font-size:.65rem;padding:4px 8px">Delete</button>
                   </div>
                 </div>
@@ -1874,7 +1893,7 @@ function showProductArrivalToast(p) {
       <div class="arrival-toast-meta">
         ${farmHtml ? `${farmHtml} · ` : ''}<span class="arrival-toast-price">${priceHtml}</span>
       </div>
-      <a href="/product?id=${p.id}" class="arrival-toast-btn">View Product →</a>
+      <a href="${getProductUrl(p)}" class="arrival-toast-btn">View Product →</a>
     </div>
     <button type="button" class="arrival-toast-close" title="Dismiss">✕</button>
   `;

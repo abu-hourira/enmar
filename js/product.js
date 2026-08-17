@@ -8,6 +8,43 @@
   const escapeHTML = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
   const safeMultiline = (v) => escapeHTML(v).replace(/\r\n|\r|\n/g, '<br>');
 
+  function slugify(text) {
+    if (!text) return '';
+    return String(text)
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function getProductUrl(p) {
+    if (!p) return '/';
+    const id = Number(p.id || p.productId);
+    if (!id) return '/';
+    const name = p.name || p.productName || '';
+    const slug = slugify(name);
+    return slug ? `/product/${id}-${slug}` : `/product/${id}`;
+  }
+
+  function getProductIdOrSlug() {
+    if (window.__INITIAL_PRODUCT__ && (window.__INITIAL_PRODUCT__.id || window.__INITIAL_PRODUCT__.name)) {
+      return String(window.__INITIAL_PRODUCT__.id);
+    }
+    const match = window.location.pathname.match(/\/product\/([^\/?#]+)/i);
+    if (match && match[1]) {
+      const segment = decodeURIComponent(match[1]).trim();
+      if (/^\d+$/.test(segment)) return segment;
+      const idPrefix = segment.match(/^(\d+)-/);
+      if (idPrefix) return idPrefix[1];
+      const idSuffix = segment.match(/-(\d+)$/);
+      if (idSuffix) return idSuffix[1];
+      return segment;
+    }
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id') || params.get('slug') || null;
+  }
+
   /* ── Rich Description Formatter (paragraphs, newlines, links, lists, bold) ── */
   function formatInline(str) {
     let s = escapeHTML(str);
@@ -668,8 +705,8 @@
         canonicalLink = document.createElement('link');
         canonicalLink.rel = 'canonical';
         document.head.appendChild(canonicalLink);
-      }
-      canonicalLink.href = `https://enmar.shop/product?id=${product.id}`;
+      const cleanProdUrl = `https://enmar.shop${getProductUrl(product)}`;
+      canonicalLink.href = cleanProdUrl;
 
       const schemaData = {
         "@context": "https://schema.org/",
@@ -683,7 +720,7 @@
         },
         "offers": {
           "@type": "Offer",
-          "url": `https://enmar.shop/product?id=${product.id}`,
+          "url": cleanProdUrl,
           "priceCurrency": "BDT",
           "price": ep,
           "priceValidUntil": "2030-12-31",
@@ -1044,7 +1081,7 @@
       const isStaff = ['superadmin', 'admin', 'manager', 'moderator'].includes(currentUser.role);
       btn.textContent = isStaff ? 'Admin Panel' : `My Account (${currentUser.name.split(' ')[0]})`;
       btn.onclick = () => {
-        window.location.href = isStaff ? '/admin/dashboard.html' : '/';
+        window.location.href = isStaff ? '/admin/dashboard' : '/my-orders';
       };
     } else {
       btn.textContent = 'Sign In';
@@ -1054,24 +1091,25 @@
 
   /* ── Load product & reviews ── */
   async function loadAll() {
-    const id = Number(new URLSearchParams(window.location.search).get('id'));
-    if (!id || !Number.isInteger(id) || id < 1) {
+    const ident = getProductIdOrSlug();
+    if (!ident) {
       showStatus('Invalid product. <a href="/">Return to shop.</a>');
       return;
     }
     try {
+      const initialProduct = window.__INITIAL_PRODUCT__;
       const [product, reviews, meData] = await Promise.all([
-        api(`/api/products/${id}`),
-        api(`/api/products/${id}/reviews`),
+        initialProduct ? Promise.resolve(initialProduct) : api(`/api/products/${encodeURIComponent(ident)}`),
+        api(`/api/products/${encodeURIComponent(ident)}/reviews`).catch(() => []),
         api('/api/auth/me').catch(() => ({ user: null })),
       ]);
       currentProduct = product;
-      currentReviews = reviews;
+      currentReviews = reviews || [];
       currentUser = meData ? meData.user : null;
 
       document.title = `${product.name} — ENMAR`;
       updateAccountButton();
-      renderProduct(product, reviews, currentUser);
+      renderProduct(product, currentReviews, currentUser);
       refreshCartBadge();
     } catch (err) {
       showStatus(escapeHTML(err.message) + ' <a href="/">Return to shop.</a>');

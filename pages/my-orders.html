@@ -1401,7 +1401,7 @@ async function loadMyReviews() {
       <div style="background:var(--paper-alt);border:1px solid var(--line);padding:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
           <div>
-            <strong style="font-family:var(--font-display);font-size:1rem;color:var(--forest)"><a href="/product?id=${r.productId}" style="color:inherit;text-decoration:none">${esc(r.productName || 'Product #' + r.productId)}</a></strong>
+            <strong style="font-family:var(--font-display);font-size:1rem;color:var(--forest)"><a href="/product/${r.productId}" style="color:inherit;text-decoration:none">${esc(r.productName || 'Product #' + r.productId)}</a></strong>
             <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--ink-soft);margin-left:8px">${new Date(r.createdAt).toLocaleDateString('en-BD')}</span>
           </div>
           <span style="color:#f59e0b;font-size:1rem">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
@@ -1409,7 +1409,7 @@ async function loadMyReviews() {
         <p style="margin:6px 0;font-size:.88rem;color:var(--ink)">${esc(r.comment || '')}</p>
         ${r.images && r.images.length ? `<div style="display:flex;gap:8px;margin-top:10px">${r.images.map(img => `<img src="${esc(img)}" style="width:54px;height:54px;object-fit:cover;border:1px solid var(--line);border-radius:4px" />`).join('')}</div>` : ''}
         <div style="margin-top:10px">
-          <a href="/product?id=${r.productId}#reviews" class="btn-soft" style="font-size:.65rem;padding:4px 10px;text-decoration:none;display:inline-block">View on Product Page</a>
+          <a href="/product/${r.productId}#reviews" class="btn-soft" style="font-size:.65rem;padding:4px 10px;text-decoration:none;display:inline-block">View on Product Page</a>
         </div>
       </div>
     `).join('') + `</div>`;

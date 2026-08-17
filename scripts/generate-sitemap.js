@@ -23,9 +23,16 @@ async function generateSitemap() {
       xml += `  <url>\n    <loc>${baseUrl}${sp.path}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>${sp.changefreq}</changefreq>\n    <priority>${sp.priority}</priority>\n  </url>\n`;
     }
 
+    function slugify(text) {
+      if (!text) return '';
+      return String(text).toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
     for (const p of prods) {
       const pDate = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : now;
-      xml += `  <url>\n    <loc>${baseUrl}/product?id=${p.id}</loc>\n    <lastmod>${pDate}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+      const slug = slugify(p.name);
+      const prodPath = slug ? `/product/${p.id}-${slug}` : `/product/${p.id}`;
+      xml += `  <url>\n    <loc>${baseUrl}${prodPath}</loc>\n    <lastmod>${pDate}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
     }
 
     xml += `</urlset>\n`;

@@ -6,6 +6,25 @@ let CATEGORIES = ['All'];
 let SHIPPING_FLAT = 60;
 let SHIPPING_FREE_THRESHOLD = 5000;
 
+function slugify(text) {
+  if (!text) return '';
+  return String(text)
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getProductUrl(p) {
+  if (!p) return '/';
+  const id = Number(p.id || p.productId);
+  if (!id) return '/';
+  const name = p.name || p.productName || '';
+  const slug = slugify(name);
+  return slug ? `/product/${id}-${slug}` : `/product/${id}`;
+}
+
 /* ============================================================
    ICONS
    ============================================================ */
@@ -340,7 +359,7 @@ function renderRecentProducts() {
   track.innerHTML = recentList.map(p => {
     const hasDiscount = p.discount && p.discount > 0;
     const tag = p.tag || (hasDiscount ? `${p.discount}% OFF` : defaultBadge);
-    const href = `/product?id=${p.id}`;
+    const href = getProductUrl(p);
     const rCount = Number(p.reviewCount) || 0;
     const rAvg = Number(p.rating) || 0;
     const ratingHTML = rCount > 0
@@ -504,7 +523,7 @@ function renderProducts() {
     productGrid.innerHTML = list.map(p => {
       const hasDiscount = p.discount && p.discount > 0;
       const tag = p.tag || (hasDiscount ? 'Sale' : '');
-      const href = `/product?id=${p.id}`;
+      const href = getProductUrl(p);
       const rCount = Number(p.reviewCount) || 0;
       const rAvg = Number(p.rating) || 0;
       const ratingHTML = rCount > 0

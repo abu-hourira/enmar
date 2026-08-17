@@ -84,6 +84,106 @@ function getThemeStyleTag() {
   return `<style id="serverTheme">:root{--forest:${pr} !important;--forest-deep:${shade(pr, 0.72)} !important;--line-dark:${pr} !important;--gold:${ac} !important;}</style>`;
 }
 
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+}
+
+function slugify(text) {
+  if (!text) return '';
+  return String(text)
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getProductUrl(p) {
+  if (!p) return '/';
+  const id = Number(p.id || p.productId);
+  if (!id) return '/';
+  const name = p.name || p.productName || '';
+  const slug = slugify(name);
+  return slug ? `/product/${id}-${slug}` : `/product/${id}`;
+}
+
+function findProductBySlugOrId(identifier) {
+  if (!identifier || !store || !Array.isArray(store.products)) return null;
+  const decoded = decodeURIComponent(String(identifier)).trim();
+  
+  // 1. Direct numeric match: 123
+  if (/^\d+$/.test(decoded)) {
+    const id = Number(decoded);
+    return store.products.find(p => p.id === id) || null;
+  }
+  
+  // 2. ID prefix match: 123-honey-jar
+  const prefixMatch = decoded.match(/^(\d+)-/);
+  if (prefixMatch) {
+    const id = Number(prefixMatch[1]);
+    const p = store.products.find(x => x.id === id);
+    if (p) return p;
+  }
+  
+  // 3. ID suffix match: honey-jar-123
+  const suffixMatch = decoded.match(/-(\d+)$/);
+  if (suffixMatch) {
+    const id = Number(suffixMatch[1]);
+    const p = store.products.find(x => x.id === id);
+    if (p) return p;
+  }
+  
+  // 4. Exact slug match on product name
+  const targetSlug = slugify(decoded);
+  return store.products.find(p => slugify(p.name) === targetSlug) || null;
+}
+
+function injectProductSeo(html, product, brandName = 'ENMAR') {
+  if (!product) return html;
+  const prodName = escapeHtml(product.name || 'Product');
+  const fullTitle = `${prodName} — ${escapeHtml(brandName)}`;
+  const rawDesc = product.description ? String(product.description).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : `Fresh organic produce from ${product.farm || brandName}.`;
+  const metaDesc = escapeHtml(rawDesc.slice(0, 160));
+  const productUrl = `https://enmar.shop${getProductUrl(product)}`;
+  
+  let firstImg = '';
+  if (product.images && product.images.length) {
+    firstImg = product.images[0].startsWith('http') ? product.images[0] : `https://enmar.shop${product.images[0]}`;
+  }
+
+  // 1. Update Title & Meta Title
+  html = html.replace(/<title[^>]*>([^<]*)<\/title>/gi, `<title id="siteTitleTag">${fullTitle}</title>`);
+  html = html.replace(/<meta[^>]*name=["']title["'][^>]*>/gi, `<meta name="title" id="metaTitle" content="${fullTitle}">`);
+
+  // 2. Update Meta Description
+  html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${metaDesc}">`);
+
+  // 3. Update or inject Canonical URL
+  if (html.includes('id="canonicalLink"')) {
+    html = html.replace(/<link[^>]*id=["']canonicalLink["'][^>]*>/gi, `<link rel="canonical" id="canonicalLink" href="${productUrl}">`);
+  } else if (html.includes('</head>')) {
+    html = html.replace('</head>', `  <link rel="canonical" id="canonicalLink" href="${productUrl}">\n</head>`);
+  }
+
+  // 4. Update / Inject OpenGraph & Twitter tags + Client Hydration Data
+  const ogTags = `  <meta property="og:title" content="${fullTitle}">
+  <meta property="og:description" content="${metaDesc}">
+  <meta property="og:url" content="${productUrl}">
+  <meta property="og:type" content="product">
+  ${firstImg ? `<meta property="og:image" content="${firstImg}">` : ''}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${fullTitle}">
+  <meta name="twitter:description" content="${metaDesc}">
+  ${firstImg ? `<meta name="twitter:image" content="${firstImg}">` : ''}
+  <script>window.__INITIAL_PRODUCT__ = ${JSON.stringify(product)};</script>`;
+
+  if (html.includes('</head>')) {
+    html = html.replace('</head>', `${ogTags}\n</head>`);
+  }
+
+  return html;
+}
+
 function injectServerBranding(html, filePath = '') {
   const settings = (store && store.settings) ? store.settings : {};
   const brandName = settings.brandName || '';
@@ -178,6 +278,91 @@ function tryServeStatic(req, res, pathname) {
       'Location': redirectUrl,
       'Cache-Control': 'no-cache'
     });
+    res.end();
+    return true;
+  }
+
+  // Clean product route: /product/:slugOrId
+  const prodRouteMatch = pathname.match(/^\/product\/([^\/?#]+)$/i);
+  if (prodRouteMatch) {
+    const ident = prodRouteMatch[1];
+    const product = findProductBySlugOrId(ident);
+    const prodHtmlPath = path.join(ROOT, 'pages', 'product.html');
+    if (fs.existsSync(prodHtmlPath)) {
+      let html = fs.readFileSync(prodHtmlPath, 'utf8');
+      const settings = (store && store.settings) ? store.settings : {};
+      const brandName = settings.brandName || 'ENMAR';
+      html = injectServerBranding(html, prodHtmlPath);
+      if (product) {
+        html = injectProductSeo(html, product, brandName);
+      }
+      const buf = Buffer.from(html, 'utf8');
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Length': buf.length,
+        'Cache-Control': 'no-cache'
+      });
+      if (req.method === 'HEAD') { res.end(); return true; }
+      res.end(buf);
+      return true;
+    }
+  }
+
+  // Legacy /product with query parameter ?id=...
+  if (pathname === '/product' || pathname === '/product/') {
+    const queryStr = (req.url && req.url.includes('?')) ? req.url.split('?')[1] : '';
+    const params = new URLSearchParams(queryStr);
+    const qId = params.get('id') || params.get('slug');
+    if (qId) {
+      const product = findProductBySlugOrId(qId);
+      if (product) {
+        res.writeHead(301, {
+          'Location': getProductUrl(product),
+          'Cache-Control': 'no-cache'
+        });
+        res.end();
+        return true;
+      }
+    }
+  }
+
+  // Clean category route: /category/:slug
+  const catRouteMatch = pathname.match(/^\/category\/([^\/?#]+)$/i);
+  if (catRouteMatch) {
+    const catSlug = catRouteMatch[1];
+    const indexPath = path.join(ROOT, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      let html = fs.readFileSync(indexPath, 'utf8');
+      html = injectServerBranding(html, indexPath);
+      const catScript = `<script>window.__INITIAL_CATEGORY__ = ${JSON.stringify(catSlug)};</script>`;
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `${catScript}\n</head>`);
+      }
+      const buf = Buffer.from(html, 'utf8');
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Length': buf.length,
+        'Cache-Control': 'no-cache'
+      });
+      if (req.method === 'HEAD') { res.end(); return true; }
+      res.end(buf);
+      return true;
+    }
+  }
+
+  // Convenience URL shortcuts
+  if (pathname === '/cart' || pathname === '/cart/') {
+    res.writeHead(302, { 'Location': '/checkout' });
+    res.end();
+    return true;
+  }
+  if (pathname === '/login' || pathname === '/login/') {
+    res.writeHead(302, { 'Location': '/?login=1' });
+    res.end();
+    return true;
+  }
+  if (pathname === '/register' || pathname === '/register/') {
+    res.writeHead(302, { 'Location': '/?login=1&mode=register' });
     res.end();
     return true;
   }
@@ -1083,9 +1268,9 @@ const server = http.createServer(async (req, res) => {
       if (method === 'GET' && pathname === '/api/products') {
         return json(res, 200, store.products.filter(p => p.active !== false));
       }
-      if (method === 'GET' && pathname.match(/^\/api\/products\/(\d+)$/)) {
-        const id = Number(pathname.split('/')[3]);
-        const p = store.products.find(x => x.id === id);
+      if (method === 'GET' && pathname.match(/^\/api\/products\/([^\/]+)$/)) {
+        const ident = pathname.split('/')[3];
+        const p = findProductBySlugOrId(ident);
         return json(res, p ? 200 : 404, p || { error: 'Not found' });
       }
       if (method === 'GET' && pathname === '/api/categories') {
@@ -1206,7 +1391,7 @@ const server = http.createServer(async (req, res) => {
           
           for (const p of prods) {
             const pDate = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : now;
-            xml += `  <url>\n    <loc>${baseUrl}/product?id=${p.id}</loc>\n    <lastmod>${pDate}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+            xml += `  <url>\n    <loc>${baseUrl}${getProductUrl(p)}</loc>\n    <lastmod>${pDate}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
           }
           
           xml += `</urlset>`;
@@ -1224,9 +1409,11 @@ const server = http.createServer(async (req, res) => {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
         return json(res, 200, comments);
       }
-      if (method === 'GET' && pathname.match(/^\/api\/products\/(\d+)\/reviews$/)) {
-        const id = Number(pathname.split('/')[3]);
-        const reviews = await dbService.getProductReviews(id).catch(() => []);
+      if (method === 'GET' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
+        const ident = pathname.split('/')[3];
+        const p = findProductBySlugOrId(ident);
+        const id = p ? p.id : Number(ident);
+        const reviews = id ? await dbService.getProductReviews(id).catch(() => []) : [];
         return json(res, 200, reviews);
       }
       // ── REAL-TIME EVENT STREAM (SSE) ──
@@ -1667,10 +1854,13 @@ const server = http.createServer(async (req, res) => {
         const reviews = await dbService.getUserReviews(user.id).catch(() => []);
         return json(res, 200, reviews);
       }
-      if (method === 'POST' && pathname.match(/^\/api\/products\/(\d+)\/reviews$/)) {
+      if (method === 'POST' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
-        const productId = Number(pathname.split('/')[3]);
+        const ident = pathname.split('/')[3];
+        const p = findProductBySlugOrId(ident);
+        const productId = p ? p.id : Number(ident);
+        if (!productId) return json(res, 400, { error: 'Invalid product' });
         const review = await dbService.createReview({
           productId,
           userId: user.id,
@@ -1689,10 +1879,12 @@ const server = http.createServer(async (req, res) => {
 
         return json(res, 201, review || { error: 'Failed' });
       }
-      if (method === 'DELETE' && pathname.match(/^\/api\/products\/(\d+)\/reviews$/)) {
+      if (method === 'DELETE' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
-        const productId = Number(pathname.split('/')[3]);
+        const ident = pathname.split('/')[3];
+        const p = findProductBySlugOrId(ident);
+        const productId = p ? p.id : Number(ident);
         await dbService.deleteReview(body.reviewId, user.id);
         return json(res, 200, { ok: true });
       }
