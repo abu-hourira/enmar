@@ -909,8 +909,10 @@ const dbService = {
   getDefaultStoreSettings() {
     return {
       // 1. Identity & Branding
+      siteTitle: 'ENMAR | খাঁটি মধু, ঘি, ভেষজ ও প্রিমিয়াম অর্গানিক ফুড - Enmar Shop Bangladesh',
       brandName: 'ENMAR',
       tagline: 'Farm-fresh 100% Organic Grocery & Produce',
+      siteDescription: 'ইনমার (ENMAR) - বাংলাদেশের নির্ভরযোগ্য প্রিমিয়াম অর্গানিক শপ। ১০০% খাঁটি সুন্দরবন মধু, গাওয়া ঘি, ড্রাই ফ্রুটস ও অর্গানিক গ্রোসারি।',
       brandLogo: '',
       adminBrandName: 'ENMAR Admin',
       adminLogo: '',
