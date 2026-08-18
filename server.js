@@ -253,9 +253,67 @@ function injectServerBranding(html, filePath = '') {
   return html;
 }
 
+function sendCompressed(req, res, statusCode, headers, buffer) {
+  const accept = (req && req.headers && req.headers['accept-encoding']) || '';
+  if (buffer && buffer.length > 512) {
+    if (accept.includes('gzip')) {
+      zlib.gzip(buffer, (err, compressed) => {
+        if (!err && compressed) {
+          headers['Content-Encoding'] = 'gzip';
+          headers['Content-Length'] = compressed.length;
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(statusCode, headers);
+          if (req.method === 'HEAD') return res.end();
+          return res.end(compressed);
+        }
+        headers['Content-Length'] = buffer.length;
+        res.writeHead(statusCode, headers);
+        if (req.method === 'HEAD') return res.end();
+        res.end(buffer);
+      });
+      return true;
+    } else if (accept.includes('deflate')) {
+      zlib.deflate(buffer, (err, compressed) => {
+        if (!err && compressed) {
+          headers['Content-Encoding'] = 'deflate';
+          headers['Content-Length'] = compressed.length;
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(statusCode, headers);
+          if (req.method === 'HEAD') return res.end();
+          return res.end(compressed);
+        }
+        headers['Content-Length'] = buffer.length;
+        res.writeHead(statusCode, headers);
+        if (req.method === 'HEAD') return res.end();
+        res.end(buffer);
+      });
+      return true;
+    }
+  }
+  headers['Content-Length'] = (buffer && buffer.length) || 0;
+  res.writeHead(statusCode, headers);
+  if (req.method === 'HEAD') return res.end();
+  res.end(buffer);
+  return true;
+}
+
 async function tryServeStatic(req, res, pathname) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   if (pathname.startsWith('/api/')) return false;
+
+  // Root / index request
+  if (pathname === '/' || pathname === '' || pathname === '/index') {
+    const indexPath = path.join(ROOT, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      let html = fs.readFileSync(indexPath, 'utf8');
+      html = injectServerBranding(html, indexPath);
+      const buf = Buffer.from(html, 'utf8');
+      return sendCompressed(req, res, 200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache'
+      }, buf);
+    }
+  }
 
   if (pathname === '/admin' || pathname === '/admin/') {
     res.writeHead(302, { 'Location': '/admin/dashboard' });
@@ -426,50 +484,6 @@ async function tryServeStatic(req, res, pathname) {
   const ext = path.extname(finalPath).toLowerCase();
   const mimeType = MIME_TYPES[ext];
   if (!mimeType) return false;
-
-function sendCompressed(req, res, statusCode, headers, buffer) {
-  const accept = (req && req.headers && req.headers['accept-encoding']) || '';
-  if (buffer.length > 512) {
-    if (accept.includes('gzip')) {
-      zlib.gzip(buffer, (err, compressed) => {
-        if (!err && compressed) {
-          headers['Content-Encoding'] = 'gzip';
-          headers['Content-Length'] = compressed.length;
-          headers['Vary'] = 'Accept-Encoding';
-          res.writeHead(statusCode, headers);
-          if (req.method === 'HEAD') return res.end();
-          return res.end(compressed);
-        }
-        headers['Content-Length'] = buffer.length;
-        res.writeHead(statusCode, headers);
-        if (req.method === 'HEAD') return res.end();
-        res.end(buffer);
-      });
-      return true;
-    } else if (accept.includes('deflate')) {
-      zlib.deflate(buffer, (err, compressed) => {
-        if (!err && compressed) {
-          headers['Content-Encoding'] = 'deflate';
-          headers['Content-Length'] = compressed.length;
-          headers['Vary'] = 'Accept-Encoding';
-          res.writeHead(statusCode, headers);
-          if (req.method === 'HEAD') return res.end();
-          return res.end(compressed);
-        }
-        headers['Content-Length'] = buffer.length;
-        res.writeHead(statusCode, headers);
-        if (req.method === 'HEAD') return res.end();
-        res.end(buffer);
-      });
-      return true;
-    }
-  }
-  headers['Content-Length'] = buffer.length;
-  res.writeHead(statusCode, headers);
-  if (req.method === 'HEAD') return res.end();
-  res.end(buffer);
-  return true;
-}
 
   if (ext === '.html' || ext === '.htm') {
     let html = fs.readFileSync(finalPath, 'utf8');
