@@ -675,15 +675,15 @@
         <div class="brand-section">
           <div class="brand-logo-wrap">
             <div id="brandLogoContainer"></div>
-            <h1 class="brand-title" id="storeBrandName">ENMAR</h1>
+            <h1 class="brand-title" id="storeBrandName"></h1>
           </div>
-          <div class="brand-tagline" id="storeTagline">100% Organic &amp; Farm Fresh Market</div>
-          <div class="brand-meta" id="storeAddress">Plot 15, Block B, Bashundhara R/A, Dhaka-1229</div>
+          <div class="brand-tagline" id="storeTagline"></div>
+          <div class="brand-meta" id="storeAddress"></div>
           <div class="brand-meta">
-            Hotline: <strong id="storePhone">01898765432</strong> &bull; Email: <span id="storeEmail">support@enmar.bd</span>
+            Hotline: <strong id="storePhone"></strong> &bull; Email: <span id="storeEmail"></span>
           </div>
           <div class="brand-meta">
-            Website: <a id="storeWebsite" href="/" style="color:var(--primary);text-decoration:none;font-weight:600">www.enmar.bd</a>
+            Website: <a id="storeWebsite" href="/" style="color:var(--primary);text-decoration:none;font-weight:600"></a>
           </div>
         </div>
 
@@ -792,7 +792,7 @@
 
         <div class="official-seal">
           <div class="seal-inner">
-            <div class="seal-text-top" id="sealStoreName">ENMAR</div>
+            <div class="seal-text-top" id="sealStoreName"></div>
             <div class="seal-star">★ ★ ★</div>
             <div class="seal-text-mid">OFFICIAL SEAL</div>
             <div class="seal-text-bot">VERIFIED</div>
@@ -800,8 +800,8 @@
         </div>
 
         <div class="sign-box">
-          <div style="height:38px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-family:var(--font-serif);font-style:italic;font-size:1.1rem;font-weight:700">
-            ENMAR Team
+          <div style="height:38px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-family:var(--font-serif);font-style:italic;font-size:1.1rem;font-weight:700" id="signAuthText">
+            Authorized
           </div>
           <div class="sign-line"></div>
           <div class="sign-title">Authorized Signatory</div>
@@ -811,7 +811,7 @@
       <!-- Footer & Verification Barcode -->
       <div class="receipt-footer">
         <div>
-          Thank you for choosing <strong id="footerBrand">ENMAR</strong>.<br>
+          Thank you for choosing <strong id="footerBrand"></strong>.<br>
           For questions or assistance, please contact our support hotline or email.
         </div>
         <div style="text-align:right">
@@ -910,7 +910,7 @@
     function renderReceipt(data) {
       const order = data.order || {};
       const store = data.store || {};
-      const brandName = store.brandName || 'ENMAR';
+      const brandName = store.brandName || '';
 
       document.title = `Receipt ${data.receiptNumber || order.number || ''} — ${brandName}`;
 

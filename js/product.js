@@ -169,7 +169,6 @@
   const basketIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5 9a2 2 0 01-2 1.7H7.5a2 2 0 01-2-1.7L4 10z"/><path d="M8 10V8a4 4 0 018 0v2"/></svg>`;
   const starSVG = (fill = false) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>`;
   const $el = (id, svg) => { const e = document.getElementById(id); if (e) e.innerHTML = svg; };
-  $el('logoIcon', leafIcon);
   $el('basketIcon', basketIcon);
 
   /* ── Cart (shared localStorage with storefront) ── */

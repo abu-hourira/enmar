@@ -1912,17 +1912,25 @@ function showProductArrivalToast(p) {
   container.appendChild(toast);
 }
 
+function hideInitialPageLoader() {
+  const loader = document.getElementById('pageInitialLoader');
+  if (loader) {
+    loader.classList.add('fade-out');
+    setTimeout(() => { if (loader.parentNode) loader.remove(); }, 400);
+  }
+}
+
 (async () => {
   try {
     initAuthModalSystem();
     [currentUser] = await Promise.all([
-      request('/api/auth/me').then(d => d.user),
-      loadSettings(),
-      loadProducts(),
-      loadAdBanner()
+      request('/api/auth/me').then(d => d.user).catch(() => null),
+      loadSettings().catch(() => {}),
+      loadProducts().catch(() => {}),
+      loadAdBanner().catch(() => {})
     ]);
     refreshAccountButton();
-    await loadCommunityComments();
+    await loadCommunityComments().catch(() => {});
 
     const urlParams = new URLSearchParams(window.location.search);
     if (!currentUser && (urlParams.has('login') || urlParams.has('auth') || urlParams.has('checkout'))) {
@@ -1932,6 +1940,8 @@ function showProductArrivalToast(p) {
     }
   } catch (error) {
     console.warn(error);
+  } finally {
+    hideInitialPageLoader();
   }
 })();
 

@@ -35,9 +35,10 @@
   <meta name="geo.position" content="23.8103;90.4125">
   <meta name="ICBM" content="23.8103, 90.4125">
 
-  <!-- Performance Preconnects -->
+  <!-- Performance Preconnects & High-Speed Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
   <link rel="icon" id="siteFavicon" href="/favicon.ico">
   <link rel="stylesheet" href="/css/harvest-market.css?v=2.2">
 
@@ -84,6 +85,11 @@
 </head>
 
 <body>
+
+  <!-- ── INITIAL PAGE LOADER OVERLAY ── -->
+  <div id="pageInitialLoader">
+    <div class="page-loader-spinner"></div>
+  </div>
 
   <!-- ── HEADER ── -->
   <header class="site-header">
@@ -185,13 +191,13 @@
     <!-- ── NEWSLETTER ── -->
     <section class="newsletter">
       <span id="mailIcon"></span>
-      <h2 id="newsletterHeading">…</h2>
-      <p id="newsletterBody">…</p>
+      <h2 id="newsletterHeading"></h2>
+      <p id="newsletterBody"></p>
       <form class="newsletter-form" id="newsletterForm" novalidate>
         <input type="email" id="newsletterEmail" placeholder="you@example.com" required>
         <button type="submit">Subscribe</button>
       </form>
-      <p class="newsletter-note" id="newsletterNote">Subscribe please!</p>
+      <p class="newsletter-note" id="newsletterNote"></p>
     </section>
 
   </main>

@@ -4,6 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const net = require('node:net');
 const tls = require('node:tls');
+const zlib = require('node:zlib');
 const emailEncryption = require('./services/email-encryption.js');
 
 // ── ENV LOADER ──
@@ -306,14 +307,10 @@ async function tryServeStatic(req, res, pathname) {
         html = injectProductSeo(html, product, brandName);
       }
       const buf = Buffer.from(html, 'utf8');
-      res.writeHead(200, {
+      return sendCompressed(req, res, 200, {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Length': buf.length,
         'Cache-Control': 'no-cache'
-      });
-      if (req.method === 'HEAD') { res.end(); return true; }
-      res.end(buf);
-      return true;
+      }, buf);
     }
   }
 
@@ -348,14 +345,10 @@ async function tryServeStatic(req, res, pathname) {
         html = html.replace('</head>', `${catScript}\n</head>`);
       }
       const buf = Buffer.from(html, 'utf8');
-      res.writeHead(200, {
+      return sendCompressed(req, res, 200, {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Length': buf.length,
         'Cache-Control': 'no-cache'
-      });
-      if (req.method === 'HEAD') { res.end(); return true; }
-      res.end(buf);
-      return true;
+      }, buf);
     }
   }
 
@@ -434,24 +427,73 @@ async function tryServeStatic(req, res, pathname) {
   const mimeType = MIME_TYPES[ext];
   if (!mimeType) return false;
 
+function sendCompressed(req, res, statusCode, headers, buffer) {
+  const accept = (req && req.headers && req.headers['accept-encoding']) || '';
+  if (buffer.length > 512) {
+    if (accept.includes('gzip')) {
+      zlib.gzip(buffer, (err, compressed) => {
+        if (!err && compressed) {
+          headers['Content-Encoding'] = 'gzip';
+          headers['Content-Length'] = compressed.length;
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(statusCode, headers);
+          if (req.method === 'HEAD') return res.end();
+          return res.end(compressed);
+        }
+        headers['Content-Length'] = buffer.length;
+        res.writeHead(statusCode, headers);
+        if (req.method === 'HEAD') return res.end();
+        res.end(buffer);
+      });
+      return true;
+    } else if (accept.includes('deflate')) {
+      zlib.deflate(buffer, (err, compressed) => {
+        if (!err && compressed) {
+          headers['Content-Encoding'] = 'deflate';
+          headers['Content-Length'] = compressed.length;
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(statusCode, headers);
+          if (req.method === 'HEAD') return res.end();
+          return res.end(compressed);
+        }
+        headers['Content-Length'] = buffer.length;
+        res.writeHead(statusCode, headers);
+        if (req.method === 'HEAD') return res.end();
+        res.end(buffer);
+      });
+      return true;
+    }
+  }
+  headers['Content-Length'] = buffer.length;
+  res.writeHead(statusCode, headers);
+  if (req.method === 'HEAD') return res.end();
+  res.end(buffer);
+  return true;
+}
+
   if (ext === '.html' || ext === '.htm') {
     let html = fs.readFileSync(finalPath, 'utf8');
     html = injectServerBranding(html, finalPath);
     const buf = Buffer.from(html, 'utf8');
-    res.writeHead(200, {
+    return sendCompressed(req, res, 200, {
       'Content-Type': 'text/html; charset=utf-8',
-      'Content-Length': buf.length,
       'Cache-Control': 'no-cache'
-    });
-    if (req.method === 'HEAD') { res.end(); return true; }
-    res.end(buf);
-    return true;
+    }, buf);
+  }
+
+  const isTextType = ['.css', '.js', '.json', '.svg', '.txt', '.map'].includes(ext);
+  if (isTextType) {
+    const fileBuf = fs.readFileSync(finalPath);
+    return sendCompressed(req, res, 200, {
+      'Content-Type': mimeType,
+      'Cache-Control': 'public, max-age=31536000, immutable'
+    }, fileBuf);
   }
 
   res.writeHead(200, {
     'Content-Type': mimeType,
     'Content-Length': stat.size,
-    'Cache-Control': 'public, max-age=86400'
+    'Cache-Control': 'public, max-age=31536000, immutable'
   });
 
   if (req.method === 'HEAD') {

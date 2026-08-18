@@ -34,18 +34,22 @@ window.applySiteFavicon = applySiteFavicon;
     .then(function (s) {
       if (!s) return;
       window._siteSettings = s;
-      var name = s.brandName || 'ENMAR';
+      var name = s.brandName || '';
       var nameEl = document.getElementById('brandName');
       if (nameEl) nameEl.textContent = name;
 
       var iconEl = document.getElementById('logoIcon');
-      if (iconEl && s.brandLogo) {
-        iconEl.innerHTML = '';
-        var img = document.createElement('img');
-        img.className = 'logo-img';
-        img.src = s.brandLogo;
-        img.alt = name;
-        iconEl.appendChild(img);
+      if (iconEl) {
+        if (s.brandLogo) {
+          iconEl.innerHTML = '';
+          var img = document.createElement('img');
+          img.className = 'logo-img';
+          img.src = s.brandLogo;
+          img.alt = name;
+          iconEl.appendChild(img);
+        } else {
+          iconEl.innerHTML = '';
+        }
       }
 
       applySiteFavicon(s.favicon || '');
@@ -60,7 +64,7 @@ window.applySiteFavicon = applySiteFavicon;
         if (twDesc) twDesc.setAttribute('content', desc);
       }
 
-      var effectiveTitle = s.siteTitle || (name ? name + ' | খাঁটি মধু, ঘি ও অর্গানিক ফুড শপ' : '');
+      var effectiveTitle = s.siteTitle || (name ? name : '');
       if (effectiveTitle && (window.location.pathname === '/' || window.location.pathname === '' || window.location.pathname === '/index.html')) {
         document.title = effectiveTitle;
         var stEl = document.getElementById('siteTitleTag');
@@ -71,7 +75,7 @@ window.applySiteFavicon = applySiteFavicon;
         if (ogtEl) ogtEl.setAttribute('content', effectiveTitle);
         var twtEl = document.querySelector('meta[name="twitter:title"]');
         if (twtEl) twtEl.setAttribute('content', effectiveTitle);
-      } else if (document.title && !window.location.pathname.includes('/product')) {
+      } else if (name && document.title && !window.location.pathname.includes('/product')) {
         if (document.title.indexOf(' | ') !== -1) {
           document.title = name + ' | ' + document.title.split(' | ').slice(1).join(' | ');
         } else if (document.title.indexOf(' — ') !== -1) {

@@ -86,7 +86,6 @@ const UI_ICONS = {
 
 /* ── Icon injection ── */
 const _si = (id, svg) => { const el = document.getElementById(id); if (el) el.innerHTML = svg; };
-_si('logoIcon',   UI_ICONS.leaf);
 _si('basketIcon', UI_ICONS.basket);
 _si('navToggle',  UI_ICONS.menu);
 _si('closeCart',  UI_ICONS.close);
