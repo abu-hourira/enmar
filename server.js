@@ -1281,11 +1281,14 @@ const server = http.createServer(async (req, res) => {
         const ident = decodeURIComponent(pathname.split('/')[3]);
         let p = findProductBySlugOrId(ident);
         // DB fallback if in-memory store misses
-        if (!p && /^\d+$/.test(ident)) {
-          try {
-            const dbProd = await dbService.getProductById(Number(ident));
-            if (dbProd) p = dbProd;
-          } catch {}
+        if (!p) {
+          const numMatch = ident.match(/^(\d+)/) || ident.match(/-(\d+)$/);
+          if (numMatch) {
+            try {
+              const dbProd = await dbService.getProductById(Number(numMatch[1]));
+              if (dbProd) p = dbProd;
+            } catch {}
+          }
         }
         return json(res, p ? 200 : 404, p || { error: 'Not found' });
       }

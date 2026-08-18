@@ -705,8 +705,11 @@
         canonicalLink = document.createElement('link');
         canonicalLink.rel = 'canonical';
         document.head.appendChild(canonicalLink);
+      }
       const cleanProdUrl = `https://enmar.shop${getProductUrl(product)}`;
-      canonicalLink.href = cleanProdUrl;
+      if (canonicalLink) {
+        canonicalLink.href = cleanProdUrl;
+      }
 
       const schemaData = {
         "@context": "https://schema.org/",

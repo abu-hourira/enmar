@@ -1,31 +1,40 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
   # 1. Redirect /admin or /admin/ to /admin/dashboard
-  RewriteRule ^admin/?$ /admin/dashboard [R=302,L]
+  RewriteRule ^admin/?$ admin/dashboard [R=302,L]
 
   # 2. 301 Redirect direct .html requests to clean extensionless URLs
   RewriteCond %{THE_REQUEST} \s/+(?:pages/)?([^\s\?]+)\.html([^\s]*)\s [NC]
-  RewriteRule ^ /%1%2 [R=301,L,NE]
+  RewriteRule ^ %1%2 [R=301,L,NE]
 
   RewriteCond %{THE_REQUEST} \s/+admin/([^\s\?]+)\.html([^\s]*)\s [NC]
-  RewriteRule ^ /admin/%1%2 [R=301,L,NE]
+  RewriteRule ^ admin/%1%2 [R=301,L,NE]
 
-  # 3. Clean routing for root .html files
-  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-  RewriteRule ^([^/]+)/?$ $1.html [L,QSA]
-
-  # 4. Clean routing for pages/*.html files
-  RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f
-  RewriteRule ^([^/]+)/?$ pages/$1.html [L,QSA]
-
-  # 5. Clean routing for admin/*.html files
-  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f
-  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L,QSA]
-
-  # 6. If an existing file or directory exists, serve it directly
+  # 3. Serve existing files and directories directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
+
+  # 4. Clean routing for product detail pages: /product/123 or /product/123-slug -> pages/product.html
+  RewriteRule ^product(?:/.*)?$ pages/product.html [L,QSA]
+
+  # 5. Clean routing for category pages: /category/fruits -> index.html
+  RewriteRule ^category(?:/.*)?$ index.html [L,QSA]
+
+  # 6. Clean routing for admin/*.html files
+  RewriteCond %{DOCUMENT_ROOT}/admin/$1.html -f [OR]
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^admin/([^/]+)/?$ admin/$1.html [L,QSA]
+
+  # 7. Clean routing for pages/*.html files (checkout, my-orders, bmi-calculator, receipt, etc.)
+  RewriteCond %{DOCUMENT_ROOT}/pages/$1.html -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/enma/pages/$1.html -f
+  RewriteRule ^([^/]+)/?$ pages/$1.html [L,QSA]
+
+  # 8. Clean routing for root .html files
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/enma/$1.html -f
+  RewriteRule ^([^/]+)/?$ $1.html [L,QSA]
 </IfModule>
+
