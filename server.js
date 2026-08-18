@@ -430,43 +430,46 @@ async function tryServeStatic(req, res, pathname) {
   const cleanPath = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   
   if (!cleanPath) {
-    const indexPath = path.join(ROOT, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      let html = fs.readFileSync(indexPath, 'utf8');
-      html = injectServerBranding(html, indexPath);
-      const buf = Buffer.from(html, 'utf8');
-      res.writeHead(200, {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Content-Length': buf.length,
-        'Cache-Control': 'no-cache'
-      });
-      if (req.method === 'HEAD') { res.end(); return true; }
-      res.end(buf);
-      return true;
+    const rootIndexCandidates = [
+      path.join(ROOT, 'index.html'),
+      path.join(__dirname, 'index.html'),
+      path.join(process.cwd(), 'index.html')
+    ];
+    for (const cand of rootIndexCandidates) {
+      if (fs.existsSync(cand)) {
+        let html = fs.readFileSync(cand, 'utf8');
+        html = injectServerBranding(html, cand);
+        const buf = Buffer.from(html, 'utf8');
+        return sendCompressed(req, res, 200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }, buf);
+      }
     }
     return false;
   }
 
-  const candidates = [
-    path.join(ROOT, cleanPath),
-    path.join(ROOT, cleanPath + '.html'),
-    path.join(ROOT, 'pages', cleanPath),
-    path.join(ROOT, 'pages', cleanPath + '.html'),
-    cleanPath.startsWith('pages/') ? path.join(ROOT, cleanPath.replace(/^pages\//, '') + '.html') : null,
-    cleanPath.startsWith('admin/') ? path.join(ROOT, 'admin', cleanPath.replace(/^admin\//, '') + '.html') : path.join(ROOT, 'admin', cleanPath + '.html'),
-    path.join(ROOT, cleanPath, 'index.html')
-  ].filter(Boolean);
+  const searchRoots = [ROOT, __dirname, process.cwd()].filter((v, i, a) => v && a.indexOf(v) === i);
+  const candidates = [];
+  for (const r of searchRoots) {
+    candidates.push(
+      path.join(r, cleanPath),
+      path.join(r, cleanPath + '.html'),
+      path.join(r, 'pages', cleanPath),
+      path.join(r, 'pages', cleanPath + '.html'),
+      cleanPath.startsWith('pages/') ? path.join(r, cleanPath.replace(/^pages\//, '') + '.html') : null,
+      cleanPath.startsWith('admin/') ? path.join(r, 'admin', cleanPath.replace(/^admin\//, '') + '.html') : path.join(r, 'admin', cleanPath + '.html'),
+      path.join(r, cleanPath, 'index.html')
+    );
+  }
+  const cleanCandidates = candidates.filter(Boolean);
 
   let finalPath = null;
   let stat = null;
 
-  for (const cand of candidates) {
+  for (const cand of cleanCandidates) {
     const resolvedPath = path.resolve(cand);
-    if (!resolvedPath.toLowerCase().startsWith(ROOT.toLowerCase())) continue;
-
     const relPath = path.relative(ROOT, resolvedPath).replace(/\\/g, '/');
-    const parts = relPath.split('/');
-    if (parts.some(p => p.startsWith('.'))) continue;
     if (SENSITIVE_PATTERNS.some(pat => pat.test(relPath))) continue;
 
     try {
