@@ -156,7 +156,7 @@ function injectProductSeo(html, product, brandName = 'ENMAR') {
   html = html.replace(/<meta[^>]*name=["']title["'][^>]*>/gi, `<meta name="title" id="metaTitle" content="${fullTitle}">`);
 
   // 2. Update Meta Description
-  html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${metaDesc}">`);
+  html = html.replace(/<meta[^>]*name=["']description["'][^>]*>/gi, `<meta name="description" content="${metaDesc}">`);
 
   // 3. Update or inject Canonical URL
   if (html.includes('id="canonicalLink"')) {
@@ -208,7 +208,7 @@ function injectServerBranding(html, filePath = '') {
   // 3. Brand name & Logo in Header
   if (brandName) {
     html = html.replace(/<span id=["']brandName["']>([^<]*)<\/span>/gi, `<span id="brandName">${brandName}</span>`);
-    html = html.replace(/<meta\s+property=["']og:site_name["']\s+content=["'][^"']*["']/gi, `<meta property="og:site_name" content="${brandName}">`);
+    html = html.replace(/<meta[^>]*property=["']og:site_name["'][^>]*>/gi, `<meta property="og:site_name" content="${brandName}">`);
   }
 
   if (brandLogo) {
@@ -217,9 +217,9 @@ function injectServerBranding(html, filePath = '') {
 
   // 4. Meta Description injection
   if (siteDesc) {
-    html = html.replace(/<meta\s+name=["']description["']\s+content=["'][^"']*["']/gi, `<meta name="description" content="${siteDesc}">`);
-    html = html.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']/gi, `<meta property="og:description" content="${siteDesc}">`);
-    html = html.replace(/<meta\s+name=["']twitter:description["']\s+content=["'][^"']*["']/gi, `<meta name="twitter:description" content="${siteDesc}">`);
+    html = html.replace(/<meta[^>]*name=["']description["'][^>]*>/gi, `<meta name="description" content="${siteDesc}">`);
+    html = html.replace(/<meta[^>]*property=["']og:description["'][^>]*>/gi, `<meta property="og:description" content="${siteDesc}">`);
+    html = html.replace(/<meta[^>]*name=["']twitter:description["'][^>]*>/gi, `<meta name="twitter:description" content="${siteDesc}">`);
   }
 
   // 5. Title Tag injection
