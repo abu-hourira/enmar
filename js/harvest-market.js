@@ -497,7 +497,7 @@ function renderProducts() {
       const farm = String(p.farm || '').toLowerCase();
       const cat  = String(p.cat  || '').toLowerCase();
       const tag  = String(p.tag  || '').toLowerCase();
-      const desc = String(p.desc || '').toLowerCase();
+      const desc = String(p.desc || p.description || '').toLowerCase();
       return name.includes(query) || farm.includes(query) || cat.includes(query) || tag.includes(query) || desc.includes(query);
     });
   }

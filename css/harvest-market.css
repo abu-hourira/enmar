@@ -4,14 +4,14 @@
 :root {
   --paper:        #ffffff;
   --paper-alt:    #f7f4f4;
-  --forest: #631e2a;
-  --forest-deep: #47161e;
-  --gold: #C0912E;
+  --forest: #14421a;
+  --forest-deep: #0e3013;
+  --gold: #7e8019;
   --tomato:       #AE3B2A;
   --ink:          #111111;
   --ink-soft:     #555555;
   --line:         #e8e0e0;
-  --line-dark: #631e2a;
+  --line-dark: #14421a;
   --font-display: 'Fraunces', serif;
   --font-body:    'Work Sans', sans-serif;
   --font-mono:    'Space Mono', monospace;

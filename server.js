@@ -282,14 +282,14 @@ async function tryServeStatic(req, res, pathname) {
     return true;
   }
 
-  // Clean product route: /product/:slugOrId
-  const prodRouteMatch = pathname.match(/^\/product\/([^\/?#]+)$/i);
+  // Clean product route: /product/:slugOrId or /products/:slugOrId
+  const prodRouteMatch = pathname.match(/^\/products?\/([^\/?#]+)$/i);
   if (prodRouteMatch) {
     const ident = decodeURIComponent(prodRouteMatch[1]);
     let product = findProductBySlugOrId(ident);
     // DB fallback if in-memory store misses
     if (!product) {
-      const numMatch = ident.match(/^(\d+)/);
+      const numMatch = ident.match(/^(\d+)/) || ident.match(/-(\d+)$/);
       if (numMatch) {
         try {
           product = await dbService.getProductById(Number(numMatch[1]));
@@ -317,11 +317,11 @@ async function tryServeStatic(req, res, pathname) {
     }
   }
 
-  // Legacy /product with query parameter ?id=...
-  if (pathname === '/product' || pathname === '/product/') {
+  // Legacy /product or /products with query parameter ?id=...
+  if (pathname === '/product' || pathname === '/product/' || pathname === '/products' || pathname === '/products/') {
     const queryStr = (req.url && req.url.includes('?')) ? req.url.split('?')[1] : '';
     const params = new URLSearchParams(queryStr);
-    const qId = params.get('id') || params.get('slug');
+    const qId = params.get('id') || params.get('slug') || params.get('productId');
     if (qId) {
       const product = findProductBySlugOrId(qId);
       if (product) {
@@ -1274,10 +1274,10 @@ const server = http.createServer(async (req, res) => {
       if (!settings.brandName) settings.brandName = 'ENMAR';
       return json(res, 200, settings);
     }
-      if (method === 'GET' && pathname === '/api/products') {
+      if (method === 'GET' && (pathname === '/api/products' || pathname === '/api/product')) {
         return json(res, 200, store.products.filter(p => p.active !== false));
       }
-      if (method === 'GET' && pathname.match(/^\/api\/products\/([^\/]+)$/)) {
+      if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)$/)) {
         const ident = decodeURIComponent(pathname.split('/')[3]);
         let p = findProductBySlugOrId(ident);
         // DB fallback if in-memory store misses
@@ -1428,7 +1428,7 @@ const server = http.createServer(async (req, res) => {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
         return json(res, 200, comments);
       }
-      if (method === 'GET' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
+      if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)\/reviews$/)) {
         const ident = pathname.split('/')[3];
         const p = findProductBySlugOrId(ident);
         const id = p ? p.id : Number(ident);
@@ -1873,7 +1873,7 @@ const server = http.createServer(async (req, res) => {
         const reviews = await dbService.getUserReviews(user.id).catch(() => []);
         return json(res, 200, reviews);
       }
-      if (method === 'POST' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
+      if (method === 'POST' && pathname.match(/^\/api\/products?\/([^\/]+)\/reviews$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const ident = pathname.split('/')[3];
@@ -1898,7 +1898,7 @@ const server = http.createServer(async (req, res) => {
 
         return json(res, 201, review || { error: 'Failed' });
       }
-      if (method === 'DELETE' && pathname.match(/^\/api\/products\/([^\/]+)\/reviews$/)) {
+      if (method === 'DELETE' && pathname.match(/^\/api\/products?\/([^\/]+)\/reviews$/)) {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         const ident = pathname.split('/')[3];

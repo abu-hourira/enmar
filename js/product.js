@@ -31,18 +31,21 @@
     if (window.__INITIAL_PRODUCT__ && (window.__INITIAL_PRODUCT__.id || window.__INITIAL_PRODUCT__.name)) {
       return String(window.__INITIAL_PRODUCT__.id);
     }
-    const match = window.location.pathname.match(/\/product\/([^\/?#]+)/i);
+    const pathname = window.location.pathname;
+    const match = pathname.match(/\/(?:pages\/)?products?\/([^\/?#]+)/i);
     if (match && match[1]) {
-      const segment = decodeURIComponent(match[1]).trim();
-      if (/^\d+$/.test(segment)) return segment;
-      const idPrefix = segment.match(/^(\d+)-/);
-      if (idPrefix) return idPrefix[1];
-      const idSuffix = segment.match(/-(\d+)$/);
-      if (idSuffix) return idSuffix[1];
-      return segment;
+      const segment = decodeURIComponent(match[1]).trim().replace(/\.html$/i, '');
+      if (segment && segment.toLowerCase() !== 'product' && segment.toLowerCase() !== 'products') {
+        if (/^\d+$/.test(segment)) return segment;
+        const idPrefix = segment.match(/^(\d+)-/);
+        if (idPrefix) return idPrefix[1];
+        const idSuffix = segment.match(/-(\d+)$/);
+        if (idSuffix) return idSuffix[1];
+        return segment;
+      }
     }
     const params = new URLSearchParams(window.location.search);
-    return params.get('id') || params.get('slug') || null;
+    return params.get('id') || params.get('slug') || params.get('productId') || params.get('p') || null;
   }
 
   /* ── Rich Description Formatter (paragraphs, newlines, links, lists, bold) ── */
@@ -686,7 +689,7 @@
 
       <div class="product-desc-section">
         <h2 class="product-desc-heading">Description</h2>
-        <div class="product-desc-body" id="pdDesc">${formatDescription(product.description)}</div>
+        <div class="product-desc-body" id="pdDesc">${formatDescription(product.description || product.desc)}</div>
         <button type="button" class="btn-see-more" id="btnSeeMore" aria-expanded="false">See more</button>
       </div>
 
@@ -799,7 +802,7 @@
     const descEl  = document.getElementById('pdDesc');
     const seeBtn  = document.getElementById('btnSeeMore');
     if (descEl && seeBtn) {
-      const text = (product.description || '').trim();
+      const text = (product.description || product.desc || '').trim();
       // If content naturally fits within compact height or has very few characters, expand immediately
       if (text.length <= 220 || descEl.scrollHeight <= 165) {
         descEl.classList.add('expanded');

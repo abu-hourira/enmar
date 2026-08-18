@@ -16,8 +16,8 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 4. Clean routing for product detail pages: /product/123 or /product/123-slug -> pages/product.html
-  RewriteRule ^product(?:/.*)?$ pages/product.html [L,QSA]
+  # 4. Clean routing for product detail pages: /product/123 or /products/123-slug -> pages/product.html
+  RewriteRule ^products?(?:/.*)?$ pages/product.html [L,QSA]
 
   # 5. Clean routing for category pages: /category/fruits -> index.html
   RewriteRule ^category(?:/.*)?$ index.html [L,QSA]
