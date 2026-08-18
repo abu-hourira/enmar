@@ -549,6 +549,32 @@ try {
   console.error('[MySQL] ⚠️ Failed to load database pool:', e.message);
 }
 
+let lastDbCheckTime = 0;
+let lastDbCheckResult = false;
+async function isDbConnected() {
+  const now = Date.now();
+  if (now - lastDbCheckTime < 2000) {
+    return lastDbCheckResult;
+  }
+  if (!dbPool) {
+    lastDbCheckResult = false;
+    lastDbCheckTime = now;
+    return false;
+  }
+  try {
+    const conn = await dbPool.getConnection();
+    await conn.ping();
+    conn.release();
+    lastDbCheckTime = Date.now();
+    lastDbCheckResult = true;
+    return true;
+  } catch (err) {
+    lastDbCheckTime = Date.now();
+    lastDbCheckResult = false;
+    return false;
+  }
+}
+
 // ── STORE ──
 async function readStore() {
   await dbService.ensureStoreSettings().catch(() => {});
@@ -595,15 +621,6 @@ async function readStore() {
     }).catch(() => null);
     if (created) {
       store.users.push(created);
-    } else {
-      store.users.push({
-        id: 1,
-        name: account.name,
-        email: account.email,
-        passwordHash: superPassHash,
-        role: 'superadmin',
-        active: true
-      });
     }
   } else {
     existingSuper.passwordHash = superPassHash;
@@ -1118,18 +1135,6 @@ function ensureStoreLoaded() {
       return store;
     }).catch(async err => {
       console.error('[Store] ⚠️ Failed to load initial store from DB:', err.message);
-      if (!store.users || !store.users.length) {
-        const account = RESERVED_ACCOUNTS[0];
-        const superPassHash = await hashPassword(account.password);
-        store.users = [{
-          id: 1,
-          name: account.name,
-          email: account.email,
-          passwordHash: superPassHash,
-          role: 'superadmin',
-          active: true
-        }];
-      }
       return store;
     });
   }
@@ -1228,6 +1233,43 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+
+    // ── STRICT DATABASE CONNECTIVITY GATE ──
+    const dbOk = await isDbConnected();
+    if (!dbOk) {
+      if (pathname.startsWith('/api/')) {
+        res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' });
+        res.end(JSON.stringify({ error: 'Database is disconnected. Service unavailable.', dbConnected: false }));
+        return;
+      }
+      const errorHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>503 — Database Connection Required</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; max-width: 520px; width: 100%; padding: 36px 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .icon { font-size: 48px; margin-bottom: 16px; display: inline-block; }
+    h1 { margin: 0 0 12px; font-size: 1.5rem; font-weight: 700; color: #f1f5f9; }
+    p { margin: 0 0 20px; font-size: 0.95rem; color: #94a3b8; line-height: 1.6; }
+    .badge { display: inline-block; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">🔌</div>
+    <div><span class="badge">Database Disconnected</span></div>
+    <h1>503 — Service Unavailable</h1>
+    <p>This store is strictly database-driven. An active MySQL database connection is required to load store content, products, and services.</p>
+  </div>
+</body>
+</html>`;
+      res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      res.end(errorHtml);
+      return;
+    }
 
     // ── STATIC FILE SERVING (Instant response for all HTML, CSS, JS, images) ──
     if (await tryServeStatic(req, res, pathname)) return;
