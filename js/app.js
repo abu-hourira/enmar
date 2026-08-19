@@ -1654,15 +1654,8 @@ async function loadAdBanner() {
   try {
     const custom = await request('/api/ads');
     if (custom && custom.length) {
-      if (dedicatedSideBanner) {
-        buildCustomAdSlideshow(custom, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
-        renderHeroSideCard(dedicatedSideBanner);
-      } else {
-        const sliderAds = custom.length > 1 ? custom.slice(0, -1) : custom;
-        const sideAd = custom.length > 1 ? custom[custom.length - 1] : null;
-        buildCustomAdSlideshow(sliderAds, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
-        renderHeroSideCard(sideAd);
-      }
+      buildCustomAdSlideshow(custom, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+      renderHeroSideCard(dedicatedSideBanner);
       return;
     }
   } catch (e) { /* fall through to uploaded media */ }
@@ -1670,15 +1663,8 @@ async function loadAdBanner() {
   try {
     const media = await request('/api/ad-media');
     if (media && media.length) {
-      if (dedicatedSideBanner) {
-        buildAdSlideshow(media, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
-        renderHeroSideCard(dedicatedSideBanner);
-      } else {
-        const sliderMedia = media.length > 1 ? media.slice(0, -1) : media;
-        const sideMedia = media.length > 1 ? media[media.length - 1] : null;
-        buildAdSlideshow(sliderMedia, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
-        renderHeroSideCard(sideMedia);
-      }
+      buildAdSlideshow(media, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+      renderHeroSideCard(dedicatedSideBanner);
       return;
     }
   } catch (e) { /* non-critical */ }

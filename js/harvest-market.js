@@ -56,18 +56,30 @@ function produceIconSVG(type, size = 44) {
 }
 
 function productImageHTML(p, size = 44) {
-  if (p.images && p.images.length > 0) {
+  if (!p) return produceIconSVG('leaf', size);
+  const rawImages = (p.images && Array.isArray(p.images)) ? p.images : (p.images ? [p.images] : []);
+  const validImages = rawImages
+    .map(img => typeof img === 'string' ? img.trim().replace(/\\/g, '/') : '')
+    .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
+    .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
+
+  const fallbackSvgEsc = produceIconSVG(p.icon || 'leaf', size === 'full' ? 54 : size).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  if (validImages.length > 0) {
+    const firstImg = validImages[0];
     if (size === 'full') {
-      const dots = p.images.length > 1
-        ? `<div class="card-img-dots">${p.images.map((_, i) =>
+      const dots = validImages.length > 1
+        ? `<div class="card-img-dots">${validImages.map((_, i) =>
             `<span class="card-img-dot${i === 0 ? ' active' : ''}"></span>`).join('')}</div>`
         : '';
-      return `<img src="${p.images[0]}" alt="${p.name}" class="card-img-fill"
-               data-images='${JSON.stringify(p.images)}' data-idx="0">${dots}`;
+      return `<img src="${firstImg}" alt="${p.name || 'Product'}" class="card-img-fill"
+               data-images='${JSON.stringify(validImages)}' data-idx="0"
+               onerror="this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none'; if(this.parentElement) { this.parentElement.insertAdjacentHTML('afterbegin', '${fallbackSvgEsc}'); }">${dots}`;
     }
-    return `<img src="${p.images[0]}" alt="${p.name}" class="cart-img-fill">`;
+    return `<img src="${firstImg}" alt="${p.name || 'Product'}" class="cart-img-fill"
+             onerror="this.onerror=null; this.outerHTML='${fallbackSvgEsc}';">`;
   }
-  return produceIconSVG(p.icon, size);
+  return produceIconSVG(p.icon || 'leaf', size);
 }
 
 const UI_ICONS = {
@@ -165,7 +177,7 @@ async function buildCategoryCircles() {
       : (cicon.image || '');
 
     const iconHTML = imgUrl
-      ? `<img src="${esc(imgUrl)}" alt="${esc(cat)}" class="cat-circle-img" style="width:36px;height:36px;object-fit:cover;border-radius:50%">`
+      ? `<img src="${esc(imgUrl)}" alt="${esc(cat)}" class="cat-circle-img" style="width:36px;height:36px;object-fit:cover;border-radius:50%" onerror="this.onerror=null; this.outerHTML='${(produceIconSVG(cicon.icon || iconMap[key] || 'leaf', 32)).replace(/'/g, "\\'")}';">`
       : (cicon.icon || (typeof cicon === 'string' && cicon)
         ? (produceIconSVG(cicon.icon || cicon, 32) || `<span style="font-size:1.6rem">${esc(cicon.icon || cicon)}</span>`)
         : produceIconSVG(iconMap[key] || 'leaf', 32));

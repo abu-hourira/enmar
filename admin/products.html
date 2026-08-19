@@ -614,7 +614,11 @@ function makeThumbWrap(src, onDelete) {
   const wrap = document.createElement('div');
   wrap.className = 'img-thumb-wrap';
   const img = document.createElement('img');
-  img.src = src;
+  const cleanSrc = (src && typeof src === 'string')
+    ? (src.startsWith('http') || src.startsWith('/') || src.startsWith('data:') || src.startsWith('blob:') ? src : `/${src}`)
+    : '';
+  img.src = cleanSrc;
+  img.onerror = () => { img.style.opacity = '0.35'; img.title = 'Image could not be loaded'; };
   const del = document.createElement('button');
   del.type = 'button';
   del.className = 'img-thumb-del';

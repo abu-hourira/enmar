@@ -61,6 +61,11 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
   '.bmp': 'image/bmp',
   '.avif': 'image/avif',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.m4v': 'video/x-m4v',
+  '.ogg': 'video/ogg',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
@@ -164,7 +169,10 @@ function injectProductSeo(html, product, brandName = 'ENMAR') {
   
   let firstImg = '';
   if (product.images && product.images.length) {
-    firstImg = product.images[0].startsWith('http') ? product.images[0] : `https://enmar.shop${product.images[0]}`;
+    const rawImg = String(product.images[0] || '').replace(/\\/g, '/');
+    if (rawImg) {
+      firstImg = rawImg.startsWith('http') ? rawImg : (rawImg.startsWith('/') ? `https://enmar.shop${rawImg}` : `https://enmar.shop/${rawImg}`);
+    }
   }
 
   // 1. Update Title & Meta Title
@@ -597,19 +605,22 @@ async function tryServeStatic(req, res, pathname) {
     }, buf);
   }
 
+  const isUpload = finalPath.includes(path.sep + 'uploads' + path.sep) || finalPath.endsWith(path.sep + 'uploads');
+  const cacheControl = isUpload ? 'public, max-age=86400, stale-while-revalidate=3600' : 'public, max-age=31536000, immutable';
+
   const isTextType = ['.css', '.js', '.json', '.svg', '.txt', '.map'].includes(ext);
   if (isTextType) {
     const fileBuf = fs.readFileSync(finalPath);
     return sendCompressed(req, res, 200, {
       'Content-Type': mimeType,
-      'Cache-Control': 'public, max-age=31536000, immutable'
+      'Cache-Control': cacheControl
     }, fileBuf);
   }
 
   res.writeHead(200, {
     'Content-Type': mimeType,
     'Content-Length': stat.size,
-    'Cache-Control': 'public, max-age=31536000, immutable'
+    'Cache-Control': cacheControl
   });
 
   if (req.method === 'HEAD') {
@@ -2396,7 +2407,19 @@ const server = http.createServer(async (req, res) => {
         if (!user || !['admin', 'superadmin', 'manager'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         // Persist any uploaded product images (multipart 'images' field) to /uploads
         const uploadedImages = await saveUploadedImages(req.files);
-        const images = (Array.isArray(body.images) ? body.images : (body.images ? [body.images] : [])).concat(uploadedImages);
+        let directImages = [];
+        if (body.images) {
+          if (Array.isArray(body.images)) directImages = body.images;
+          else if (typeof body.images === 'string') {
+            try {
+              const parsed = JSON.parse(body.images);
+              directImages = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+            } catch {
+              directImages = [body.images];
+            }
+          }
+        }
+        const images = directImages.concat(uploadedImages);
         const product = await dbService.createProduct({
           name: body.name,
           farm: body.farm || '',
@@ -2424,15 +2447,37 @@ const server = http.createServer(async (req, res) => {
         const id = Number(pathname.split('/')[4]);
         const idx = store.products.findIndex(p => p.id === id);
         if (idx < 0) return json(res, 404, { error: 'Not found' });
-        // Merge uploaded images with existing ones (and honor removals) for multipart edits.
-        let patch = body;
-        if (req.files && req.files.length) {
-          const existing = (store.products[idx].images || []).filter(img => {
-            try { return !(body.removeImages && JSON.parse(body.removeImages).includes(img)); } catch { return true; }
-          });
-          const uploaded = await saveUploadedImages(req.files);
-          patch = Object.assign({}, body, { images: existing.concat(uploaded) });
+        
+        let patch = Object.assign({}, body);
+        let removeList = [];
+        try {
+          if (body.removeImages) {
+            removeList = typeof body.removeImages === 'string' ? JSON.parse(body.removeImages) : body.removeImages;
+            if (!Array.isArray(removeList)) removeList = [removeList];
+          }
+        } catch { removeList = []; }
+
+        const currentImages = Array.isArray(store.products[idx].images) ? store.products[idx].images : [];
+        const remaining = currentImages.filter(img => !removeList.includes(img));
+        const uploaded = await saveUploadedImages(req.files);
+        
+        if (uploaded.length > 0 || removeList.length > 0 || body.images !== undefined) {
+          let directImages = [];
+          if (body.images !== undefined) {
+            if (Array.isArray(body.images)) directImages = body.images;
+            else if (typeof body.images === 'string') {
+              try {
+                const parsed = JSON.parse(body.images);
+                directImages = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+              } catch {
+                directImages = body.images ? [body.images] : [];
+              }
+            }
+          }
+          const baseList = (body.images !== undefined && (!req.files || !req.files.length) && !removeList.length) ? directImages : remaining;
+          patch.images = baseList.concat(uploaded).filter(Boolean);
         }
+
         const updated = await dbService.updateProduct(id, patch);
         if (updated) {
           Object.assign(store.products[idx], updated);

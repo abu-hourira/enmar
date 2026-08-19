@@ -6,6 +6,34 @@ function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
+function normalizeImagePath(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  const trimmed = raw.trim().replace(/\\/g, '/');
+  if (!trimmed || trimmed === '[]' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '""') return '';
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/')) return trimmed;
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+}
+
+function normalizeImages(raw) {
+  if (!raw) return [];
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === '[]' || trimmed === 'null' || trimmed === 'undefined') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      list = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+    } catch {
+      list = trimmed.split(',').map(s => s.trim());
+    }
+  }
+  return list
+    .map(normalizeImagePath)
+    .filter(Boolean);
+}
+
 function safeJsonParse(str, fallback = null) {
   if (!str) return fallback;
   if (typeof str === 'object') return str;
@@ -52,7 +80,7 @@ function formatProduct(row) {
     lot: row.lot || '',
     discount: Number(row.discount || 0),
     description: row.description || '',
-    images: safeJsonParse(row.images, []),
+    images: normalizeImages(row.images),
     active: Boolean(row.active),
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString()
   };
@@ -284,7 +312,7 @@ const dbService = {
           p.lot || '',
           Number(p.discount || 0),
           p.description || '',
-          JSON.stringify(p.images || []),
+          JSON.stringify(normalizeImages(p.images || [])),
           p.active !== false
         ]
       );
@@ -304,7 +332,7 @@ const dbService = {
         p.lot || '',
         Number(p.discount || 0),
         p.description || '',
-        JSON.stringify(p.images || []),
+        JSON.stringify(normalizeImages(p.images || [])),
         p.active !== false
       ]
     );
@@ -328,7 +356,7 @@ const dbService = {
     }
     if (p.images !== undefined) {
       updates.push('`images` = ?');
-      values.push(JSON.stringify(p.images || []));
+      values.push(JSON.stringify(normalizeImages(p.images || [])));
     }
 
     if (updates.length > 0) {
@@ -350,7 +378,7 @@ const dbService = {
       id: Number(r.id),
       name: r.name,
       icon: r.icon || 'leaf',
-      image: r.image || ''
+      image: normalizeImagePath(r.image)
     }));
   },
 

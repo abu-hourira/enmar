@@ -631,10 +631,17 @@
     const root = document.getElementById('productRoot');
     if (!root) return;
 
-    const images = (product.images && product.images.length) ? product.images : [];
+    const rawImages = (product.images && Array.isArray(product.images)) ? product.images : (product.images ? [product.images] : []);
+    const images = rawImages
+      .map(img => typeof img === 'string' ? img.trim().replace(/\\/g, '/') : '')
+      .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
+      .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
+
+    const fallbackSvgEsc = produceIconSVG(product.icon || 'leaf', 80).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const galleryContent = images.length
       ? `<div class="gallery-main">
-          <img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img">
+          <img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img"
+               onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'gallery-fallback-icon\\'>${fallbackSvgEsc}</div>';">
           <button type="button" class="btn-gallery-fullscreen" id="btnGalleryFullscreen" aria-label="View full screen photo" title="ফুল স্ক্রিন ছবি দেখুন">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
             <span>Full Screen</span>
