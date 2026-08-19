@@ -309,6 +309,7 @@ function resolveExistingFile(relPath) {
     path.join(ROOT, 'public_html'),
     path.join(__dirname, 'public_html'),
     path.join(process.cwd(), 'public_html'),
+    '/home/enmarsho/enmar-web',
     '/home/enmarsho/public_html',
     '/home/enmarsho/repositories/enmar',
     '/home/enmarsho/enmar',
@@ -477,9 +478,11 @@ async function tryServeStatic(req, res, pathname) {
     ROOT,
     __dirname,
     process.cwd(),
+    path.join(__dirname, '..'),
     path.join(ROOT, 'public_html'),
     path.join(__dirname, 'public_html'),
     path.join(process.cwd(), 'public_html'),
+    '/home/enmarsho/enmar-web',
     '/home/enmarsho/public_html',
     '/home/enmarsho/repositories/enmar'
   ].filter((v, i, a) => v && typeof v === 'string' && a.indexOf(v) === i);
