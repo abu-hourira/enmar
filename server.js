@@ -298,21 +298,27 @@ function sendCompressed(req, res, statusCode, headers, buffer) {
 }
 
 function resolveExistingFile(relPath) {
-  const clean = String(relPath || '').replace(/^\/+/, '');
+  if (!relPath) return null;
+  const clean = String(relPath).replace(/^\/+/, '');
   const roots = [
     ROOT,
     __dirname,
     process.cwd(),
+    path.join(__dirname, '..'),
+    path.join(process.cwd(), '..'),
     path.join(ROOT, 'public_html'),
     path.join(__dirname, 'public_html'),
     path.join(process.cwd(), 'public_html'),
     '/home/enmarsho/public_html',
-    '/home/enmarsho/repositories/enmar'
+    '/home/enmarsho/repositories/enmar',
+    '/home/enmarsho/enmar',
+    '/home/enmarsho/app',
+    '/home/enmarsho'
   ].filter((v, i, a) => v && typeof v === 'string' && a.indexOf(v) === i);
 
   for (const r of roots) {
     try {
-      const full = path.join(r, clean);
+      const full = path.resolve(r, clean);
       if (fs.existsSync(full) && fs.statSync(full).isFile()) {
         return full;
       }
@@ -1400,7 +1406,8 @@ async function saveUploadedImages(files) {
 const server = http.createServer(async (req, res) => {
   try {
     const { method, url } = req;
-    const pathname = (url || '/').split('?')[0];
+    const rawPath = (url || '/').split('?')[0];
+    let pathname = rawPath.replace(/^\/(?:enmar\.shop|enmar|public_html)(?=\/|$)/i, '') || '/';
 
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2751,6 +2758,20 @@ const server = http.createServer(async (req, res) => {
         const interval = setInterval(() => res.write(': heartbeat\n\n'), 30000);
         req.on('close', () => clearInterval(interval));
         return;
+      }
+
+      // Fallback for non-API GET requests: Serve index.html
+      if (method === 'GET' && !pathname.startsWith('/api/')) {
+        const fallbackIndex = resolveExistingFile('index.html');
+        if (fallbackIndex) {
+          let html = fs.readFileSync(fallbackIndex, 'utf8');
+          html = injectServerBranding(html, fallbackIndex);
+          const buf = Buffer.from(html, 'utf8');
+          return sendCompressed(req, res, 200, {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-cache'
+          }, buf);
+        }
       }
 
       // 404
