@@ -1486,6 +1486,39 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
+    // ── DIAGNOSTIC FILE SYSTEM ENDPOINT ──
+    if (method === 'GET' && pathname === '/api/debug-files') {
+      const home = os.homedir();
+      const checkPaths = [
+        ROOT,
+        __dirname,
+        process.cwd(),
+        path.join(home, 'enmar-web'),
+        path.join(home, 'public_html'),
+        path.join(home, 'repositories', 'enmar'),
+        '/home/enmarsho/enmar-web',
+        '/home/enmarsho/public_html'
+      ].filter((v, i, a) => v && typeof v === 'string' && a.indexOf(v) === i);
+      const fileListing = {};
+      for (const p of checkPaths) {
+        try {
+          if (fs.existsSync(p)) {
+            fileListing[p] = fs.readdirSync(p);
+          } else {
+            fileListing[p] = 'DOES_NOT_EXIST';
+          }
+        } catch (e) {
+          fileListing[p] = 'ERROR: ' + e.message;
+        }
+      }
+      return json(res, 200, {
+        resolvedDashboard: resolveExistingFile('admin/dashboard.html'),
+        resolvedIndex: resolveExistingFile('index.html'),
+        homedir: home,
+        fileListing
+      });
+    }
+
     // ── DIAGNOSTIC DATABASE ENDPOINT ──
     if (method === 'GET' && pathname === '/api/test-db-live') {
       try {
