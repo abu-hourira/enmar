@@ -1453,6 +1453,56 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
+    // ── DIAGNOSTIC DATABASE ENDPOINT ──
+    if (method === 'GET' && pathname === '/api/test-db-live') {
+      try {
+        if (!dbPool) {
+          return json(res, 500, {
+            ok: false,
+            error: 'dbPool is null (mysql2 failed to load or config/db.js error)',
+            env: {
+              DB_HOST: process.env.DB_HOST,
+              DB_PORT: process.env.DB_PORT,
+              DB_USER: process.env.DB_USER,
+              DB_NAME: process.env.DB_NAME,
+              DB_PASS_SET: Boolean(process.env.DB_PASSWORD)
+            }
+          });
+        }
+        const conn = await dbPool.getConnection();
+        await conn.ping();
+        const [tables] = await conn.query('SHOW TABLES');
+        const [prods] = await conn.query('SELECT COUNT(*) as count FROM products').catch(() => [[{ count: 'table missing' }]]);
+        conn.release();
+        return json(res, 200, {
+          ok: true,
+          message: 'Database connected successfully!',
+          tables: tables.map(t => Object.values(t)[0]),
+          productsCount: prods[0]?.count,
+          env: {
+            DB_HOST: process.env.DB_HOST,
+            DB_PORT: process.env.DB_PORT,
+            DB_USER: process.env.DB_USER,
+            DB_NAME: process.env.DB_NAME
+          }
+        });
+      } catch (err) {
+        return json(res, 500, {
+          ok: false,
+          error: err.message,
+          code: err.code,
+          errno: err.errno,
+          env: {
+            DB_HOST: process.env.DB_HOST,
+            DB_PORT: process.env.DB_PORT,
+            DB_USER: process.env.DB_USER,
+            DB_NAME: process.env.DB_NAME,
+            DB_PASS_SET: Boolean(process.env.DB_PASSWORD)
+          }
+        });
+      }
+    }
+
     // ── STRICT DATABASE CONNECTIVITY GATE ──
     const dbOk = await isDbConnected();
     if (!dbOk) {
