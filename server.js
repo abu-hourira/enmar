@@ -2772,40 +2772,62 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/ad-media') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden: Admin access required' });
+
+        const uploadsDir = path.join(ROOT, 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (err) {
+            console.error('[Upload] Failed to create uploads dir:', err.message);
+            return json(res, 500, { error: 'Upload directory could not be created on server' });
+          }
+        }
 
         let url = '';
         let type = 'image';
 
         if (req.files && req.files.length) {
-          const file = req.files.find(f => f.fieldname === 'file') || req.files[0];
-          if (file && file.data && file.data.length) {
-            const ext = path.extname(file.filename || '').toLowerCase() || '.png';
-            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm', '.mov'].includes(ext) ? ext : '.png';
-            const uploadsDir = path.join(ROOT, 'uploads');
-            if (!fs.existsSync(uploadsDir)) {
-              try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+          const file = req.files.find(f => ['file', 'files', 'image', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
+          const fileBuf = file ? (file.data || file.buffer || file.content) : null;
+          if (file && fileBuf && fileBuf.length) {
+            const rawFilename = file.filename || file.name || 'banner';
+            const ext = path.extname(rawFilename).toLowerCase();
+            const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm', '.mov', '.avif'];
+            if (ext && !allowedExts.includes(ext)) {
+              return json(res, 400, { error: `Unsupported file format (${ext}). Allowed: JPG, PNG, WebP, GIF, MP4, WebM.` });
             }
-            const fname = `ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const cleanExt = allowedExts.includes(ext) ? ext : '.png';
+            const safeBase = rawFilename.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+            const fname = `ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safeBase}${cleanExt}`;
             const targetFile = path.join(uploadsDir, fname);
-            fs.writeFileSync(targetFile, file.data);
-            url = `/uploads/${fname}`;
-            if (['.mp4', '.webm', '.mov'].includes(cleanExt) || (file.mimeType && file.mimeType.startsWith('video/'))) {
-              type = 'video';
+            try {
+              fs.writeFileSync(targetFile, fileBuf);
+              url = `/uploads/${fname}`;
+              const mime = file.mimeType || file.mime || '';
+              if (['.mp4', '.webm', '.mov'].includes(cleanExt) || mime.startsWith('video/')) {
+                type = 'video';
+              }
+            } catch (writeErr) {
+              console.error('[Upload] Error saving file to disk:', writeErr);
+              return json(res, 500, { error: 'Failed to write uploaded file to disk: ' + writeErr.message });
             }
           }
-        } else if (body.url || body.image) {
+        } else if (body && (body.url || body.image)) {
           url = body.url || body.image;
           type = body.type || (url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image');
         }
 
         if (!url) {
-          return json(res, 400, { error: 'No image or video file provided' });
+          return json(res, 400, { error: 'No image or video file was received in the request' });
         }
 
         const id = `ad_media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
         const item = { id, url, type };
-        await dbService.createAdMedia(item);
+        try {
+          await dbService.createAdMedia(item);
+        } catch (dbErr) {
+          console.error('[Upload] DB Error saving ad_media:', dbErr);
+          return json(res, 500, { error: 'Database save failed: ' + dbErr.message });
+        }
         return json(res, 201, item);
       }
       if (method === 'GET' && pathname === '/api/side-banner') {
@@ -2818,7 +2840,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/admin/side-banner') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden: Admin access required' });
         const settings = store.settings || {};
         return json(res, 200, {
           image: settings.heroSideBannerImage || '',
@@ -2828,24 +2850,40 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'POST' && pathname === '/api/admin/side-banner') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden: Admin access required' });
+
+        const uploadsDir = path.join(ROOT, 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (err) {
+            console.error('[Upload] Failed to create uploads dir:', err.message);
+            return json(res, 500, { error: 'Upload directory could not be created on server' });
+          }
+        }
 
         let url = '';
         if (req.files && req.files.length) {
-          const file = req.files.find(f => f.fieldname === 'file') || req.files[0];
-          if (file && file.data && file.data.length) {
-            const ext = path.extname(file.filename || '').toLowerCase() || '.png';
-            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.png';
-            const uploadsDir = path.join(ROOT, 'uploads');
-            if (!fs.existsSync(uploadsDir)) {
-              try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+          const file = req.files.find(f => ['file', 'files', 'image', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
+          const fileBuf = file ? (file.data || file.buffer || file.content) : null;
+          if (file && fileBuf && fileBuf.length) {
+            const rawFilename = file.filename || file.name || 'side-banner';
+            const ext = path.extname(rawFilename).toLowerCase();
+            const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+            if (ext && !allowedExts.includes(ext)) {
+              return json(res, 400, { error: `Unsupported file format (${ext}). Allowed: JPG, PNG, WebP, GIF.` });
             }
-            const fname = `side-ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const cleanExt = allowedExts.includes(ext) ? ext : '.png';
+            const safeBase = rawFilename.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+            const fname = `side-ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safeBase}${cleanExt}`;
             const targetFile = path.join(uploadsDir, fname);
-            fs.writeFileSync(targetFile, file.data);
-            url = `/uploads/${fname}`;
+            try {
+              fs.writeFileSync(targetFile, fileBuf);
+              url = `/uploads/${fname}`;
+            } catch (writeErr) {
+              console.error('[Upload] Error saving side banner to disk:', writeErr);
+              return json(res, 500, { error: 'Failed to write uploaded file to disk: ' + writeErr.message });
+            }
           }
-        } else if (body.image || body.url) {
+        } else if (body && (body.image || body.url)) {
           url = body.image || body.url;
         }
 
@@ -2853,11 +2891,11 @@ const server = http.createServer(async (req, res) => {
           store.settings.heroSideBannerImage = url;
           await dbService.saveStoreSetting('heroSideBannerImage', url);
         }
-        if (body.tag !== undefined) {
+        if (body && body.tag !== undefined) {
           store.settings.heroSideBannerTag = body.tag;
           await dbService.saveStoreSetting('heroSideBannerTag', body.tag);
         }
-        if (body.cat !== undefined) {
+        if (body && body.cat !== undefined) {
           store.settings.heroSideBannerCat = body.cat;
           await dbService.saveStoreSetting('heroSideBannerCat', body.cat);
         }
@@ -2871,17 +2909,17 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'DELETE' && pathname === '/api/admin/side-banner') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden: Admin access required' });
         store.settings.heroSideBannerImage = '';
         await dbService.saveStoreSetting('heroSideBannerImage', '');
-        return json(res, 200, { ok: true });
+        return json(res, 200, { ok: true, message: 'Side banner removed' });
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/ad-media\/[^/]+$/)) {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden: Admin access required' });
         const id = decodeURIComponent(pathname.split('/')[4]);
         await dbService.deleteAdMedia(id);
-        return json(res, 200, { ok: true });
+        return json(res, 200, { ok: true, message: 'Ad media deleted' });
       }
       if (method === 'POST' && pathname === '/api/admin/ads') {
         const user = currentUser(req, store);
