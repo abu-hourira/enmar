@@ -2,5 +2,7 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/enmarsho/public_html
+    - export NODEPATH=/home/enmarsho/enmar-web
     - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp -R * $NODEPATH
     - if [ ! -f "$DEPLOYPATH/.htaccess" ]; then /bin/cp .htaccess $DEPLOYPATH; fi
