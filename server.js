@@ -297,14 +297,38 @@ function sendCompressed(req, res, statusCode, headers, buffer) {
   return true;
 }
 
+function resolveExistingFile(relPath) {
+  const clean = String(relPath || '').replace(/^\/+/, '');
+  const roots = [
+    ROOT,
+    __dirname,
+    process.cwd(),
+    path.join(ROOT, 'public_html'),
+    path.join(__dirname, 'public_html'),
+    path.join(process.cwd(), 'public_html'),
+    '/home/enmarsho/public_html',
+    '/home/enmarsho/repositories/enmar'
+  ].filter((v, i, a) => v && typeof v === 'string' && a.indexOf(v) === i);
+
+  for (const r of roots) {
+    try {
+      const full = path.join(r, clean);
+      if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+        return full;
+      }
+    } catch {}
+  }
+  return null;
+}
+
 async function tryServeStatic(req, res, pathname) {
   if (req.method !== 'GET' && req.method !== 'HEAD') return false;
   if (pathname.startsWith('/api/')) return false;
 
   // Root / index request
   if (pathname === '/' || pathname === '' || pathname === '/index') {
-    const indexPath = path.join(ROOT, 'index.html');
-    if (fs.existsSync(indexPath)) {
+    const indexPath = resolveExistingFile('index.html');
+    if (indexPath) {
       let html = fs.readFileSync(indexPath, 'utf8');
       html = injectServerBranding(html, indexPath);
       const buf = Buffer.from(html, 'utf8');
@@ -355,8 +379,8 @@ async function tryServeStatic(req, res, pathname) {
         } catch {}
       }
     }
-    const prodHtmlPath = path.join(ROOT, 'pages', 'product.html');
-    if (fs.existsSync(prodHtmlPath)) {
+    const prodHtmlPath = resolveExistingFile('pages/product.html') || resolveExistingFile('product.html');
+    if (prodHtmlPath) {
       let html = fs.readFileSync(prodHtmlPath, 'utf8');
       const settings = (store && store.settings) ? store.settings : {};
       const brandName = settings.brandName || 'ENMAR';
@@ -394,8 +418,8 @@ async function tryServeStatic(req, res, pathname) {
   const catRouteMatch = pathname.match(/^\/category\/([^\/?#]+)$/i);
   if (catRouteMatch) {
     const catSlug = catRouteMatch[1];
-    const indexPath = path.join(ROOT, 'index.html');
-    if (fs.existsSync(indexPath)) {
+    const indexPath = resolveExistingFile('index.html');
+    if (indexPath) {
       let html = fs.readFileSync(indexPath, 'utf8');
       html = injectServerBranding(html, indexPath);
       const catScript = `<script>window.__INITIAL_CATEGORY__ = ${JSON.stringify(catSlug)};</script>`;
@@ -430,26 +454,30 @@ async function tryServeStatic(req, res, pathname) {
   const cleanPath = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   
   if (!cleanPath) {
-    const rootIndexCandidates = [
-      path.join(ROOT, 'index.html'),
-      path.join(__dirname, 'index.html'),
-      path.join(process.cwd(), 'index.html')
-    ];
-    for (const cand of rootIndexCandidates) {
-      if (fs.existsSync(cand)) {
-        let html = fs.readFileSync(cand, 'utf8');
-        html = injectServerBranding(html, cand);
-        const buf = Buffer.from(html, 'utf8');
-        return sendCompressed(req, res, 200, {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache'
-        }, buf);
-      }
+    const indexPath = resolveExistingFile('index.html');
+    if (indexPath) {
+      let html = fs.readFileSync(indexPath, 'utf8');
+      html = injectServerBranding(html, indexPath);
+      const buf = Buffer.from(html, 'utf8');
+      return sendCompressed(req, res, 200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache'
+      }, buf);
     }
     return false;
   }
 
-  const searchRoots = [ROOT, __dirname, process.cwd()].filter((v, i, a) => v && a.indexOf(v) === i);
+  const searchRoots = [
+    ROOT,
+    __dirname,
+    process.cwd(),
+    path.join(ROOT, 'public_html'),
+    path.join(__dirname, 'public_html'),
+    path.join(process.cwd(), 'public_html'),
+    '/home/enmarsho/public_html',
+    '/home/enmarsho/repositories/enmar'
+  ].filter((v, i, a) => v && typeof v === 'string' && a.indexOf(v) === i);
+
   const candidates = [];
   for (const r of searchRoots) {
     candidates.push(
@@ -646,6 +674,99 @@ async function readStore() {
       });
     }
   } catch {}
+
+  // Auto-seed default categories if database is empty
+  try {
+    const existingCats = await dbService.getCategories().catch(() => []);
+    if (!existingCats || existingCats.length === 0) {
+      const defaultCats = [
+        { name: 'Honey & Sweeteners', icon: 'honey' },
+        { name: 'Oils & Ghee', icon: 'oil' },
+        { name: 'Rice & Grains', icon: 'grain' },
+        { name: 'Organic Spices', icon: 'spice' },
+        { name: 'Dairy & Eggs', icon: 'egg' },
+        { name: 'Fresh Fruits', icon: 'apple' },
+        { name: 'Vegetables', icon: 'leaf' },
+        { name: 'Nuts & Seeds', icon: 'nuts' }
+      ];
+      for (const c of defaultCats) {
+        await dbService.createCategory(c).catch(() => {});
+      }
+    }
+  } catch {}
+
+  // Auto-seed default products if database is empty
+  try {
+    let prodsInDb = await dbService.getAllProductsAdmin().catch(() => []);
+    if (!prodsInDb || prodsInDb.length === 0) {
+      const defaultProds = [
+        {
+          id: 4,
+          name: 'Sundarban Raw Organic Honey',
+          farm: 'Sundarban Forest API Co-op',
+          price: 950,
+          unit: '500g jar',
+          cat: 'Honey & Sweeteners',
+          icon: 'droplet',
+          tag: '10% OFF',
+          lot: 'SB-2026-04',
+          discount: 10,
+          description: `**১০০% খাঁটি ও প্রাকৃতিক সুন্দরবনের চাকভাঙা কাঁচা মধু (Sundarban Wild Raw Honey)**\n\nসুন্দরবনের গভীর ম্যানগ্রোভ বনাঞ্চল থেকে সরাসরি মৌয়ালদের দ্বারা প্রাকৃতিকভাবে সংগৃহীত খাঁটি মধু। এতে কোনো প্রকার প্রসেসিং বা হিটিং করা হয় না, ফলে মধুর প্রাকৃতিক গুণাগুণ ও এনজাইম অক্ষুণ্ণ থাকে।\n\n### বৈশিষ্ট্য ও উপকারিতা:\n- সম্পূর্ণ নির্ভেজাল, প্রাকৃতিক এবং অপরিশোধিত\n- রোগ প্রতিরোধ ক্ষমতা ও এনার্জি বৃদ্ধিতে অত্যন্ত কার্যকর\n- সর্দি-কাশি ও গলার খুসখুস দূর করতে সাহায্য করে\n- প্রাকৃতিক অ্যান্টিঅক্সিডেন্ট ও মিনারেল সমৃদ্ধ\n\n**সংরক্ষণ পদ্ধতি:** সাধারণ তাপমাত্রায় শুষ্ক স্থানে রাখুন। ফ্রিজে রাখার প্রয়োজন নেই।`,
+          images: [],
+          active: true
+        },
+        {
+          id: 5,
+          name: 'Cold Pressed Pure Mustard Oil',
+          farm: 'Natore Organic Agro',
+          price: 380,
+          unit: '1 Litre',
+          cat: 'Oils & Ghee',
+          icon: 'sun',
+          tag: '5% OFF',
+          lot: 'NT-2026-09',
+          discount: 5,
+          description: `**ঘানি-ভাঙা খাঁটি সরিষার তেল (Cold Pressed Pure Mustard Oil)**\n\nনাটোরের সেরা বাছাইকৃত দেশি সরিষার বীজ থেকে কাঠের ঘানিতে ভাঙানো ১০০% খাঁটি ও সুগন্ধযুক্ত সরিষার তেল। কোনো প্রকার রাসায়নিক বা ভেজাল মিশ্রণ ছাড়া প্রস্তুত।\n\n### বৈশিষ্ট্য ও উপকারিতা:\n- কাঠের ঘানিতে ভাঙা ও কোল্ড প্রেসড প্রসেসে তৈরি\n- খাঁটি ঝাঁঝ ও ঐতিহ্যবাহী প্রাকৃতিক স্বাদ\n- রান্নার স্বাদ ও পুষ্টিগুণ বাড়ায়\n- হার্ট ও রক্ত সঞ্চালনের জন্য উপকারী\n\n**উৎপাদন:** নাটোর অর্গানিক এগ্রো ফার্ম`,
+          images: [],
+          active: true
+        },
+        {
+          id: 6,
+          name: 'Organic Premium Nazirshail Rice',
+          farm: 'Dinajpur Heritage Farms',
+          price: 420,
+          unit: '5kg pack',
+          cat: 'Rice & Grains',
+          icon: 'box',
+          tag: 'Organic',
+          lot: 'DJ-2026-01',
+          discount: 0,
+          description: `**প্রিমিয়াম অর্গানিক নাজিরশাইল চাল (Organic Premium Nazirshail Rice)**\n\nদিনাজপুরের ঐতিহ্যবাহী উর্বর জমিতে কোনো রাসায়নিক সার ও কীটনাশক ছাড়া সম্পূর্ণ প্রাকৃতিক উপায়ে উৎপাদিত দীর্ঘ দানাদার সুগন্ধি নাজিরশাইল চাল।\n\n### বৈশিষ্ট্য ও উপকারিতা:\n- সুস্বাদু, ঝরঝরে ও সহজে হজমযোগ্য\n- ডায়েটারি ফাইবার ও পুষ্টি উপাদান সমৃদ্ধ\n- দৈনিক স্বাস্থ্যকর আহারের জন্য আদর্শ চাল\n- ১০০% কেমিক্যাল ও পলিশমুক্ত\n\n**উৎপাদন:** দিনাজপুর হেরিটেজ ফার্মস`,
+          images: [],
+          active: true
+        },
+        {
+          id: 25,
+          name: 'প্রিমিয়াম অর্গানিক ড্রাই ফ্রুটস ও নাটস কম্বো',
+          farm: 'ENMAR Organic Farms',
+          price: 850,
+          unit: '500g pack',
+          cat: 'Nuts & Seeds',
+          icon: 'nuts',
+          tag: 'Popular',
+          lot: 'EM-2026-25',
+          discount: 0,
+          description: `**প্রিমিয়াম অর্গানিক মিক্সড ড্রাই ফ্রুটস ও নাটস (Organic Mixed Dry Fruits & Nuts)**\n\nবাছাইকৃত সেরা মানের কাঠবাদাম, কাজুবাদাম, পেস্তাবাদাম, আখরোট, কিশমিশ এবং প্রিমিয়াম আনজিরের পুষ্টিকর ও সুস্বাদু মিশ্রণ।\n\n### বৈশিষ্ট্য ও উপকারিতা:\n- ভিটামিন, মিনারেল ও স্বাস্থ্যকর ফ্যাটের প্রাকৃতিক উৎস\n- মস্তিষ্কের কার্যক্ষমতা ও শারীরিক শক্তি বৃদ্ধি করে\n- স্বাস্থ্যকর স্ন্যাক্স হিসেবে অত্যন্ত উপযুক্ত\n- ১০০% ফ্রেশ ও ক্রিস্পি প্যাকেজিং`,
+          images: [],
+          active: true
+        }
+      ];
+      for (const p of defaultProds) {
+        await dbService.createProduct(p).catch(() => {});
+      }
+    }
+  } catch {}
+
   const users = await dbService.getAllUsers();
   const products = await dbService.getAllProductsAdmin();
   const orders = await dbService.getAllOrdersAdmin();
