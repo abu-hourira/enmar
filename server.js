@@ -375,8 +375,8 @@ async function tryServeStatic(req, res, pathname) {
   }
 
   // Explicit Admin Pages Routing (/admin/dashboard, /admin/products, /admin/orders, /admin/settings, /admin/apis, etc.)
-  if (pathname.startsWith('/admin/')) {
-    const page = pathname.replace(/^\/admin\//, '').replace(/\.html$/i, '').replace(/\/+$/, '');
+  if (pathname.startsWith('/admin/') && !pathname.includes('.')) {
+    const page = pathname.replace(/^\/admin\//, '').replace(/\/+$/, '');
     const adminHtmlPath = resolveExistingFile(`admin/${page}.html`) || resolveExistingFile(`admin/${page}`) || resolveExistingFile('admin/dashboard.html');
     if (adminHtmlPath) {
       let html = fs.readFileSync(adminHtmlPath, 'utf8');
@@ -390,18 +390,20 @@ async function tryServeStatic(req, res, pathname) {
   }
 
   // Explicit Frontend Pages Routing (/checkout, /my-orders, /bmi-calculator, /receipt, /about, etc.)
-  const pageMatch = pathname.match(/^\/([a-zA-Z0-9_-]+)$/);
-  if (pageMatch) {
-    const pageName = pageMatch[1];
-    const pageHtmlPath = resolveExistingFile(`pages/${pageName}.html`) || resolveExistingFile(`${pageName}.html`);
-    if (pageHtmlPath) {
-      let html = fs.readFileSync(pageHtmlPath, 'utf8');
-      html = injectServerBranding(html, pageHtmlPath);
-      const buf = Buffer.from(html, 'utf8');
-      return sendCompressed(req, res, 200, {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-cache'
-      }, buf);
+  if (!pathname.includes('.')) {
+    const pageMatch = pathname.match(/^\/([a-zA-Z0-9_-]+)$/);
+    if (pageMatch) {
+      const pageName = pageMatch[1];
+      const pageHtmlPath = resolveExistingFile(`pages/${pageName}.html`) || resolveExistingFile(`${pageName}.html`);
+      if (pageHtmlPath) {
+        let html = fs.readFileSync(pageHtmlPath, 'utf8');
+        html = injectServerBranding(html, pageHtmlPath);
+        const buf = Buffer.from(html, 'utf8');
+        return sendCompressed(req, res, 200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache'
+        }, buf);
+      }
     }
   }
 
