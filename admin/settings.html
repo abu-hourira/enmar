@@ -326,6 +326,7 @@
           <span class="mono-tag">Footer tagline and delivery pricing</span>
         </div>
         <div id="footerMessage"></div>
+        <form class="product-form" id="footerForm" novalidate>
           <div class="field span2">
             <label for="footerTagline">Footer bottom text / ফুটার বটম ও কপিরাইট লেখা</label>
             <input type="text" id="footerTagline" maxlength="160" required>
@@ -755,39 +756,169 @@
 
 <script src="/admin/admin-core.js"></script>
 <script>
+/* Helper functions */
+function fill(id, value) {
+  const el = $(id);
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = value ?? '';
+}
+
+function val(id) {
+  const el = $(id);
+  return el ? el.value.trim() : '';
+}
+
+function renderBrandLogoPreview(url) {
+  const box = $('brandLogoPreview');
+  if (!box) return;
+  box.innerHTML = url ? `<img src="${esc(url)}" alt="Storefront Logo preview" style="max-height:48px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff;object-fit:contain">` : '';
+}
+
+function renderAdminLogoPreview(url) {
+  const box = $('adminLogoPreview');
+  if (!box) return;
+  box.innerHTML = url ? `<img src="${esc(url)}" alt="Admin Logo preview" style="max-height:48px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff;object-fit:contain">` : '';
+}
+
+function renderFaviconPreview(url) {
+  const box = $('faviconPreview');
+  if (!box) return;
+  box.innerHTML = url ? `<img src="${esc(url)}" alt="Favicon preview" style="width:32px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--line);padding:3px;background:#fff">` : '';
+}
+
+/* Theme Presets */
+const THEME_PRESETS = [
+  { name: 'ENMAR Red (default)', p: '#631e2a', a: '#C0912E' },
+  { name: 'Ocean Blue',          p: '#0a4d68', a: '#f4a01c' },
+  { name: 'Emerald',             p: '#1b4332', a: '#e9c46a' },
+  { name: 'Royal Purple',        p: '#4a2c7a', a: '#f0b429' },
+  { name: 'Midnight Navy',       p: '#1e2a4a', a: '#38bdf8' },
+  { name: 'Charcoal & Gold',     p: '#2b2b2b', a: '#d4a017' },
+  { name: 'Forest Green',        p: '#2d4a22', a: '#f5a623' },
+  { name: 'Berry',               p: '#7b2d3d', a: '#00c9a7' }
+];
+
+function renderThemePresets() {
+  const wrap = $('themePresets');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  THEME_PRESETS.forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'theme-preset-btn';
+    b.title = t.name;
+    b.innerHTML = `<span class="tp-dot" style="background:${t.p}"></span><span class="tp-dot" style="background:${t.a}"></span><span class="tp-name">${esc(t.name)}</span>`;
+    b.onclick = () => {
+      if ($('themePrimary')) $('themePrimary').value = t.p;
+      if ($('themeAccent')) $('themeAccent').value = t.a;
+      renderThemePreview();
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function renderThemePreview() {
+  const preview = $('themePreview');
+  if (!preview) return;
+  const p = $('themePrimary') ? $('themePrimary').value : '#631e2a';
+  const a = $('themeAccent') ? $('themeAccent').value : '#C0912E';
+  preview.innerHTML = `<span class="tp-chip" style="background:${p}">Primary</span><span class="tp-chip" style="background:${a}">Accent</span>`;
+}
+
+/* Ad Media */
+let adMedia = [];
+
+async function loadAdMedia() {
+  try {
+    adMedia = await api('/api/admin/ad-media').catch(() => api('/api/ad-media'));
+    renderAdMedia();
+  } catch (err) {
+    notice($('adMessage'), 'Could not load ad media: ' + err.message);
+  }
+}
+
+function renderAdMedia() {
+  const grid = $('adMediaGrid');
+  if (!grid) return;
+  if (!adMedia.length) {
+    grid.innerHTML = '<p style="font-size:.8rem;color:var(--ink-soft);padding:8px 0;">No ad items yet. Upload an image or video below.</p>';
+    return;
+  }
+  grid.innerHTML = adMedia.map(m => `
+    <div class="ad-thumb" data-id="${esc(m.id)}">
+      ${m.type === 'video'
+        ? `<video src="${esc(m.url)}" muted preload="metadata"></video>`
+        : `<img src="${esc(m.url)}" alt="Ad">`}
+      <span class="ad-type-badge">${m.type}</span>
+      <button type="button" class="btn-ad-delete" data-id="${esc(m.id)}" title="Remove">✕</button>
+    </div>`).join('');
+
+  grid.querySelectorAll('.btn-ad-delete').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Remove this banner item?')) return;
+      try {
+        await api(`/api/admin/ad-media/${btn.dataset.id}`, { method: 'DELETE' });
+        adMedia = adMedia.filter(m => String(m.id) !== String(btn.dataset.id));
+        renderAdMedia();
+        notice($('adMessage'), 'Banner item removed successfully.', true);
+      } catch (err) {
+        notice($('adMessage'), err.message);
+      }
+    };
+  });
+}
+
+async function uploadAdFiles(files) {
+  notice($('adMessage'), '');
+  let successCount = 0;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if ($('adUploadText')) $('adUploadText').textContent = files.length > 1 ? `Uploading (${i + 1}/${files.length})…` : 'Uploading…';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/ad-media', {
+        method: 'POST',
+        body: fd,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+      adMedia.unshift(data);
+      successCount++;
+    } catch (err) {
+      notice($('adMessage'), `Error uploading "${file.name}": ` + err.message);
+    }
+  }
+  renderAdMedia();
+  if (successCount > 0) {
+    notice($('adMessage'), `${successCount} banner item${successCount > 1 ? 's' : ''} uploaded successfully.`, true);
+  }
+  if ($('adUploadText')) $('adUploadText').textContent = 'Click or drag to upload image / video';
+}
+
+/* Main Init */
 (async () => {
   const user = await initAdminPage(['superadmin', 'admin', 'manager']);
   if (!user) return;
 
   // Contact card only for admin / superadmin
-  if (['superadmin', 'admin'].includes(user.role)) {
-    $('contactCard').style.display = 'block';
+  if ($('contactCard')) {
+    $('contactCard').style.display = ['superadmin', 'admin'].includes(user.role) ? 'block' : 'none';
   }
 
-  function renderBrandLogoPreview(src) {
-    const p = $('brandLogoPreview');
-    if (!p) return;
-    p.innerHTML = src ? `<img src="${src}" alt="Brand Logo Preview" style="max-height:54px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:var(--paper);object-fit:contain">` : '';
+  // Developer panel only for superadmin
+  if ($('developerInfoPanel')) {
+    $('developerInfoPanel').style.display = (user.role === 'superadmin') ? 'block' : 'none';
   }
 
-  function renderAdminLogoPreview(src) {
-    const p = $('adminLogoPreview');
-    if (!p) return;
-    p.innerHTML = src ? `<img src="${src}" alt="Admin Logo Preview" style="max-height:54px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:var(--paper);object-fit:contain">` : '';
-  }
-
-  function renderFaviconPreview(src) {
-    const p = $('faviconPreview');
-    if (!p) return;
-    p.innerHTML = src ? `<img src="${src}" alt="Favicon Preview" style="max-height:36px;max-width:36px;border-radius:4px;border:1px solid var(--line);padding:3px;background:var(--paper);object-fit:contain">` : '';
-  }
+  renderThemePresets();
 
   // Load current settings into all form fields
   try {
     const s = await api('/api/settings');
-    fill('newsletterHeading',     s.newsletterHeading);
-    fill('newsletterBody',        s.newsletterBody);
-    fill('footerTagline',         s.footerTagline);
+
+    // Branding
     fill('siteTitle',             s.siteTitle || '');
     fill('brandName',             s.brandName || '');
     fill('siteDescription',       s.siteDescription || s.metaDescription || '');
@@ -795,11 +926,17 @@
     fill('adminBrandName',        s.adminBrandName || '');
     if (s.adminLogo) { $('adminLogo').value = s.adminLogo; renderAdminLogoPreview(s.adminLogo); }
     if (s.favicon) { $('favicon').value = s.favicon; renderFaviconPreview(s.favicon); }
-    $('themePrimary').value = s.themePrimary || '#631e2a';
-    $('themeAccent').value = s.themeAccent || '#C0912E';
+
+    // Theme
+    if ($('themePrimary')) $('themePrimary').value = s.themePrimary || '#631e2a';
+    if ($('themeAccent')) $('themeAccent').value = s.themeAccent || '#C0912E';
     renderThemePreview();
-    fill('shippingFlat',          s.shippingFlat);
-    fill('shippingFreeThreshold', s.shippingFreeThreshold);
+
+    // Newsletter
+    fill('newsletterHeading',     s.newsletterHeading);
+    fill('newsletterBody',        s.newsletterBody);
+
+    // Contact info
     fill('contactPhone',          s.contactPhone);
     fill('contactEmail',          s.contactEmail);
     fill('contactAddress',        s.contactAddress);
@@ -809,19 +946,27 @@
     fill('footerShippingInfo',    s.footerShippingInfo);
     fill('footerFarmInfo',        s.footerFarmInfo);
     fill('footerContactInfo',     s.footerContactInfo);
+
+    // Footer & shipping
+    fill('footerTagline',         s.footerTagline);
+    fill('shippingFlat',          s.shippingFlat);
+    fill('shippingFreeThreshold', s.shippingFreeThreshold);
+
     // Information pages
     fill('pageAboutUs',         s.pageAboutUs);
     fill('pageContactUs',       s.pageContactUs);
     fill('pageCompanyInfo',     s.pageCompanyInfo);
     fill('pageTerms',           s.pageTerms);
     fill('pagePrivacyPolicy',   s.pagePrivacyPolicy);
+
     // Support pages
     fill('pageSupportCenter',   s.pageSupportCenter);
     fill('pageHowToOrder',      s.pageHowToOrder);
     fill('pageOrderTracking',   s.pageOrderTracking);
     fill('pagePaymentInfo',     s.pagePaymentInfo);
-    fill('pageSupportShipping', s.footerShippingInfo);
+    fill('pageSupportShipping', s.pageSupportShipping || s.footerShippingInfo || '');
     fill('pageFaq',             s.pageFaq);
+
     // Consumer policy pages
     fill('pageHappyReturn',     s.pageHappyReturn);
     fill('pageRefundPolicy',    s.pageRefundPolicy);
@@ -887,84 +1032,136 @@
     notice($('globalMessage'), 'Could not load settings: ' + err.message);
   }
 
-  // Branding Logo Upload & Remove Handlers
+  // 1. Branding Files Handlers
   $('brandLogoFile')?.addEventListener('change', () => {
-    const f = $('brandLogoFile').files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
+    const file = $('brandLogoFile').files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      notice($('brandingMessage'), 'Storefront Logo must be under 2 MB.');
+      $('brandLogoFile').value = '';
+      return;
+    }
+    const r = new FileReader();
+    r.onload = ev => {
       $('brandLogo').value = ev.target.result;
       renderBrandLogoPreview(ev.target.result);
+      notice($('brandingMessage'), '', true);
     };
-    reader.readAsDataURL(f);
+    r.readAsDataURL(file);
   });
 
   $('btnBrandLogoRemove')?.addEventListener('click', () => {
     $('brandLogo').value = '';
     if ($('brandLogoFile')) $('brandLogoFile').value = '';
     renderBrandLogoPreview('');
+    notice($('brandingMessage'), 'Storefront logo cleared — default leaf icon will be shown.', true);
   });
 
   $('adminLogoFile')?.addEventListener('change', () => {
-    const f = $('adminLogoFile').files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
+    const file = $('adminLogoFile').files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      notice($('brandingMessage'), 'Admin Logo must be under 2 MB.');
+      $('adminLogoFile').value = '';
+      return;
+    }
+    const r = new FileReader();
+    r.onload = ev => {
       $('adminLogo').value = ev.target.result;
       renderAdminLogoPreview(ev.target.result);
+      notice($('brandingMessage'), '', true);
     };
-    reader.readAsDataURL(f);
+    r.readAsDataURL(file);
   });
 
   $('btnAdminLogoRemove')?.addEventListener('click', () => {
     $('adminLogo').value = '';
     if ($('adminLogoFile')) $('adminLogoFile').value = '';
     renderAdminLogoPreview('');
+    notice($('brandingMessage'), 'Admin logo cleared — default store branding will be used.', true);
   });
 
   $('faviconFile')?.addEventListener('change', () => {
-    const f = $('faviconFile').files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
+    const file = $('faviconFile').files[0];
+    if (!file) return;
+    if (file.size > 512 * 1024) {
+      notice($('brandingMessage'), 'Favicon must be under 512 KB.');
+      $('faviconFile').value = '';
+      return;
+    }
+    const r = new FileReader();
+    r.onload = ev => {
       $('favicon').value = ev.target.result;
       renderFaviconPreview(ev.target.result);
+      notice($('brandingMessage'), '', true);
     };
-    reader.readAsDataURL(f);
+    r.readAsDataURL(file);
   });
 
   $('btnFaviconRemove')?.addEventListener('click', () => {
     $('favicon').value = '';
     if ($('faviconFile')) $('faviconFile').value = '';
     renderFaviconPreview('');
+    notice($('brandingMessage'), 'Favicon cleared — browser default icon will be used.', true);
   });
 
-  // Branding form
+  // 1. Branding Form Submit
   $('brandingForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('brandingMessage');
     notice(msg, '');
     try {
-      await api('/api/admin/settings', {
+      const payload = {
+        siteTitle:       val('siteTitle'),
+        brandName:       val('brandName'),
+        siteDescription: val('siteDescription'),
+        brandLogo:       $('brandLogo') ? $('brandLogo').value : '',
+        adminBrandName:  val('adminBrandName'),
+        adminLogo:       $('adminLogo') ? $('adminLogo').value : '',
+        favicon:         $('favicon') ? $('favicon').value : ''
+      };
+      const updated = await api('/api/admin/settings', {
         method: 'PATCH',
-        body: JSON.stringify({
-          siteTitle:       val('siteTitle'),
-          brandName:       val('brandName'),
-          siteDescription: val('siteDescription'),
-          brandLogo:       $('brandLogo') ? $('brandLogo').value : '',
-          adminBrandName:  val('adminBrandName'),
-          adminLogo:       $('adminLogo') ? $('adminLogo').value : '',
-          favicon:         $('favicon') ? $('favicon').value : ''
-        })
+        body: JSON.stringify(payload)
       });
-      notice(msg, 'Branding settings saved successfully.', true);
+      if (typeof applyAdminBranding === 'function') applyAdminBranding(updated);
+      if (typeof applySiteFavicon === 'function') applySiteFavicon(updated.favicon || '');
+      notice(msg, 'Storefront branding & SEO description saved successfully! Live brand name, SEO metadata, logo & favicon updated.', true);
     } catch (err) {
       notice(msg, err.message);
     }
   });
 
-  // Newsletter form
-  $('newsletterForm').addEventListener('submit', async e => {
+  // 2. Theme Controls & Save
+  $('themePrimary')?.addEventListener('input', renderThemePreview);
+  $('themeAccent')?.addEventListener('input', renderThemePreview);
+  $('btnSaveTheme')?.addEventListener('click', async () => {
+    const msg = $('themeMessage');
+    notice(msg, '');
+    const p = $('themePrimary') ? $('themePrimary').value : '#631e2a';
+    const a = $('themeAccent') ? $('themeAccent').value : '#C0912E';
+    const preset = THEME_PRESETS.find(t => t.p === p && t.a === a);
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          themeName: preset ? preset.name : 'Custom',
+          themePrimary: p,
+          themeAccent: a
+        })
+      });
+      try {
+        localStorage.removeItem('enmar_site_theme');
+        sessionStorage.removeItem('enmar_site_theme');
+      } catch (_) {}
+      notice(msg, 'Theme saved and synced instantly across the site.', true);
+    } catch (err) {
+      notice(msg, err.message);
+    }
+  });
+
+  // 3. Newsletter Form
+  $('newsletterForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('newsletterMessage');
     notice(msg, '');
@@ -976,30 +1173,12 @@
           newsletterBody:    val('newsletterBody')
         })
       });
-      notice(msg, 'Newsletter section saved.', true);
+      notice(msg, 'Newsletter section saved successfully.', true);
     } catch (err) { notice(msg, err.message); }
   });
 
-  // Footer & shipping form
-  $('footerForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = $('footerMessage');
-    notice(msg, '');
-    try {
-      await api('/api/admin/settings', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          footerTagline:         val('footerTagline'),
-          shippingFlat:          Number(val('shippingFlat')),
-          shippingFreeThreshold: Number(val('shippingFreeThreshold'))
-        })
-      });
-      notice(msg, 'Footer and shipping saved.', true);
-    } catch (err) { notice(msg, err.message); }
-  });
-
-  // Contact info form (admin/superadmin only)
-  if (['superadmin', 'admin'].includes(user.role)) {
+  // 4. Contact Info Form (Admin / Superadmin)
+  if (['superadmin', 'admin'].includes(user.role) && $('contactForm')) {
     $('contactForm').addEventListener('submit', async e => {
       e.preventDefault();
       const msg = $('contactMessage');
@@ -1019,15 +1198,35 @@
             footerContactInfo:  val('footerContactInfo')
           })
         });
-        notice(msg, 'Contact &amp; footer info saved.', true);
+        notice(msg, 'Contact & footer info saved successfully.', true);
       } catch (err) { notice(msg, err.message); }
     });
   }
-  // Information pages form
-  $('infoForm').addEventListener('submit', async e => {
+
+  // 5. Footer & Shipping Form
+  $('footerForm')?.addEventListener('submit', async e => {
     e.preventDefault();
-    const msg = $('infoMessage2');
+    const msg = $('footerMessage');
     notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          footerTagline:         val('footerTagline'),
+          shippingFlat:          Number(val('shippingFlat')) || 0,
+          shippingFreeThreshold: Number(val('shippingFreeThreshold')) || 0
+        })
+      });
+      notice(msg, 'Footer and shipping settings saved successfully.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
+
+  // 6. Information Pages Form
+  $('infoForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('infoMessage2') || $('infoMessage');
+    if ($('infoMessage')) notice($('infoMessage'), '');
+    if ($('infoMessage2')) notice($('infoMessage2'), '');
     try {
       await api('/api/admin/settings', {
         method: 'PATCH',
@@ -1039,15 +1238,19 @@
           pagePrivacyPolicy: val('pagePrivacyPolicy')
         })
       });
-      notice(msg, 'Information pages saved.', true);
-    } catch (err) { notice(msg, err.message); }
+      if ($('infoMessage')) notice($('infoMessage'), 'Information pages saved successfully.', true);
+      if ($('infoMessage2')) notice($('infoMessage2'), 'Information pages saved successfully.', true);
+    } catch (err) {
+      if (msg) notice(msg, err.message);
+    }
   });
 
-  // Support pages form
-  $('supportForm').addEventListener('submit', async e => {
+  // 7. Support Pages Form
+  $('supportForm')?.addEventListener('submit', async e => {
     e.preventDefault();
-    const msg = $('supportMessage2');
-    notice(msg, '');
+    const msg = $('supportMessage2') || $('supportMessage');
+    if ($('supportMessage')) notice($('supportMessage'), '');
+    if ($('supportMessage2')) notice($('supportMessage2'), '');
     try {
       await api('/api/admin/settings', {
         method: 'PATCH',
@@ -1056,19 +1259,23 @@
           pageHowToOrder:     val('pageHowToOrder'),
           pageOrderTracking:  val('pageOrderTracking'),
           pagePaymentInfo:    val('pagePaymentInfo'),
-          footerShippingInfo: val('pageSupportShipping'),
+          pageSupportShipping: val('pageSupportShipping'),
           pageFaq:            val('pageFaq')
         })
       });
-      notice(msg, 'Support pages saved.', true);
-    } catch (err) { notice(msg, err.message); }
+      if ($('supportMessage')) notice($('supportMessage'), 'Support pages saved successfully.', true);
+      if ($('supportMessage2')) notice($('supportMessage2'), 'Support pages saved successfully.', true);
+    } catch (err) {
+      if (msg) notice(msg, err.message);
+    }
   });
 
-  // Consumer policy pages form
-  $('policyForm').addEventListener('submit', async e => {
+  // 8. Consumer Policy Pages Form
+  $('policyForm')?.addEventListener('submit', async e => {
     e.preventDefault();
-    const msg = $('policyMessage2');
-    notice(msg, '');
+    const msg = $('policyMessage2') || $('policyMessage');
+    if ($('policyMessage')) notice($('policyMessage'), '');
+    if ($('policyMessage2')) notice($('policyMessage2'), '');
     try {
       await api('/api/admin/settings', {
         method: 'PATCH',
@@ -1079,12 +1286,15 @@
           pagePreOrder:      val('pagePreOrder')
         })
       });
-      notice(msg, 'Consumer policy pages saved.', true);
-    } catch (err) { notice(msg, err.message); }
+      if ($('policyMessage')) notice($('policyMessage'), 'Consumer policy pages saved successfully.', true);
+      if ($('policyMessage2')) notice($('policyMessage2'), 'Consumer policy pages saved successfully.', true);
+    } catch (err) {
+      if (msg) notice(msg, err.message);
+    }
   });
 
-  // Order defaults form
-  $('orderDefaultsForm').addEventListener('submit', async e => {
+  // 9. Order Defaults Form
+  $('orderDefaultsForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('orderDefaultsMessage');
     notice(msg, '');
@@ -1099,12 +1309,12 @@
           orderSuccessMessage:     val('orderSuccessMessage')
         })
       });
-      notice(msg, 'Order & checkout defaults saved.', true);
+      notice(msg, 'Order & checkout defaults saved successfully.', true);
     } catch (err) { notice(msg, err.message); }
   });
 
-  // Catalog texts form
-  $('catalogTextsForm').addEventListener('submit', async e => {
+  // 10. Catalog Texts Form
+  $('catalogTextsForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('catalogTextsMessage');
     notice(msg, '');
@@ -1118,40 +1328,38 @@
           cartEmptyMessage:     val('cartEmptyMessage')
         })
       });
-      notice(msg, 'Catalog & search texts saved.', true);
+      notice(msg, 'Catalog & search texts saved successfully.', true);
     } catch (err) { notice(msg, err.message); }
   });
 
-  // Recent products section form
-  if ($('recentSectionForm')) {
-    $('recentSectionForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const msg = $('recentSectionMessage');
-      notice(msg, '');
-      try {
-        await api('/api/admin/settings', {
-          method: 'PATCH',
-          body: JSON.stringify({
-            recentSectionEnabled:     $('recentSectionEnabled').checked ? 'true' : 'false',
-            recentSectionBadge:       val('recentSectionBadge'),
-            recentSectionTitle:       val('recentSectionTitle'),
-            recentSectionSubtitle:    val('recentSectionSubtitle'),
-            recentSectionExploreText: val('recentSectionExploreText'),
-            recentSectionExploreLink: val('recentSectionExploreLink'),
-            recentSectionMaxProducts: Number(val('recentSectionMaxProducts')) || 8,
-            recentSectionScrollSpeed: Number(val('recentSectionScrollSpeed')) || 3.8,
-            recentSectionDaysLimit:   Number(val('recentSectionDaysLimit')) || 0,
-            recentSectionCardBadge:   val('recentSectionCardBadge'),
-            recentSectionRatingText:  val('recentSectionRatingText')
-          })
-        });
-        notice(msg, 'Recently Added Products settings saved.', true);
-      } catch (err) { notice(msg, err.message); }
-    });
-  }
+  // 11. Recent Products Section Form
+  $('recentSectionForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('recentSectionMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          recentSectionEnabled:     $('recentSectionEnabled') && $('recentSectionEnabled').checked ? 'true' : 'false',
+          recentSectionBadge:       val('recentSectionBadge'),
+          recentSectionTitle:       val('recentSectionTitle'),
+          recentSectionSubtitle:    val('recentSectionSubtitle'),
+          recentSectionExploreText: val('recentSectionExploreText'),
+          recentSectionExploreLink: val('recentSectionExploreLink'),
+          recentSectionMaxProducts: Number(val('recentSectionMaxProducts')) || 8,
+          recentSectionScrollSpeed: Number(val('recentSectionScrollSpeed')) || 3.8,
+          recentSectionDaysLimit:   Number(val('recentSectionDaysLimit')) || 0,
+          recentSectionCardBadge:   val('recentSectionCardBadge'),
+          recentSectionRatingText:  val('recentSectionRatingText')
+        })
+      });
+      notice(msg, 'Recently Added Products settings saved successfully.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
 
-  // Community texts form
-  $('communityTextsForm').addEventListener('submit', async e => {
+  // 12. Community Texts Form
+  $('communityTextsForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = $('communityTextsMessage');
     notice(msg, '');
@@ -1168,57 +1376,50 @@
           defaultCommentReply:      val('defaultCommentReply')
         })
       });
-      notice(msg, 'Community section texts saved.', true);
+      notice(msg, 'Community section texts saved successfully.', true);
     } catch (err) { notice(msg, err.message); }
   });
 
-  // Portal texts form
-  if ($('portalTextsForm')) {
-    $('portalTextsForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const msg = $('portalTextsMessage');
-      notice(msg, '');
-      try {
-        await api('/api/admin/settings', {
-          method: 'PATCH',
-          body: JSON.stringify({
-            myOrdersPageTitle:      val('myOrdersPageTitle'),
-            myOrdersEmptyMessage:   val('myOrdersEmptyMessage'),
-            shopHarvestButtonText:  val('shopHarvestButtonText')
-          })
-        });
-        notice(msg, 'Customer portal texts saved.', true);
-      } catch (err) { notice(msg, err.message); }
-    });
-  }
+  // 13. Portal Texts Form
+  $('portalTextsForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('portalTextsMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          myOrdersPageTitle:      val('myOrdersPageTitle'),
+          myOrdersEmptyMessage:   val('myOrdersEmptyMessage'),
+          shopHarvestButtonText:  val('shopHarvestButtonText')
+        })
+      });
+      notice(msg, 'Customer portal texts saved successfully.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
 
-  // Registration guide form
-  if ($('regGuideForm')) {
-    $('regGuideForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const msg = $('regGuideMessage');
-      notice(msg, '');
-      try {
-        await api('/api/admin/settings', {
-          method: 'PATCH',
-          body: JSON.stringify({
-            regGuideEnabled:  $('regGuideEnabled').checked ? 'true' : 'false',
-            regGuideTitle:    val('regGuideTitle'),
-            regGuideSubtitle: val('regGuideSubtitle'),
-            regGuideSteps:    val('regGuideSteps')
-          })
-        });
-        notice(msg, 'Registration instructions saved successfully.', true);
-      } catch (err) { notice(msg, err.message); }
-    });
-  }
+  // 14. Registration Guide Form
+  $('regGuideForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('regGuideMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          regGuideEnabled:  $('regGuideEnabled') && $('regGuideEnabled').checked ? 'true' : 'false',
+          regGuideTitle:    val('regGuideTitle'),
+          regGuideSubtitle: val('regGuideSubtitle'),
+          regGuideSteps:    val('regGuideSteps')
+        })
+      });
+      notice(msg, 'Registration instructions saved successfully.', true);
+    } catch (err) { notice(msg, err.message); }
+  });
 
-  // Developer information form (Super Admin)
+  // 15. Developer Information Form (Super Admin Only)
   if ($('developerForm')) {
-    if (user.role !== 'superadmin') {
-      const pnl = $('developerInfoPanel');
-      if (pnl) pnl.style.display = 'none';
-    } else {
+    if (user.role === 'superadmin') {
       $('developerForm').addEventListener('submit', async e => {
         e.preventDefault();
         const msg = $('developerMessage');
@@ -1243,234 +1444,29 @@
     }
   }
 
-})();
-
-function fill(id, value) {
-  const el = $(id);
-  if (!el) return;
-  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = value ?? '';
-}
-
-function val(id) {
-  const el = $(id);
-  return el ? el.value.trim() : '';
-}
-
-/* ── Site & Admin Branding ── */
-  function renderBrandLogoPreview(url) {
-    const box = $('brandLogoPreview');
-    if (!box) return;
-    box.innerHTML = url ? `<img src="${esc(url)}" alt="Storefront Logo preview" style="max-height:48px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
-  }
-  function renderAdminLogoPreview(url) {
-    const box = $('adminLogoPreview');
-    if (!box) return;
-    box.innerHTML = url ? `<img src="${esc(url)}" alt="Admin Logo preview" style="max-height:48px;border-radius:6px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
-  }
-  function renderFaviconPreview(url) {
-    const box = $('faviconPreview');
-    if (!box) return;
-    box.innerHTML = url ? `<img src="${esc(url)}" alt="Favicon preview" style="width:32px;height:32px;object-fit:contain;border-radius:4px;border:1px solid var(--line);padding:4px;background:#fff">` : '';
-  }
-
-  $('brandLogoFile').addEventListener('change', () => {
-    const file = $('brandLogoFile').files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { notice($('brandingMessage'), 'Storefront Logo must be under 2 MB.'); $('brandLogoFile').value = ''; return; }
-    const r = new FileReader();
-    r.onload = () => { $('brandLogo').value = r.result; renderBrandLogoPreview(r.result); notice($('brandingMessage'), '', true); };
-    r.readAsDataURL(file);
-  });
-  $('btnBrandLogoRemove').addEventListener('click', () => {
-    $('brandLogo').value = ''; $('brandLogoFile').value = ''; renderBrandLogoPreview('');
-    notice($('brandingMessage'), 'Storefront logo cleared — default leaf icon will be shown.', true);
+  // 16. Ad Banner Upload & Drag-and-Drop Handlers
+  $('adFileInput')?.addEventListener('change', async () => {
+    const files = Array.from($('adFileInput').files || []);
+    if (!files.length) return;
+    await uploadAdFiles(files);
+    $('adFileInput').value = '';
   });
 
-  $('adminLogoFile').addEventListener('change', () => {
-    const file = $('adminLogoFile').files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { notice($('brandingMessage'), 'Admin Logo must be under 2 MB.'); $('adminLogoFile').value = ''; return; }
-    const r = new FileReader();
-    r.onload = () => { $('adminLogo').value = r.result; renderAdminLogoPreview(r.result); notice($('brandingMessage'), '', true); };
-    r.readAsDataURL(file);
-  });
-  $('btnAdminLogoRemove').addEventListener('click', () => {
-    $('adminLogo').value = ''; $('adminLogoFile').value = ''; renderAdminLogoPreview('');
-    notice($('brandingMessage'), 'Admin logo cleared — default store branding will be used.', true);
-  });
-
-  $('faviconFile').addEventListener('change', () => {
-    const file = $('faviconFile').files[0];
-    if (!file) return;
-    if (file.size > 512 * 1024) { notice($('brandingMessage'), 'Favicon must be under 512 KB.'); $('faviconFile').value = ''; return; }
-    const r = new FileReader();
-    r.onload = () => { $('favicon').value = r.result; renderFaviconPreview(r.result); notice($('brandingMessage'), '', true); };
-    r.readAsDataURL(file);
-  });
-  $('btnFaviconRemove').addEventListener('click', () => {
-    $('favicon').value = ''; $('faviconFile').value = ''; renderFaviconPreview('');
-    notice($('brandingMessage'), 'Favicon cleared — browser default icon will be used.', true);
-  });
-
-  $('brandingForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = $('brandingMessage'); notice(msg, '');
-    try {
-      const payload = {
-        siteTitle: val('siteTitle'),
-        brandName: val('brandName'),
-        siteDescription: val('siteDescription'),
-        brandLogo: val('brandLogo'),
-        adminBrandName: val('adminBrandName'),
-        adminLogo: val('adminLogo'),
-        favicon: val('favicon')
-      };
-      const updated = await api('/api/admin/settings', { method: 'PATCH', body: JSON.stringify(payload) });
-      if (typeof applyAdminBranding === 'function') {
-        applyAdminBranding(updated);
-      }
-      if (typeof applySiteFavicon === 'function') applySiteFavicon(updated.favicon || '');
-      notice(msg, 'Storefront branding & SEO description saved successfully! Live brand name, SEO metadata, logo & favicon updated.', true);
-    } catch (err) { notice(msg, err.message); }
-  });
-
-  /* ── Theme ── */
-  const THEME_PRESETS = [
-    { name: 'ENMAR Red (default)', p: '#631e2a', a: '#C0912E' },
-    { name: 'Ocean Blue',          p: '#0a4d68', a: '#f4a01c' },
-    { name: 'Emerald',             p: '#1b4332', a: '#e9c46a' },
-    { name: 'Royal Purple',        p: '#4a2c7a', a: '#f0b429' },
-    { name: 'Midnight Navy',       p: '#1e2a4a', a: '#38bdf8' },
-    { name: 'Charcoal & Gold',     p: '#2b2b2b', a: '#d4a017' },
-    { name: 'Forest Green',        p: '#2d4a22', a: '#f5a623' },
-    { name: 'Berry',               p: '#7b2d3d', a: '#00c9a7' }
-  ];
-  function renderThemePresets() {
-    const wrap = $('themePresets'); if (!wrap) return;
-    wrap.innerHTML = '';
-    THEME_PRESETS.forEach(t => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'theme-preset-btn';
-      b.title = t.name;
-      b.innerHTML = `<span class="tp-dot" style="background:${t.p}"></span><span class="tp-dot" style="background:${t.a}"></span><span class="tp-name">${esc(t.name)}</span>`;
-      b.onclick = () => { $('themePrimary').value = t.p; $('themeAccent').value = t.a; renderThemePreview(); };
-      wrap.appendChild(b);
+  const adLabel = $('adUploadLabel');
+  if (adLabel) {
+    adLabel.addEventListener('dragover', e => { e.preventDefault(); adLabel.style.borderColor = 'var(--forest)'; });
+    adLabel.addEventListener('dragleave', () => { adLabel.style.borderColor = ''; });
+    adLabel.addEventListener('drop', async e => {
+      e.preventDefault();
+      adLabel.style.borderColor = '';
+      const files = Array.from(e.dataTransfer.files || []);
+      if (files.length) await uploadAdFiles(files);
     });
   }
-  function renderThemePreview() {
-    const p = $('themePrimary').value, a = $('themeAccent').value;
-    $('themePreview').innerHTML = `<span class="tp-chip" style="background:${p}">Primary</span><span class="tp-chip" style="background:${a}">Accent</span>`;
-  }
-  $('themePrimary').addEventListener('input', renderThemePreview);
-  $('themeAccent').addEventListener('input', renderThemePreview);
-  $('btnSaveTheme').addEventListener('click', async () => {
-    const msg = $('themeMessage'); notice(msg, '');
-    const p = $('themePrimary').value, a = $('themeAccent').value;
-    const preset = THEME_PRESETS.find(t => t.p === p && t.a === a);
-    try {
-      await api('/api/admin/settings', { method: 'PATCH', body: JSON.stringify({ themeName: preset ? preset.name : 'Custom', themePrimary: p, themeAccent: a }) });
-      try {
-        localStorage.removeItem('enmar_site_theme');
-        sessionStorage.removeItem('enmar_site_theme');
-      } catch (e) {}
-      notice(msg, 'Theme saved and synced instantly across the site.', true);
-    } catch (err) { notice(msg, err.message); }
-  });
-  renderThemePresets();
 
-  /* ── Ad Banner ── */
-let adMedia = [];
+  loadAdMedia();
 
-async function loadAdMedia() {
-  try {
-    adMedia = await api('/api/admin/ad-media').catch(() => api('/api/ad-media'));
-    renderAdMedia();
-  } catch (err) {
-    notice($('adMessage'), 'Could not load ad media: ' + err.message);
-  }
-}
-
-function renderAdMedia() {
-  const grid = $('adMediaGrid');
-  if (!grid) return;
-  if (!adMedia.length) {
-    grid.innerHTML = '<p style="font-size:.8rem;color:var(--ink-soft)">No ad items yet. Upload an image or video below.</p>';
-    return;
-  }
-  grid.innerHTML = adMedia.map(m => `
-    <div class="ad-thumb" data-id="${esc(m.id)}">
-      ${m.type === 'video'
-        ? `<video src="${esc(m.url)}" muted preload="metadata"></video>`
-        : `<img src="${esc(m.url)}" alt="Ad">`}
-      <span class="ad-type-badge">${m.type}</span>
-      <button type="button" class="btn-ad-delete" data-id="${esc(m.id)}" title="Remove">✕</button>
-    </div>`).join('');
-
-  grid.querySelectorAll('.btn-ad-delete').forEach(btn => {
-    btn.onclick = async () => {
-      if (!confirm('Remove this ad item?')) return;
-      try {
-        await api(`/api/admin/ad-media/${btn.dataset.id}`, { method: 'DELETE' });
-        adMedia = adMedia.filter(m => m.id !== btn.dataset.id);
-        renderAdMedia();
-        notice($('adMessage'), 'Removed.', true);
-      } catch (err) {
-        notice($('adMessage'), err.message);
-      }
-    };
-  });
-}
-
-// upload via file input
-$('adFileInput').addEventListener('change', async () => {
-  const files = Array.from($('adFileInput').files || []);
-  if (!files.length) return;
-  await uploadAdFiles(files);
-  $('adFileInput').value = '';
-});
-
-// drag & drop onto label
-const adLabel = $('adUploadLabel');
-adLabel.addEventListener('dragover', e => { e.preventDefault(); adLabel.style.borderColor = 'var(--forest)'; });
-adLabel.addEventListener('dragleave', () => { adLabel.style.borderColor = ''; });
-adLabel.addEventListener('drop', async e => {
-  e.preventDefault();
-  adLabel.style.borderColor = '';
-  const files = Array.from(e.dataTransfer.files || []);
-  if (files.length) await uploadAdFiles(files);
-});
-
-async function uploadAdFiles(files) {
-  notice($('adMessage'), '');
-  let successCount = 0;
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    $('adUploadText').textContent = files.length > 1 ? `Uploading (${i + 1}/${files.length})…` : 'Uploading…';
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/admin/ad-media', {
-        method: 'POST',
-        body: fd,
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed.');
-      adMedia.unshift(data);
-      successCount++;
-    } catch (err) {
-      notice($('adMessage'), `Error uploading "${file.name}": ` + err.message);
-    }
-  }
-  renderAdMedia();
-  if (successCount > 0) {
-    notice($('adMessage'), `${successCount} banner item${successCount > 1 ? 's' : ''} uploaded successfully.`, true);
-  }
-  $('adUploadText').textContent = 'Click or drag to upload image / video';
-}
-
-loadAdMedia();
+})();
 </script>
 </body>
 </html>

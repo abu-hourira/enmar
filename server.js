@@ -1917,9 +1917,28 @@ const server = http.createServer(async (req, res) => {
       if (method === 'POST' && pathname === '/api/auth/login') {
         const { email, password } = body;
         if (!email || !password) return json(res, 400, { error: 'Email and password required' });
-        const user = store.users.find(u => u.email.toLowerCase() === String(email).toLowerCase().trim());
+        const normEmail = String(email).toLowerCase().trim();
+        let user = store.users.find(u => u.email.toLowerCase() === normEmail);
+        if (!user) {
+          const dbUser = await dbService.getUserByEmail(normEmail).catch(() => null);
+          if (dbUser) {
+            store.users.push(dbUser);
+            user = dbUser;
+          }
+        }
         if (!user || !user.active) return json(res, 401, { error: 'Invalid credentials' });
-        const ok = await verifyPassword(password, user.passwordHash).catch(() => false);
+        let ok = await verifyPassword(password, user.passwordHash).catch(() => false);
+        if (!ok) {
+          const dbUser = await dbService.getUserByEmail(normEmail).catch(() => null);
+          if (dbUser && dbUser.passwordHash && dbUser.passwordHash !== user.passwordHash) {
+            ok = await verifyPassword(password, dbUser.passwordHash).catch(() => false);
+            if (ok) {
+              const idx = store.users.findIndex(u => u.id === dbUser.id);
+              if (idx >= 0) store.users[idx] = dbUser;
+              user = dbUser;
+            }
+          }
+        }
         if (!ok) return json(res, 401, { error: 'Invalid credentials' });
         setSession(res, user.id);
         return json(res, 200, { ok: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
@@ -2690,12 +2709,12 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         return json(res, 200, store.settings);
       }
       if (method === 'PATCH' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
-        if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         if (body.brandLogo && body.brandLogo.startsWith('data:image/')) {
           body.brandLogo = saveBase64Image(body.brandLogo, 'brand-logo');
         }
