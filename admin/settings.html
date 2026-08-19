@@ -740,10 +740,10 @@
 
         <!-- upload area -->
         <label class="ad-upload-label" id="adUploadLabel">
-          <input type="file" id="adFileInput" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm">
+          <input type="file" id="adFileInput" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple>
           <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span id="adUploadText">Click or drag to upload image / video</span>
-          <small>Images: jpg, png, webp, gif (max 5 MB) &nbsp;·&nbsp; Video: mp4, webm (max 50 MB) &nbsp;·&nbsp; Max 10 items</small>
+          <small>Images: jpg, png, webp, gif (max 5 MB) &nbsp;·&nbsp; Video: mp4, webm (max 50 MB) &nbsp;·&nbsp; Select one or multiple</small>
         </label>
       </div>
 
@@ -1330,9 +1330,9 @@ function renderAdMedia() {
 
 // upload via file input
 $('adFileInput').addEventListener('change', async () => {
-  const file = $('adFileInput').files[0];
-  if (!file) return;
-  await uploadAdFile(file);
+  const files = Array.from($('adFileInput').files || []);
+  if (!files.length) return;
+  await uploadAdFiles(files);
   $('adFileInput').value = '';
 });
 
@@ -1343,31 +1343,37 @@ adLabel.addEventListener('dragleave', () => { adLabel.style.borderColor = ''; })
 adLabel.addEventListener('drop', async e => {
   e.preventDefault();
   adLabel.style.borderColor = '';
-  const file = e.dataTransfer.files[0];
-  if (file) await uploadAdFile(file);
+  const files = Array.from(e.dataTransfer.files || []);
+  if (files.length) await uploadAdFiles(files);
 });
 
-async function uploadAdFile(file) {
-  $('adUploadText').textContent = 'Uploading…';
+async function uploadAdFiles(files) {
   notice($('adMessage'), '');
-  try {
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/admin/ad-media', {
-      method: 'POST',
-      body: fd,
-      credentials: 'include'
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Upload failed.');
-    adMedia.push(data);
-    renderAdMedia();
-    notice($('adMessage'), 'Uploaded successfully.', true);
-  } catch (err) {
-    notice($('adMessage'), err.message);
-  } finally {
-    $('adUploadText').textContent = 'Click or drag to upload image / video';
+  let successCount = 0;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    $('adUploadText').textContent = files.length > 1 ? `Uploading (${i + 1}/${files.length})…` : 'Uploading…';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/ad-media', {
+        method: 'POST',
+        body: fd,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+      adMedia.unshift(data);
+      successCount++;
+    } catch (err) {
+      notice($('adMessage'), `Error uploading "${file.name}": ` + err.message);
+    }
   }
+  renderAdMedia();
+  if (successCount > 0) {
+    notice($('adMessage'), `${successCount} banner item${successCount > 1 ? 's' : ''} uploaded successfully.`, true);
+  }
+  $('adUploadText').textContent = 'Click or drag to upload image / video';
 }
 
 loadAdMedia();

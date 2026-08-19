@@ -1510,71 +1510,67 @@ function buildAdSlideshow(media, trackId, dotsId, prevId, nextId, containerId) {
   const container = document.getElementById(containerId);
   if (!track || !container || !media.length) return;
 
+  container.classList.add('ad-banner--one');
   const slideClass = 'ad-slide';
   const dotClass   = 'ad-dot';
 
-  // On desktop we show 2 slides side-by-side; each slide is 50% wide.
-  // We need an even number of slides — pad with a duplicate if odd.
-  const items = media.length % 2 === 0 ? media : [...media, media[0]];
-
-  track.innerHTML = items.map(m => {
+  track.innerHTML = media.map(m => {
     if (m.type === 'video') {
-      return `<div class="${slideClass}"><video src="${m.url}" autoplay muted loop playsinline preload="auto"></video></div>`;
+      return `<div class="${slideClass}"><video src="${escapeHTML(m.url)}" autoplay muted loop playsinline preload="auto"></video></div>`;
     }
-    return `<div class="${slideClass}"><img src="${m.url}" alt="Advertisement" loading="lazy"></div>`;
+    return `<div class="${slideClass}"><div class="dummy-ad dummy-ad--full-banner"><img src="${escapeHTML(m.url)}" alt="Banner Ad" loading="lazy"></div></div>`;
   }).join('');
 
-  // One dot per pair of slides
-  const pairCount = Math.ceil(items.length / 2);
+  const total = media.length;
   if (dotsEl) {
-    dotsEl.innerHTML = Array.from({ length: pairCount }, (_, i) =>
+    dotsEl.innerHTML = Array.from({ length: total }, (_, i) =>
       `<button class="${dotClass}${i === 0 ? ' active' : ''}" data-i="${i}" aria-label="Slide ${i+1}"></button>`
     ).join('');
   }
 
   container.style.display = '';
 
-  let current = 0; // current pair index
+  let current = 0;
   let direction = 1;
   let timer;
-  const INTERVAL = 4000;
+  const INTERVAL = 5000;
 
-  if (pairCount <= 1) {
+  if (total <= 1) {
     if (prevBtn) prevBtn.hidden = true;
     if (nextBtn) nextBtn.hidden = true;
   }
 
-  function goTo(pairIdx) {
-    if (pairCount <= 1) {
+  function goTo(idx) {
+    if (total <= 1) {
       track.style.transform = 'translateX(0)';
       return;
     }
-    current = Math.max(0, Math.min(pairIdx, pairCount - 1));
+    current = Math.max(0, Math.min(idx, total - 1));
     track.style.transform = `translateX(-${current * 100}%)`;
     if (dotsEl) dotsEl.querySelectorAll('.' + dotClass).forEach((d, i) => d.classList.toggle('active', i === current));
     resetTimer();
   }
 
   function nextStep() {
-    if (pairCount <= 1) return;
-    if (current >= pairCount - 1) {
-      direction = -1; // reached the last slide -> reverse!
+    if (total <= 1) return;
+    if (current >= total - 1) {
+      direction = -1;
     } else if (current <= 0) {
-      direction = 1;  // reached the first slide -> go forward!
+      direction = 1;
     }
     goTo(current + direction);
   }
 
   function resetTimer() {
     clearInterval(timer); clearTimeout(timer);
-    if (pairCount > 1) {
+    if (total > 1) {
       timer = setInterval(nextStep, INTERVAL);
     }
   }
 
-  if (prevBtn) prevBtn.addEventListener('click', () => { direction = -1; goTo(current - 1); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { direction = 1; goTo(current + 1); });
-  if (dotsEl) dotsEl.addEventListener('click', e => {
+  if (prevBtn) prevBtn.onclick = () => { direction = -1; goTo(current - 1); };
+  if (nextBtn) nextBtn.onclick = () => { direction = 1; goTo(current + 1); };
+  if (dotsEl) dotsEl.onclick = e => {
     const btn = e.target.closest('.' + dotClass);
     if (btn) {
       const target = Number(btn.dataset.i);
@@ -1582,7 +1578,7 @@ function buildAdSlideshow(media, trackId, dotsId, prevId, nextId, containerId) {
       if (target < current) direction = -1;
       goTo(target);
     }
-  });
+  };
 
   container.addEventListener('mouseenter', () => clearInterval(timer));
   container.addEventListener('mouseleave', () => resetTimer());
@@ -1598,13 +1594,75 @@ function buildAdSlideshow(media, trackId, dotsId, prevId, nextId, containerId) {
   goTo(0);
 }
 
+function renderHeroSideCard(featuredItem) {
+  const sideEl = document.getElementById('heroSideMedia');
+  if (!sideEl) return;
+
+  if (featuredItem && (featuredItem.url || featuredItem.image)) {
+    const src = featuredItem.url || featuredItem.image;
+    const catAttr = (featuredItem.buttonCat && featuredItem.buttonCat !== 'None') ? `data-ad-cat="${escapeHTML(featuredItem.buttonCat)}"` : ((featuredItem.cat && featuredItem.cat !== 'None') ? `data-ad-cat="${escapeHTML(featuredItem.cat)}"` : 'data-ad-cat="all"');
+    const badgeTag = featuredItem.tag || '🔥 বিশেষ অফার';
+    sideEl.innerHTML = `
+      <div class="hero-side-img-wrap" ${catAttr} style="cursor:pointer; width:100%; height:100%; padding:0; margin:0; position:relative; overflow:hidden;">
+        <img src="${escapeHTML(src)}" alt="Special Offer" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block; padding:0; margin:0;">
+        <span class="hero-side-badge">${escapeHTML(badgeTag)}</span>
+      </div>`;
+    return;
+  }
+
+  // Default Organic Feature Promo Card (Distinctive ENMAR Signature)
+  sideEl.innerHTML = `
+    <div class="hero-side-promo-content">
+      <div>
+        <div class="hero-side-pill">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          ১০০% খাঁটি ও নিরাপদ
+        </div>
+        <h3 class="hero-side-title">অর্গানিক ফার্মের তাজা খাদ্যপণ্য</h3>
+        <p class="hero-side-desc">সুন্দরবনের কাঁচা মধু, ঘানিভাঙা সরিষার তেল ও রাসায়নিকমুক্ত প্রিমিয়াম গ্রোসারি।</p>
+        <div class="hero-side-perks">
+          <div class="hero-side-perk">
+            <span class="hero-side-perk-icon">✓</span>
+            <span>খাঁটি ও পরীক্ষিত মান</span>
+          </div>
+          <div class="hero-side-perk">
+            <span class="hero-side-perk-icon">✓</span>
+            <span>ঢাকা সিটিতে সুপারফাস্ট ডেলিভারি</span>
+          </div>
+          <div class="hero-side-perk">
+            <span class="hero-side-perk-icon">✓</span>
+            <span>১৫০০৳+ অর্ডারে ফ্রি ডেলিভারি</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="hero-side-btn dummy-ad-btn" data-ad-cat="all">
+        <span>পণ্যগুলো দেখুন</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
 async function loadAdBanner() {
   const container = document.getElementById('adBanner');
+  let dedicatedSideBanner = null;
+  try {
+    const sb = await request('/api/side-banner');
+    if (sb && sb.image) dedicatedSideBanner = sb;
+  } catch (e) {}
+
   // 1) Custom ads created in the Admin "Ads Maker" take priority
   try {
     const custom = await request('/api/ads');
     if (custom && custom.length) {
-      buildCustomAdSlideshow(custom, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+      if (dedicatedSideBanner) {
+        buildCustomAdSlideshow(custom, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+        renderHeroSideCard(dedicatedSideBanner);
+      } else {
+        const sliderAds = custom.length > 1 ? custom.slice(0, -1) : custom;
+        const sideAd = custom.length > 1 ? custom[custom.length - 1] : null;
+        buildCustomAdSlideshow(sliderAds, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+        renderHeroSideCard(sideAd);
+      }
       return;
     }
   } catch (e) { /* fall through to uploaded media */ }
@@ -1612,11 +1670,24 @@ async function loadAdBanner() {
   try {
     const media = await request('/api/ad-media');
     if (media && media.length) {
-      // Use uploaded admin media
-      buildAdSlideshow(media, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+      if (dedicatedSideBanner) {
+        buildAdSlideshow(media, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+        renderHeroSideCard(dedicatedSideBanner);
+      } else {
+        const sliderMedia = media.length > 1 ? media.slice(0, -1) : media;
+        const sideMedia = media.length > 1 ? media[media.length - 1] : null;
+        buildAdSlideshow(sliderMedia, 'adTrack', 'adDots', 'adPrev', 'adNext', 'adBanner');
+        renderHeroSideCard(sideMedia);
+      }
       return;
     }
   } catch (e) { /* non-critical */ }
+
+  if (dedicatedSideBanner) {
+    if (container) container.style.display = '';
+    renderHeroSideCard(dedicatedSideBanner);
+    return;
+  }
 
   // If no custom ads or media are configured, hide the ad banner section completely
   if (container) container.style.display = 'none';
@@ -1626,13 +1697,13 @@ document.getElementById('accountBtn').onclick = () => currentUser ? (['superadmi
 
 /* ── Ad banner CTA buttons — filter shop by category ── */
 document.getElementById('adBanner').addEventListener('click', e => {
-  const btn = e.target.closest('.dummy-ad-btn[data-ad-cat]');
+  const btn = e.target.closest('[data-ad-cat]');
   if (!btn) return;
   const cat = btn.dataset.adCat;
-  if (typeof setActiveCategory === 'function') {
+  if (typeof setActiveCategory === 'function' && cat && cat !== 'all') {
     setActiveCategory(cat);
   }
-  const shopEl = document.getElementById('shop') || document.getElementById('productGrid');
+  const shopEl = document.getElementById('shop') || document.getElementById('productGrid') || document.getElementById('recentProductsSection');
   if (shopEl) shopEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 /* ── COMMUNITY COMMENTS & MEMBER VOICES (3 at a time + See more) ── */

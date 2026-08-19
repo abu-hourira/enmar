@@ -40,7 +40,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
   <link rel="icon" id="siteFavicon" href="/favicon.ico">
-  <link rel="stylesheet" href="/css/harvest-market.css?v=2.2">
+  <link rel="stylesheet" href="/css/harvest-market.css?v=3.7">
 
   <!-- Structured Data (JSON-LD) for Google Search Rich Snippets -->
   <script type="application/ld+json">
@@ -110,10 +110,26 @@
 
   <main id="shopView" class="view active" aria-label="Shop">
 
-    <!-- ── FULL-WIDTH AD BANNER ── -->
-    <section class="ad-banner" id="adBanner" style="display:none">
-      <div class="ad-track" id="adTrack"></div>
-      <div class="ad-dots" id="adDots"></div>
+    <!-- ── HERO PROMO SHOWCASE (Left Slider on Desktop + Side Card, 100% Full on Mobile) ── -->
+    <section class="hero-showcase" id="adBanner" style="display:none">
+      <div class="hero-showcase-inner">
+        <!-- Main Carousel Slider -->
+        <div class="hero-slider-wrap" id="heroSliderWrap">
+          <div class="ad-track" id="adTrack"></div>
+          <button type="button" class="hero-arrow hero-arrow--prev" id="adPrev" aria-label="Previous Slide">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="hero-arrow hero-arrow--next" id="adNext" aria-label="Next Slide">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="ad-dots" id="adDots"></div>
+        </div>
+
+        <!-- Right Side Highlight Card (Desktop) -->
+        <aside class="hero-side-card" id="heroSideCard">
+          <div class="hero-side-media" id="heroSideMedia"></div>
+        </aside>
+      </div>
     </section>
 
     <!-- ── CATEGORY ROW ── -->
@@ -624,8 +640,8 @@
     </div>
   </div>
 
-  <script src="/js/harvest-market.js"></script>
-  <script src="/js/app.js"></script>
+  <script src="/js/harvest-market.js?v=3.0"></script>
+  <script src="/js/app.js?v=3.6"></script>
   <script>
     /* ── Messenger scroll-hide ── */
     (function () {

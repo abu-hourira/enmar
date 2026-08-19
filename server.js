@@ -2764,6 +2764,125 @@ const server = http.createServer(async (req, res) => {
         const ads = await dbService.getAllAdsAdmin().catch(() => []);
         return json(res, 200, ads);
       }
+      if (method === 'GET' && pathname === '/api/admin/ad-media') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const media = await dbService.getAdMedia().catch(() => []);
+        return json(res, 200, media);
+      }
+      if (method === 'POST' && pathname === '/api/admin/ad-media') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+
+        let url = '';
+        let type = 'image';
+
+        if (req.files && req.files.length) {
+          const file = req.files.find(f => f.fieldname === 'file') || req.files[0];
+          if (file && file.data && file.data.length) {
+            const ext = path.extname(file.filename || '').toLowerCase() || '.png';
+            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm', '.mov'].includes(ext) ? ext : '.png';
+            const uploadsDir = path.join(ROOT, 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+              try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+            }
+            const fname = `ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const targetFile = path.join(uploadsDir, fname);
+            fs.writeFileSync(targetFile, file.data);
+            url = `/uploads/${fname}`;
+            if (['.mp4', '.webm', '.mov'].includes(cleanExt) || (file.mimeType && file.mimeType.startsWith('video/'))) {
+              type = 'video';
+            }
+          }
+        } else if (body.url || body.image) {
+          url = body.url || body.image;
+          type = body.type || (url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image');
+        }
+
+        if (!url) {
+          return json(res, 400, { error: 'No image or video file provided' });
+        }
+
+        const id = `ad_media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        const item = { id, url, type };
+        await dbService.createAdMedia(item);
+        return json(res, 201, item);
+      }
+      if (method === 'GET' && pathname === '/api/side-banner') {
+        const settings = store.settings || {};
+        return json(res, 200, {
+          image: settings.heroSideBannerImage || '',
+          tag: settings.heroSideBannerTag || '🔥 বিশেষ অফার',
+          cat: settings.heroSideBannerCat || 'all'
+        });
+      }
+      if (method === 'GET' && pathname === '/api/admin/side-banner') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const settings = store.settings || {};
+        return json(res, 200, {
+          image: settings.heroSideBannerImage || '',
+          tag: settings.heroSideBannerTag || '🔥 বিশেষ অফার',
+          cat: settings.heroSideBannerCat || 'all'
+        });
+      }
+      if (method === 'POST' && pathname === '/api/admin/side-banner') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+
+        let url = '';
+        if (req.files && req.files.length) {
+          const file = req.files.find(f => f.fieldname === 'file') || req.files[0];
+          if (file && file.data && file.data.length) {
+            const ext = path.extname(file.filename || '').toLowerCase() || '.png';
+            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.png';
+            const uploadsDir = path.join(ROOT, 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+              try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+            }
+            const fname = `side-ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const targetFile = path.join(uploadsDir, fname);
+            fs.writeFileSync(targetFile, file.data);
+            url = `/uploads/${fname}`;
+          }
+        } else if (body.image || body.url) {
+          url = body.image || body.url;
+        }
+
+        if (url) {
+          store.settings.heroSideBannerImage = url;
+          await dbService.saveStoreSetting('heroSideBannerImage', url);
+        }
+        if (body.tag !== undefined) {
+          store.settings.heroSideBannerTag = body.tag;
+          await dbService.saveStoreSetting('heroSideBannerTag', body.tag);
+        }
+        if (body.cat !== undefined) {
+          store.settings.heroSideBannerCat = body.cat;
+          await dbService.saveStoreSetting('heroSideBannerCat', body.cat);
+        }
+
+        return json(res, 200, {
+          ok: true,
+          image: store.settings.heroSideBannerImage || '',
+          tag: store.settings.heroSideBannerTag || '🔥 বিশেষ অফার',
+          cat: store.settings.heroSideBannerCat || 'all'
+        });
+      }
+      if (method === 'DELETE' && pathname === '/api/admin/side-banner') {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        store.settings.heroSideBannerImage = '';
+        await dbService.saveStoreSetting('heroSideBannerImage', '');
+        return json(res, 200, { ok: true });
+      }
+      if (method === 'DELETE' && pathname.match(/^\/api\/admin\/ad-media\/[^/]+$/)) {
+        const user = currentUser(req, store);
+        if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        const id = decodeURIComponent(pathname.split('/')[4]);
+        await dbService.deleteAdMedia(id);
+        return json(res, 200, { ok: true });
+      }
       if (method === 'POST' && pathname === '/api/admin/ads') {
         const user = currentUser(req, store);
         if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
