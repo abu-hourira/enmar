@@ -1,6 +1,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const crypto = require('node:crypto');
 const net = require('node:net');
 const tls = require('node:tls');
@@ -9,9 +10,14 @@ const emailEncryption = require('./services/email-encryption.js');
 
 // ── ENV LOADER ──
 (function loadDotEnv() {
+  const home = os.homedir();
   const envCandidates = [
     path.join(__dirname, '.env'),
     path.join(process.cwd(), '.env'),
+    path.join(home, 'enmar-web', '.env'),
+    path.join(home, 'public_html', '.env'),
+    path.join(home, 'repositories', 'enmar', '.env'),
+    path.join(home, '.env'),
     '/home/enmarsho/enmar-web/.env',
     '/home/enmarsho/public_html/.env',
     '/home/enmarsho/repositories/enmar/.env',
@@ -309,6 +315,7 @@ function sendCompressed(req, res, statusCode, headers, buffer) {
 function resolveExistingFile(relPath) {
   if (!relPath) return null;
   const clean = String(relPath).replace(/^\/+/, '');
+  const home = os.homedir();
   const roots = [
     ROOT,
     __dirname,
@@ -318,6 +325,12 @@ function resolveExistingFile(relPath) {
     path.join(ROOT, 'public_html'),
     path.join(__dirname, 'public_html'),
     path.join(process.cwd(), 'public_html'),
+    path.join(home, 'enmar-web'),
+    path.join(home, 'public_html'),
+    path.join(home, 'repositories', 'enmar'),
+    path.join(home, 'enmar'),
+    path.join(home, 'app'),
+    home,
     '/home/enmarsho/enmar-web',
     '/home/enmarsho/public_html',
     '/home/enmarsho/repositories/enmar',
@@ -483,6 +496,7 @@ async function tryServeStatic(req, res, pathname) {
     return false;
   }
 
+  const home = os.homedir();
   const searchRoots = [
     ROOT,
     __dirname,
@@ -491,6 +505,12 @@ async function tryServeStatic(req, res, pathname) {
     path.join(ROOT, 'public_html'),
     path.join(__dirname, 'public_html'),
     path.join(process.cwd(), 'public_html'),
+    path.join(home, 'enmar-web'),
+    path.join(home, 'public_html'),
+    path.join(home, 'repositories', 'enmar'),
+    path.join(home, 'enmar'),
+    path.join(home, 'app'),
+    home,
     '/home/enmarsho/enmar-web',
     '/home/enmarsho/public_html',
     '/home/enmarsho/repositories/enmar'
