@@ -789,119 +789,255 @@ const dbService = {
   },
 
   // ─── 8. CUSTOM ADS & MEDIA ───
+  async ensureAdsTable() {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS ads (
+          id VARCHAR(80) NOT NULL,
+          name VARCHAR(200) NOT NULL DEFAULT '',
+          tag VARCHAR(100) NOT NULL DEFAULT '',
+          title VARCHAR(200) NOT NULL DEFAULT '',
+          sub VARCHAR(300) NOT NULL DEFAULT '',
+          badge VARCHAR(100) NOT NULL DEFAULT '',
+          bg LONGTEXT NULL,
+          category_target VARCHAR(120) NOT NULL DEFAULT '',
+          active TINYINT(1) NOT NULL DEFAULT 1,
+          image LONGTEXT NULL,
+          image_size INT NOT NULL DEFAULT 130,
+          text_color VARCHAR(40) NOT NULL DEFAULT '#ffffff',
+          headline TEXT NULL,
+          body TEXT NULL,
+          button_text VARCHAR(100) NOT NULL DEFAULT 'Shop Now →',
+          button_cat VARCHAR(120) NOT NULL DEFAULT 'None',
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `);
+    } catch {}
+  },
+
+  async ensureAdMediaTable() {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS ad_media (
+          id VARCHAR(80) NOT NULL,
+          url LONGTEXT NOT NULL,
+          type VARCHAR(40) NOT NULL DEFAULT 'image',
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `);
+    } catch {}
+  },
+
   async getActiveAds() {
+    await this.ensureAdsTable();
     const [rows] = await pool.query('SELECT * FROM ads WHERE active = 1 ORDER BY created_at DESC');
     return rows.map(r => ({
       id: r.id,
+      name: r.name || r.title || 'Ad',
       tag: r.tag || '',
-      title: r.title || '',
-      sub: r.sub || '',
-      badge: r.badge || '',
-      bg: r.bg || '#135412',
-      categoryTarget: r.category_target || '',
+      headline: r.headline || r.title || '',
+      title: r.headline || r.title || '',
+      body: r.body || r.sub || '',
+      sub: r.body || r.sub || '',
+      buttonText: r.button_text || r.badge || 'Shop Now →',
+      badge: r.button_text || r.badge || 'Shop Now →',
+      buttonCat: (r.button_cat && r.button_cat !== 'None') ? r.button_cat : (r.category_target || ''),
+      categoryTarget: (r.button_cat && r.button_cat !== 'None') ? r.button_cat : (r.category_target || ''),
+      bg: r.bg || 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)',
+      textColor: r.text_color || '#ffffff',
+      image: r.image || '',
+      imageSize: Number(r.image_size) || 130,
       active: Boolean(r.active),
-      createdAt: r.created_at
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
     }));
   },
 
   async getAllAdsAdmin() {
+    await this.ensureAdsTable();
     const [rows] = await pool.query('SELECT * FROM ads ORDER BY created_at DESC');
     return rows.map(r => ({
       id: r.id,
       name: r.name || r.title || 'Ad',
       tag: r.tag || '',
-      headline: r.title || '', // Map title -> headline
-      body: r.sub || '', // Map sub -> body
-      buttonText: r.badge || 'Shop Now', // Map badge -> buttonText
-      buttonCat: r.category_target || '', // Map category_target -> buttonCat
-      image: r.image || '',
-      imageSize: r.image_size || 130,
-      bg: r.bg || 'linear-gradient(135deg,#f5a623,#f76b1c)',
+      headline: r.headline || r.title || '',
+      title: r.headline || r.title || '',
+      body: r.body || r.sub || '',
+      sub: r.body || r.sub || '',
+      buttonText: r.button_text || r.badge || 'Shop Now →',
+      badge: r.button_text || r.badge || 'Shop Now →',
+      buttonCat: (r.button_cat && r.button_cat !== 'None') ? r.button_cat : (r.category_target || ''),
+      categoryTarget: (r.button_cat && r.button_cat !== 'None') ? r.button_cat : (r.category_target || ''),
+      bg: r.bg || 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)',
       textColor: r.text_color || '#ffffff',
+      image: r.image || '',
+      imageSize: Number(r.image_size) || 130,
       active: Boolean(r.active),
-      createdAt: r.created_at
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
     }));
   },
 
   async createAd(ad) {
+    await this.ensureAdsTable();
     const id = ad.id || `ad_${Date.now()}`;
+    const name = ad.name || 'Ad';
+    const tag = ad.tag || '';
+    const headline = ad.headline || ad.title || '';
+    const body = ad.body || ad.sub || '';
+    const buttonText = ad.buttonText || ad.button_text || ad.badge || 'Shop Now →';
+    const buttonCat = ad.buttonCat || ad.button_cat || ad.categoryTarget || 'None';
+    const bg = ad.bg || 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)';
+    const textColor = ad.textColor || ad.text_color || '#ffffff';
+    const image = ad.image || '';
+    const imageSize = Number(ad.imageSize || ad.image_size) || 130;
+    const active = ad.active !== false ? 1 : 0;
+
     await pool.query(
-      `INSERT INTO ads (id, name, tag, title, sub, badge, bg, category_target, active, image, image_size, text_color, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      `INSERT INTO ads (
+        id, name, tag, title, sub, badge, bg, category_target, active,
+        image, image_size, text_color, headline, body, button_text, button_cat,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
-        id,
-        ad.name || 'Ad',
-        ad.tag || '',
-        ad.headline || ad.title || '',
-        ad.body || ad.sub || '',
-        ad.buttonText || ad.badge || 'Shop Now',
-        ad.bg || 'linear-gradient(135deg,#f5a623,#f76b1c)',
-        ad.buttonCat || ad.categoryTarget || '',
-        ad.active !== false,
-        ad.image || null,
-        ad.imageSize || 130,
-        ad.textColor || '#ffffff'
+        id, name, tag, headline, body, buttonText, bg, (buttonCat === 'None' ? '' : buttonCat), active,
+        image, imageSize, textColor, headline, body, buttonText, buttonCat
       ]
     );
-    return { id, ...ad };
+
+    return {
+      id,
+      name,
+      tag,
+      headline,
+      title: headline,
+      body,
+      sub: body,
+      buttonText,
+      badge: buttonText,
+      buttonCat,
+      categoryTarget: (buttonCat === 'None' ? '' : buttonCat),
+      bg,
+      textColor,
+      image,
+      imageSize,
+      active: Boolean(active)
+    };
   },
 
   async updateAd(id, ad) {
+    await this.ensureAdsTable();
     const updates = [];
     const values = [];
-    // Map form field names to DB column names
-    const map = {
-      name: 'name',
-      tag: 'tag',
-      headline: 'title',
-      title: 'title',
-      body: 'sub',
-      sub: 'sub',
-      buttonText: 'badge',
-      badge: 'badge',
-      bg: 'bg',
-      buttonCat: 'category_target',
-      categoryTarget: 'category_target',
-      active: 'active',
-      image: 'image',
-      imageSize: 'image_size',
-      textColor: 'text_color'
-    };
 
-    for (const [prop, col] of Object.entries(map)) {
-      if (ad[prop] !== undefined) {
-        updates.push(`\`${col}\` = ?`);
-        values.push(ad[prop]);
-      }
+    if (ad.name !== undefined) {
+      updates.push('name = ?');
+      values.push(ad.name);
+    }
+    if (ad.tag !== undefined) {
+      updates.push('tag = ?');
+      values.push(ad.tag);
+    }
+    if (ad.headline !== undefined || ad.title !== undefined) {
+      const hl = ad.headline !== undefined ? ad.headline : ad.title;
+      updates.push('headline = ?', 'title = ?');
+      values.push(hl, hl);
+    }
+    if (ad.body !== undefined || ad.sub !== undefined) {
+      const bd = ad.body !== undefined ? ad.body : ad.sub;
+      updates.push('body = ?', 'sub = ?');
+      values.push(bd, bd);
+    }
+    if (ad.buttonText !== undefined || ad.button_text !== undefined || ad.badge !== undefined) {
+      const btn = ad.buttonText || ad.button_text || ad.badge || 'Shop Now →';
+      updates.push('button_text = ?', 'badge = ?');
+      values.push(btn, btn);
+    }
+    if (ad.buttonCat !== undefined || ad.button_cat !== undefined || ad.categoryTarget !== undefined) {
+      const cat = ad.buttonCat || ad.button_cat || ad.categoryTarget || 'None';
+      updates.push('button_cat = ?', 'category_target = ?');
+      values.push(cat, cat === 'None' ? '' : cat);
+    }
+    if (ad.bg !== undefined) {
+      updates.push('bg = ?');
+      values.push(ad.bg);
+    }
+    if (ad.textColor !== undefined || ad.text_color !== undefined) {
+      updates.push('text_color = ?');
+      values.push(ad.textColor || ad.text_color);
+    }
+    if (ad.image !== undefined) {
+      updates.push('image = ?');
+      values.push(ad.image);
+    }
+    if (ad.imageSize !== undefined || ad.image_size !== undefined) {
+      updates.push('image_size = ?');
+      values.push(Number(ad.imageSize || ad.image_size) || 130);
+    }
+    if (ad.active !== undefined) {
+      updates.push('active = ?');
+      values.push(ad.active ? 1 : 0);
     }
 
     if (updates.length > 0) {
-      values.push(id);
+      updates.push('updated_at = NOW()');
+      values.push(String(id));
       await pool.query(`UPDATE ads SET ${updates.join(', ')} WHERE id = ?`, values);
     }
-    return { id, ...ad };
+
+    const [rows] = await pool.query('SELECT * FROM ads WHERE id = ?', [String(id)]);
+    if (!rows.length) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      tag: r.tag,
+      headline: r.headline || r.title,
+      title: r.headline || r.title,
+      body: r.body || r.sub,
+      sub: r.body || r.sub,
+      buttonText: r.button_text || r.badge,
+      badge: r.button_text || r.badge,
+      buttonCat: r.button_cat,
+      categoryTarget: r.category_target,
+      bg: r.bg,
+      textColor: r.text_color,
+      image: r.image,
+      imageSize: Number(r.image_size),
+      active: Boolean(r.active)
+    };
   },
 
   async deleteAd(id) {
-    await pool.query('DELETE FROM ads WHERE id = ?', [id]);
+    await this.ensureAdsTable();
+    await pool.query('DELETE FROM ads WHERE id = ?', [String(id)]);
     return true;
   },
 
   async getAdMedia() {
+    await this.ensureAdMediaTable();
     const [rows] = await pool.query('SELECT * FROM ad_media ORDER BY created_at DESC');
     return rows.map(r => ({ id: r.id, url: r.url, type: r.type, createdAt: r.created_at }));
   },
 
   async createAdMedia(m) {
+    await this.ensureAdMediaTable();
+    const id = m.id || `ad_media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const url = m.url || m.image || '';
+    const type = m.type || (url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image');
     await pool.query(
       'INSERT INTO ad_media (id, url, type, created_at) VALUES (?, ?, ?, NOW())',
-      [m.id, m.url, m.type || 'image']
+      [id, url, type]
     );
-    return m;
+    return { id, url, type, createdAt: new Date() };
   },
 
   async deleteAdMedia(id) {
-    await pool.query('DELETE FROM ad_media WHERE id = ?', [id]);
+    await this.ensureAdMediaTable();
+    await pool.query('DELETE FROM ad_media WHERE id = ?', [String(id)]);
     return true;
   },
 
@@ -1475,156 +1611,7 @@ const dbService = {
     return true;
   },
 
-  // ─── 14. ADS & BANNER CAMPAIGNS ───
-  async ensureAdsTable() {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS ads (
-        id VARCHAR(80) NOT NULL,
-        name VARCHAR(200) NOT NULL DEFAULT '',
-        tag VARCHAR(100) NOT NULL DEFAULT '',
-        headline TEXT NULL,
-        body TEXT NULL,
-        button_text VARCHAR(100) NOT NULL DEFAULT 'Shop Now →',
-        button_cat VARCHAR(120) NOT NULL DEFAULT 'None',
-        bg LONGTEXT NOT NULL,
-        text_color VARCHAR(30) NOT NULL DEFAULT '#ffffff',
-        image LONGTEXT NOT NULL,
-        image_size INT NOT NULL DEFAULT 130,
-        active TINYINT(1) NOT NULL DEFAULT 1,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-      ) ENGINE=InnoDB
-    `);
-  },
 
-  async getAllAdsAdmin() {
-    await this.ensureAdsTable();
-    const [rows] = await pool.query('SELECT * FROM ads ORDER BY created_at DESC');
-    return rows.map(r => ({
-      id: r.id,
-      name: r.name,
-      tag: r.tag || '',
-      headline: r.headline || '',
-      body: r.body || '',
-      buttonText: r.button_text || 'Shop Now →',
-      buttonCat: r.button_cat || 'None',
-      bg: r.bg || 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)',
-      textColor: r.text_color || '#ffffff',
-      image: r.image || '',
-      imageSize: Number(r.image_size) || 130,
-      active: !!r.active,
-      createdAt: r.created_at,
-      updatedAt: r.updated_at
-    }));
-  },
-
-  async createAd(data) {
-    await this.ensureAdsTable();
-    const id = data.id || `ad_${Date.now()}`;
-    await pool.query(
-      `INSERT INTO ads (id, name, tag, headline, body, button_text, button_cat, bg, text_color, image, image_size, active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        data.name || 'Untitled Ad',
-        data.tag || '',
-        data.headline || '',
-        data.body || '',
-        data.buttonText || data.button_text || 'Shop Now →',
-        data.buttonCat || data.button_cat || 'None',
-        data.bg || 'linear-gradient(135deg,#f5a623 0%,#f76b1c 100%)',
-        data.textColor || data.text_color || '#ffffff',
-        data.image || '',
-        Number(data.imageSize || data.image_size) || 130,
-        data.active !== false ? 1 : 0
-      ]
-    );
-    const [rows] = await pool.query('SELECT * FROM ads WHERE id = ?', [id]);
-    if (!rows.length) return null;
-    const r = rows[0];
-    return {
-      id: r.id,
-      name: r.name,
-      tag: r.tag,
-      headline: r.headline,
-      body: r.body,
-      buttonText: r.button_text,
-      buttonCat: r.button_cat,
-      bg: r.bg,
-      textColor: r.text_color,
-      image: r.image,
-      imageSize: Number(r.image_size),
-      active: !!r.active
-    };
-  },
-
-  async updateAd(id, data) {
-    await this.ensureAdsTable();
-    const updates = [];
-    const params = [];
-    if (data.name !== undefined) { updates.push('name = ?'); params.push(data.name); }
-    if (data.tag !== undefined) { updates.push('tag = ?'); params.push(data.tag); }
-    if (data.headline !== undefined) { updates.push('headline = ?'); params.push(data.headline); }
-    if (data.body !== undefined) { updates.push('body = ?'); params.push(data.body); }
-    if (data.buttonText !== undefined || data.button_text !== undefined) {
-      updates.push('button_text = ?'); params.push(data.buttonText || data.button_text);
-    }
-    if (data.buttonCat !== undefined || data.button_cat !== undefined) {
-      updates.push('button_cat = ?'); params.push(data.buttonCat || data.button_cat);
-    }
-    if (data.bg !== undefined) { updates.push('bg = ?'); params.push(data.bg); }
-    if (data.textColor !== undefined || data.text_color !== undefined) {
-      updates.push('text_color = ?'); params.push(data.textColor || data.text_color);
-    }
-    if (data.image !== undefined) { updates.push('image = ?'); params.push(data.image); }
-    if (data.imageSize !== undefined || data.image_size !== undefined) {
-      updates.push('image_size = ?'); params.push(Number(data.imageSize || data.image_size));
-    }
-    if (data.active !== undefined) { updates.push('active = ?'); params.push(data.active ? 1 : 0); }
-
-    if (updates.length) {
-      params.push(String(id));
-      await pool.query(`UPDATE ads SET ${updates.join(', ')} WHERE id = ?`, params);
-    }
-    const [rows] = await pool.query('SELECT * FROM ads WHERE id = ?', [String(id)]);
-    if (!rows.length) return null;
-    const r = rows[0];
-    return {
-      id: r.id,
-      name: r.name,
-      tag: r.tag,
-      headline: r.headline,
-      body: r.body,
-      buttonText: r.button_text,
-      buttonCat: r.button_cat,
-      bg: r.bg,
-      textColor: r.text_color,
-      image: r.image,
-      imageSize: Number(r.image_size),
-      active: !!r.active
-    };
-  },
-
-  async deleteAd(id) {
-    await this.ensureAdsTable();
-    await pool.query('DELETE FROM ads WHERE id = ?', [String(id)]);
-    return true;
-  },
-
-  async getAdMedia() {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS ad_media (
-        id VARCHAR(80) NOT NULL,
-        url LONGTEXT NOT NULL,
-        type VARCHAR(40) NOT NULL DEFAULT 'image',
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-      ) ENGINE=InnoDB
-    `);
-    const [rows] = await pool.query('SELECT * FROM ad_media ORDER BY created_at DESC');
-    return rows.map(r => ({ id: r.id, url: r.url, type: r.type, createdAt: r.created_at }));
-  },
 
   async getEmailConfig() {
     try {

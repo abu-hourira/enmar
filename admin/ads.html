@@ -420,7 +420,7 @@
 
   async function loadAds() {
     try {
-      const r = await api('/api/ads');
+      const r = await api('/api/admin/ads').catch(() => api('/api/ads'));
       ads = Array.isArray(r) ? r : [];
     } catch (err) {
       notice($('adListMessage'), 'Could not load ads: ' + err.message);

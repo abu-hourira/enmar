@@ -764,6 +764,24 @@
     $('contactCard').style.display = 'block';
   }
 
+  function renderBrandLogoPreview(src) {
+    const p = $('brandLogoPreview');
+    if (!p) return;
+    p.innerHTML = src ? `<img src="${src}" alt="Brand Logo Preview" style="max-height:54px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:var(--paper);object-fit:contain">` : '';
+  }
+
+  function renderAdminLogoPreview(src) {
+    const p = $('adminLogoPreview');
+    if (!p) return;
+    p.innerHTML = src ? `<img src="${src}" alt="Admin Logo Preview" style="max-height:54px;max-width:180px;border-radius:6px;border:1px solid var(--line);padding:4px;background:var(--paper);object-fit:contain">` : '';
+  }
+
+  function renderFaviconPreview(src) {
+    const p = $('faviconPreview');
+    if (!p) return;
+    p.innerHTML = src ? `<img src="${src}" alt="Favicon Preview" style="max-height:36px;max-width:36px;border-radius:4px;border:1px solid var(--line);padding:3px;background:var(--paper);object-fit:contain">` : '';
+  }
+
   // Load current settings into all form fields
   try {
     const s = await api('/api/settings');
@@ -868,6 +886,82 @@
   } catch (err) {
     notice($('globalMessage'), 'Could not load settings: ' + err.message);
   }
+
+  // Branding Logo Upload & Remove Handlers
+  $('brandLogoFile')?.addEventListener('change', () => {
+    const f = $('brandLogoFile').files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      $('brandLogo').value = ev.target.result;
+      renderBrandLogoPreview(ev.target.result);
+    };
+    reader.readAsDataURL(f);
+  });
+
+  $('btnBrandLogoRemove')?.addEventListener('click', () => {
+    $('brandLogo').value = '';
+    if ($('brandLogoFile')) $('brandLogoFile').value = '';
+    renderBrandLogoPreview('');
+  });
+
+  $('adminLogoFile')?.addEventListener('change', () => {
+    const f = $('adminLogoFile').files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      $('adminLogo').value = ev.target.result;
+      renderAdminLogoPreview(ev.target.result);
+    };
+    reader.readAsDataURL(f);
+  });
+
+  $('btnAdminLogoRemove')?.addEventListener('click', () => {
+    $('adminLogo').value = '';
+    if ($('adminLogoFile')) $('adminLogoFile').value = '';
+    renderAdminLogoPreview('');
+  });
+
+  $('faviconFile')?.addEventListener('change', () => {
+    const f = $('faviconFile').files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      $('favicon').value = ev.target.result;
+      renderFaviconPreview(ev.target.result);
+    };
+    reader.readAsDataURL(f);
+  });
+
+  $('btnFaviconRemove')?.addEventListener('click', () => {
+    $('favicon').value = '';
+    if ($('faviconFile')) $('faviconFile').value = '';
+    renderFaviconPreview('');
+  });
+
+  // Branding form
+  $('brandingForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('brandingMessage');
+    notice(msg, '');
+    try {
+      await api('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          siteTitle:       val('siteTitle'),
+          brandName:       val('brandName'),
+          siteDescription: val('siteDescription'),
+          brandLogo:       $('brandLogo') ? $('brandLogo').value : '',
+          adminBrandName:  val('adminBrandName'),
+          adminLogo:       $('adminLogo') ? $('adminLogo').value : '',
+          favicon:         $('favicon') ? $('favicon').value : ''
+        })
+      });
+      notice(msg, 'Branding settings saved successfully.', true);
+    } catch (err) {
+      notice(msg, err.message);
+    }
+  });
 
   // Newsletter form
   $('newsletterForm').addEventListener('submit', async e => {
@@ -1290,7 +1384,7 @@ let adMedia = [];
 
 async function loadAdMedia() {
   try {
-    adMedia = await api('/api/ad-media');
+    adMedia = await api('/api/admin/ad-media').catch(() => api('/api/ad-media'));
     renderAdMedia();
   } catch (err) {
     notice($('adMessage'), 'Could not load ad media: ' + err.message);

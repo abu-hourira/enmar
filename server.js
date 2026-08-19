@@ -922,7 +922,7 @@ function currentUser(req, store) {
 }
 
 // ── Minimal dependency-free multipart/form-data parser ──
-// Populates `fields` (text inputs) and `files` (with { field, filename, mime, buffer }).
+// Populates `fields` (text inputs) and `files` (with { field, fieldname, filename, mime, mimeType, buffer, data }).
 // Supports multi-value fields (e.g. several `images` entries) by storing arrays.
 function parseMultipart(buffer, contentType) {
   const fields = {};
@@ -932,74 +932,97 @@ function parseMultipart(buffer, contentType) {
   const boundary = '--' + (boundaryMatch[1] || boundaryMatch[2]).trim();
   const delimiter = Buffer.from(boundary);
 
-  // Split buffer on the boundary delimiter.
-  const parts = [];
   let start = buffer.indexOf(delimiter);
   while (start !== -1) {
     const next = buffer.indexOf(delimiter, start + delimiter.length);
     if (next === -1) break;
     if (buffer[start + delimiter.length] === 0x2d && buffer[start + delimiter.length + 1] === 0x2d) break; // "--" closing
-    // The part is between the end of this boundary line and the next boundary.
     const headerStart = start + delimiter.length;
-    // find end of headers (\r\n\r\n)
     const headerEnd = buffer.indexOf('\r\n\r\n', headerStart);
     if (headerEnd === -1) { start = next; continue; }
     const rawHeaders = buffer.toString('utf8', headerStart, headerEnd);
-    // Body content ends 2 bytes before next boundary (trailing \r\n).
     let contentEnd = next - 2;
     if (buffer[next - 1] === 0x0a && buffer[next - 2] === 0x0d) contentEnd = next - 2;
     else if (buffer[next - 1] === 0x0d) contentEnd = next - 1;
     const content = buffer.slice(headerEnd + 4, contentEnd);
-    parts.push({ rawHeaders, content });
-    start = next;
-  }
-
-  for (const part of parts) {
-    const cd = /content-disposition:[^\r\n]*/i.exec(part.rawHeaders);
-    if (!cd) continue;
-    const nameMatch = /name="([^"]*)"/i.exec(cd[0]);
-    const fileMatch = /filename="([^"]*)"/i.exec(cd[0]);
-    if (!nameMatch) continue;
-    const name = nameMatch[1];
-    const mimeMatch = /content-type:\s*([^\r\n]+)/i.exec(part.rawHeaders);
-    if (fileMatch && fileMatch[1]) {
-      files.push({
-        field: name,
-        filename: fileMatch[1],
-        mime: mimeMatch ? mimeMatch[1].trim() : 'application/octet-stream',
-        buffer: part.content
-      });
-    } else {
-      if (!(name in fields)) fields[name] = part.content.toString('utf8');
-      else if (Array.isArray(fields[name])) fields[name].push(part.content.toString('utf8'));
-      else fields[name] = [fields[name], part.content.toString('utf8')];
+    
+    const cd = /content-disposition:[^\r\n]*/i.exec(rawHeaders);
+    if (cd) {
+      const nameMatch = /name="([^"]*)"/i.exec(cd[0]);
+      const fileMatch = /filename="([^"]*)"/i.exec(cd[0]);
+      if (nameMatch) {
+        const name = nameMatch[1];
+        const mimeMatch = /content-type:\s*([^\r\n]+)/i.exec(rawHeaders);
+        const mimeType = mimeMatch ? mimeMatch[1].trim() : 'application/octet-stream';
+        if (fileMatch && fileMatch[1]) {
+          files.push({
+            field: name,
+            fieldname: name,
+            filename: fileMatch[1],
+            name: fileMatch[1],
+            mime: mimeType,
+            mimeType: mimeType,
+            buffer: content,
+            data: content,
+            content: content
+          });
+        } else {
+          if (!(name in fields)) fields[name] = content.toString('utf8');
+          else if (Array.isArray(fields[name])) fields[name].push(content.toString('utf8'));
+          else fields[name] = [fields[name], content.toString('utf8')];
+        }
+      }
     }
+    start = next;
   }
   return { fields, files };
 }
 
-// ── Save uploaded multipart files as product images under /uploads ──
-// Returns an array of public URLs (e.g. "/uploads/products/abc.jpg").
-const UPLOAD_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/bmp', 'image/svg+xml']);
+// ── Save uploaded multipart files under /uploads ──
+const UPLOAD_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/bmp', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime']);
+
 function saveUploadedImages(files) {
   if (!files || !files.length) return [];
-  const dir = path.join(ROOT, 'uploads', 'products');
+  const dir = path.join(ROOT, 'uploads');
   try { fs.mkdirSync(dir, { recursive: true }); } catch { /* exists */ }
   const urls = [];
-  for (const f of files) {
-    if (f.field !== 'images' || !f.buffer || !f.buffer.length) continue;
-    const mime = f.mime || 'application/octet-stream';
-    if (!UPLOAD_ALLOWED_MIME.has(mime)) continue;
-    const ext = ({
-      'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
-      'image/avif': 'avif', 'image/bmp': 'bmp', 'image/svg+xml': 'svg'
-    })[mime] || 'bin';
-    const safeBase = (f.filename || 'img').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '');
-    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeBase}.${ext}`;
-    fs.writeFileSync(path.join(dir, fileName), f.buffer);
-    urls.push(`/uploads/products/${fileName}`);
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const buf = f.buffer || f.data || f.content;
+    if (!buf || !buf.length) continue;
+    const ext = path.extname(f.filename || f.name || '').toLowerCase() || '.png';
+    const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.mp4', '.webm', '.mov', '.avif'].includes(ext) ? ext : '.png';
+    const safeBase = (f.filename || f.name || 'img').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '').slice(0, 30);
+    const fileName = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 7)}_${safeBase}${cleanExt}`;
+    try {
+      fs.writeFileSync(path.join(dir, fileName), buf);
+      urls.push(`/uploads/${fileName}`);
+    } catch (e) {
+      console.error('[Upload] Failed to write file to disk:', e.message);
+    }
   }
   return urls;
+}
+
+function saveBase64Image(dataUri, prefix = 'img') {
+  if (!dataUri || typeof dataUri !== 'string' || !dataUri.startsWith('data:image/')) return dataUri;
+  const m = dataUri.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+  if (!m) return dataUri;
+  const uploadsDir = path.join(ROOT, 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+  }
+  let ext = '.' + m[1].replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+  if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'].includes(ext)) ext = '.png';
+  const fname = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+  const targetFile = path.join(uploadsDir, fname);
+  try {
+    fs.writeFileSync(targetFile, Buffer.from(m[2], 'base64'));
+    return `/uploads/${fname}`;
+  } catch (e) {
+    console.error(`[Upload] Failed to save base64 ${prefix}:`, e.message);
+    return dataUri;
+  }
 }
 
 function json(res, status, body) {
@@ -1395,79 +1418,6 @@ function ensureStoreLoaded() {
 // Pre-load store in background
 ensureStoreLoaded();
 
-// ── MULTIPART / FORM-DATA PARSER & IMAGE UPLOAD ──
-function parseMultipart(buffer, contentType) {
-  const fields = {};
-  const files = [];
-  const match = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
-  if (!match) return { fields, files };
-  const boundary = '--' + (match[1] || match[2]).trim();
-  const boundaryBuf = Buffer.from(boundary);
-  const boundaryLen = boundaryBuf.length;
-
-  let start = 0;
-  while ((start = buffer.indexOf(boundaryBuf, start)) !== -1) {
-    start += boundaryLen;
-    if (buffer.slice(start, start + 2).toString() === '--') break;
-    if (buffer.slice(start, start + 2).toString() === '\r\n') start += 2;
-
-    const headerEnd = buffer.indexOf(Buffer.from('\r\n\r\n'), start);
-    if (headerEnd === -1) break;
-
-    const headerText = buffer.slice(start, headerEnd).toString('utf8');
-    const partDataStart = headerEnd + 4;
-    const partDataEnd = buffer.indexOf(Buffer.from('\r\n' + boundary), partDataStart);
-    if (partDataEnd === -1) break;
-
-    const partData = buffer.slice(partDataStart, partDataEnd);
-    start = partDataEnd;
-
-    const dispMatch = headerText.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
-    if (!dispMatch) continue;
-
-    const name = dispMatch[1];
-    const filename = dispMatch[2];
-
-    if (filename !== undefined && filename !== '') {
-      const typeMatch = headerText.match(/Content-Type:\s*([^\r\n]+)/i);
-      const mimeType = typeMatch ? typeMatch[1].trim() : 'application/octet-stream';
-      files.push({
-        fieldname: name,
-        filename,
-        mimeType,
-        data: partData
-      });
-    } else if (filename === undefined) {
-      fields[name] = partData.toString('utf8');
-    }
-  }
-  return { fields, files };
-}
-
-async function saveUploadedImages(files) {
-  if (!files || !files.length) return [];
-  const uploadsDir = path.join(ROOT, 'uploads');
-  if (!fs.existsSync(uploadsDir)) {
-    try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
-  }
-  const urls = [];
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (!file || !file.data || !file.data.length) continue;
-    const ext = path.extname(file.filename || '').toLowerCase() || '.png';
-    const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.png';
-    const fname = `prod-${Date.now()}-${i}${cleanExt}`;
-    const targetFile = path.join(uploadsDir, fname);
-    try {
-      fs.writeFileSync(targetFile, file.data);
-      urls.push(`/uploads/${fname}`);
-    } catch (err) {
-      console.error('[Upload] Failed to save product image:', err.message);
-    }
-  }
-  return urls;
-}
-
 const server = http.createServer(async (req, res) => {
   try {
     const { method, url } = req;
@@ -1698,7 +1648,7 @@ const server = http.createServer(async (req, res) => {
         const name = String(body.name || '').trim();
         if (!name) return json(res, 400, { error: 'Category name is required' });
         const icon = String(body.icon || 'leaf').trim();
-        const image = String(body.image || '').trim();
+        const image = body.image && body.image.startsWith('data:image/') ? saveBase64Image(body.image, 'cat') : String(body.image || '').trim();
         await dbService.createCategory({ name, icon, image });
         const dbCats = await dbService.getCategories().catch(() => []);
         const icons = {};
@@ -2321,9 +2271,19 @@ const server = http.createServer(async (req, res) => {
         const user = currentUser(req, store);
         if (!user) return json(res, 401, { error: 'Unauthorized' });
         if (body.name) user.name = body.name;
-        if (body.phone) user.phone = body.phone;
-        if (body.address) user.address = body.address;
-        if (body.avatar) user.avatar = body.avatar;
+        if (body.phone !== undefined) user.phone = body.phone;
+        if (body.address !== undefined) user.address = body.address;
+        if (body.city !== undefined) user.city = body.city;
+        if (body.zip !== undefined) user.zip = body.zip;
+        if (body.designation !== undefined) user.designation = body.designation;
+        if (body.bio !== undefined) user.bio = body.bio;
+        if (body.avatar !== undefined) {
+          if (body.avatar && body.avatar.startsWith('data:image/')) {
+            user.avatar = saveBase64Image(body.avatar, 'avatar');
+          } else {
+            user.avatar = body.avatar || '';
+          }
+        }
         await dbService.updateUser(user.id, user);
         return json(res, 200, { ok: true, user });
       }
@@ -2691,6 +2651,15 @@ const server = http.createServer(async (req, res) => {
       if (method === 'PATCH' && pathname === '/api/admin/settings') {
         const user = currentUser(req, store);
         if (!user || !['admin', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
+        if (body.brandLogo && body.brandLogo.startsWith('data:image/')) {
+          body.brandLogo = saveBase64Image(body.brandLogo, 'brand-logo');
+        }
+        if (body.adminLogo && body.adminLogo.startsWith('data:image/')) {
+          body.adminLogo = saveBase64Image(body.adminLogo, 'admin-logo');
+        }
+        if (body.favicon && body.favicon.startsWith('data:image/')) {
+          body.favicon = saveBase64Image(body.favicon, 'favicon');
+        }
         Object.assign(store.settings, body);
         if (store.settings.themePrimary || store.settings.themeAccent) {
           syncThemeToCssFiles(store.settings.themePrimary, store.settings.themeAccent);
@@ -2786,7 +2755,7 @@ const server = http.createServer(async (req, res) => {
         let type = 'image';
 
         if (req.files && req.files.length) {
-          const file = req.files.find(f => ['file', 'files', 'image', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
+          const file = req.files.find(f => ['file', 'files', 'image', 'media', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
           const fileBuf = file ? (file.data || file.buffer || file.content) : null;
           if (file && fileBuf && fileBuf.length) {
             const rawFilename = file.filename || file.name || 'banner';
@@ -2814,6 +2783,21 @@ const server = http.createServer(async (req, res) => {
         } else if (body && (body.url || body.image)) {
           url = body.url || body.image;
           type = body.type || (url.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image');
+          if (url.startsWith('data:image/')) {
+            const m = url.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+            if (m) {
+              const ext = '.' + m[1].replace('jpeg', 'jpg');
+              const buffer = Buffer.from(m[2], 'base64');
+              const fname = `ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+              const targetFile = path.join(uploadsDir, fname);
+              try {
+                fs.writeFileSync(targetFile, buffer);
+                url = `/uploads/${fname}`;
+              } catch (e) {
+                console.error('[Upload] Error saving base64 ad media to disk:', e);
+              }
+            }
+          }
         }
 
         if (!url) {
@@ -2885,6 +2869,21 @@ const server = http.createServer(async (req, res) => {
           }
         } else if (body && (body.image || body.url)) {
           url = body.image || body.url;
+          if (url.startsWith('data:image/')) {
+            const m = url.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+            if (m) {
+              const ext = '.' + m[1].replace('jpeg', 'jpg');
+              const buffer = Buffer.from(m[2], 'base64');
+              const fname = `side-ad-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+              const targetFile = path.join(uploadsDir, fname);
+              try {
+                fs.writeFileSync(targetFile, buffer);
+                url = `/uploads/${fname}`;
+              } catch (e) {
+                console.error('[Upload] Error saving side banner base64 to disk:', e);
+              }
+            }
+          }
         }
 
         if (url) {
@@ -2924,15 +2923,101 @@ const server = http.createServer(async (req, res) => {
       if (method === 'POST' && pathname === '/api/admin/ads') {
         const user = currentUser(req, store);
         if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
-        const ad = await dbService.createAd(body);
-        return json(res, 201, ad);
+
+        const uploadsDir = path.join(ROOT, 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+        }
+
+        if (req.files && req.files.length) {
+          const file = req.files.find(f => ['file', 'image', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
+          const fileBuf = file ? (file.data || file.buffer || file.content) : null;
+          if (file && fileBuf && fileBuf.length) {
+            const rawFilename = file.filename || file.name || 'ad-image';
+            const ext = path.extname(rawFilename).toLowerCase() || '.png';
+            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'].includes(ext) ? ext : '.png';
+            const fname = `ad-img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const targetFile = path.join(uploadsDir, fname);
+            try {
+              fs.writeFileSync(targetFile, fileBuf);
+              body.image = `/uploads/${fname}`;
+            } catch (e) {
+              console.error('[Upload] Error saving ad image file to disk:', e);
+            }
+          }
+        } else if (body && body.image && body.image.startsWith('data:image/')) {
+          const m = body.image.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+          if (m) {
+            const ext = '.' + m[1].replace('jpeg', 'jpg');
+            const buffer = Buffer.from(m[2], 'base64');
+            const fname = `ad-img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+            const targetFile = path.join(uploadsDir, fname);
+            try {
+              fs.writeFileSync(targetFile, buffer);
+              body.image = `/uploads/${fname}`;
+            } catch (e) {
+              console.error('[Upload] Error saving ad base64 image to disk:', e);
+            }
+          }
+        }
+
+        try {
+          const ad = await dbService.createAd(body);
+          return json(res, 201, ad);
+        } catch (dbErr) {
+          console.error('[Ads] DB error creating ad:', dbErr);
+          return json(res, 500, { error: 'Database save failed: ' + dbErr.message });
+        }
       }
       if (method === 'PATCH' && pathname.match(/^\/api\/admin\/ads\/[^/]+$/)) {
         const user = currentUser(req, store);
         if (!user || !['admin', 'manager', 'superadmin'].includes(user.role)) return json(res, 403, { error: 'Forbidden' });
         const id = decodeURIComponent(pathname.split('/')[4]);
-        const ad = await dbService.updateAd(id, body);
-        return json(res, 200, ad || { ok: true });
+
+        const uploadsDir = path.join(ROOT, 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch {}
+        }
+
+        if (req.files && req.files.length) {
+          const file = req.files.find(f => ['file', 'image', 'banner'].includes(f.fieldname || f.field)) || req.files[0];
+          const fileBuf = file ? (file.data || file.buffer || file.content) : null;
+          if (file && fileBuf && fileBuf.length) {
+            const rawFilename = file.filename || file.name || 'ad-image';
+            const ext = path.extname(rawFilename).toLowerCase() || '.png';
+            const cleanExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'].includes(ext) ? ext : '.png';
+            const fname = `ad-img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${cleanExt}`;
+            const targetFile = path.join(uploadsDir, fname);
+            try {
+              fs.writeFileSync(targetFile, fileBuf);
+              body.image = `/uploads/${fname}`;
+            } catch (e) {
+              console.error('[Upload] Error saving ad image file to disk:', e);
+            }
+          }
+        } else if (body && body.image && body.image.startsWith('data:image/')) {
+          const m = body.image.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+          if (m) {
+            const ext = '.' + m[1].replace('jpeg', 'jpg');
+            const buffer = Buffer.from(m[2], 'base64');
+            const fname = `ad-img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${ext}`;
+            const targetFile = path.join(uploadsDir, fname);
+            try {
+              fs.writeFileSync(targetFile, buffer);
+              body.image = `/uploads/${fname}`;
+            } catch (e) {
+              console.error('[Upload] Error saving ad base64 image to disk:', e);
+            }
+          }
+        }
+
+        try {
+          const ad = await dbService.updateAd(id, body);
+          return json(res, 200, ad || { ok: true });
+        } catch (dbErr) {
+          console.error('[Ads] DB error updating ad:', dbErr);
+          return json(res, 500, { error: 'Database update failed: ' + dbErr.message });
+        }
       }
       if (method === 'DELETE' && pathname.match(/^\/api\/admin\/ads\/[^/]+$/)) {
         const user = currentUser(req, store);
