@@ -9,20 +9,29 @@ const emailEncryption = require('./services/email-encryption.js');
 
 // ── ENV LOADER ──
 (function loadDotEnv() {
-  try {
-    const envPath = path.join(__dirname, '.env');
-    if (!fs.existsSync(envPath)) return;
-    const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (!line || line.startsWith('#')) continue;
-      const eq = line.indexOf('=');
-      if (eq === -1) continue;
-      const key = line.slice(0, eq).trim();
-      const value = line.slice(eq + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
-      if (key && process.env[key] === undefined) process.env[key] = value;
-    }
-  } catch { /* ignore */ }
+  const envCandidates = [
+    path.join(__dirname, '.env'),
+    path.join(process.cwd(), '.env'),
+    '/home/enmarsho/enmar-web/.env',
+    '/home/enmarsho/public_html/.env',
+    '/home/enmarsho/repositories/enmar/.env',
+    '/home/enmarsho/.env'
+  ];
+  for (const envPath of envCandidates) {
+    try {
+      if (!fs.existsSync(envPath)) continue;
+      const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('#')) continue;
+        const eq = line.indexOf('=');
+        if (eq === -1) continue;
+        const key = line.slice(0, eq).trim();
+        const value = line.slice(eq + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
+        if (key && (process.env[key] === undefined || process.env[key] === '')) process.env[key] = value;
+      }
+    } catch { /* ignore */ }
+  }
 })();
 
 const PORT = process.env.PORT || 3000;
