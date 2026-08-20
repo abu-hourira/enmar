@@ -637,11 +637,12 @@
       .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
       .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
 
-    const fallbackSvgEsc = produceIconSVG(product.icon || 'leaf', 80).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const svgIcon = produceIconSVG(product.icon || 'leaf', 80);
     const galleryContent = images.length
       ? `<div class="gallery-main">
           <img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img"
-               onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'gallery-fallback-icon\\'>${fallbackSvgEsc}</div>';">
+               onerror="this.style.display='none'; const fb = this.parentElement && this.parentElement.querySelector('.gallery-fallback-icon'); if(fb) fb.style.display='flex';">
+          <div class="gallery-fallback-icon" style="display:none;align-items:center;justify-content:center;width:100%;height:100%;">${svgIcon}</div>
           <button type="button" class="btn-gallery-fullscreen" id="btnGalleryFullscreen" aria-label="View full screen photo" title="ফুল স্ক্রিন ছবি দেখুন">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
             <span>Full Screen</span>
