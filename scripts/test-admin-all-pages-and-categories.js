@@ -3,7 +3,7 @@ const http = require('http');
 
 const PORT = 3000;
 const SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
-const SUPERADMIN_PASSWORD = 'Abuhourira97@';
+const SUPERADMIN_PASSWORD = 'Abuhorira97@';
 
 let passCount = 0;
 let failCount = 0;

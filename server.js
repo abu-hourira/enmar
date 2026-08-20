@@ -884,7 +884,7 @@ async function readStore() {
     if (created) {
       store.users.push(created);
     }
-  } else {
+  } else if (!existingSuper.passwordHash) {
     existingSuper.passwordHash = superPassHash;
     existingSuper.role = 'superadmin';
     existingSuper.active = true;
@@ -2016,6 +2016,40 @@ const server = http.createServer(async (req, res) => {
         await dbService.updateUser(user.id, { passwordHash });
         return json(res, 200, { ok: true, message: 'Password reset successfully' });
       }
+      if (method === 'POST' && pathname === '/api/change-password') {
+        const user = currentUser(req, store);
+        if (!user) return json(res, 401, { error: 'Unauthorized. Please sign in.' });
+        
+        const newPassword = body.newPassword || body.password;
+        if (!newPassword || String(newPassword).length < 8) {
+          return json(res, 400, { error: 'New password must be at least 8 characters long.' });
+        }
+
+        let dbUser = await dbService.findUserById(user.id).catch(() => null);
+        if (!dbUser) dbUser = user;
+
+        if (body.otp) {
+          const cleanOtp = String(body.otp).replace(/\s+/g, '');
+          const ok = await verifyPasswordResetOtp(user.email, cleanOtp);
+          if (!ok) return json(res, 400, { error: 'Invalid or expired verification code' });
+        } else if (body.currentPassword) {
+          let ok = await verifyPassword(body.currentPassword, dbUser.passwordHash || user.passwordHash).catch(() => false);
+          if (!ok) {
+            return json(res, 401, { error: 'Current password is incorrect. Forgot? Reset via Email.' });
+          }
+        } else {
+          return json(res, 400, { error: 'Current password or verification code is required.' });
+        }
+
+        const passwordHash = await hashPassword(newPassword);
+        user.passwordHash = passwordHash;
+        if (dbUser) dbUser.passwordHash = passwordHash;
+        const storeIdx = store.users.findIndex(u => u.id === user.id);
+        if (storeIdx >= 0) store.users[storeIdx].passwordHash = passwordHash;
+
+        await dbService.updatePassword(user.id, passwordHash);
+        return json(res, 200, { ok: true, message: 'Password changed successfully' });
+      }
       if (method === 'POST' && pathname === '/api/auth/logout') {
         clearSession(req, res);
         return json(res, 200, { ok: true });
@@ -2313,6 +2347,16 @@ const server = http.createServer(async (req, res) => {
           } else {
             user.avatar = body.avatar || '';
           }
+        }
+        if (body.newPassword) {
+          if (String(body.newPassword).length < 8) return json(res, 400, { error: 'New password must be at least 8 characters' });
+          if (body.currentPassword) {
+            let ok = await verifyPassword(body.currentPassword, user.passwordHash).catch(() => false);
+            if (!ok) return json(res, 401, { error: 'Current password is incorrect. Forgot? Reset via Email.' });
+          }
+          const passwordHash = await hashPassword(body.newPassword);
+          user.passwordHash = passwordHash;
+          await dbService.updatePassword(user.id, passwordHash);
         }
         await dbService.updateUser(user.id, user);
         return json(res, 200, { ok: true, user });

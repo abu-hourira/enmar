@@ -78,7 +78,7 @@ async function runSuite() {
   // TEST 3: Authentication & Security
   console.log('\n▶ [TEST GROUP 3] Authentication & Authorization Security');
   const superEmail = process.env.SUPERADMIN_EMAIL || 'mdhourira6712@gmail.com';
-  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
+  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhorira97@';
 
   const invalidLogin = await req('POST', '/api/auth/login', { email: superEmail, password: 'WrongPassword999!' });
   assert(invalidLogin.status === 401, 'Invalid password returns 401 Unauthorized');

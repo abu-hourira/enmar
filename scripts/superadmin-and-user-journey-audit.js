@@ -5,7 +5,7 @@ const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 const SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
-const SUPERADMIN_PASSWORD = 'Abuhourira97@';
+const SUPERADMIN_PASSWORD = 'Abuhorira97@';
 
 let totalTests = 0;
 let passedTests = 0;

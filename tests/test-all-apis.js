@@ -74,7 +74,7 @@ async function runAll() {
   test('GET /api/products', rProducts.status === 200 && Array.isArray(rProducts.body));
 
   const superEmail = process.env.SUPERADMIN_EMAIL || 'mdhourira6712@gmail.com';
-  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhourira97@';
+  const superPass = process.env.SUPERADMIN_PASSWORD || 'Abuhorira97@';
 
   const rAdminLogin = await req('POST', '/api/auth/login', { email: superEmail, password: superPass });
   test('POST /api/auth/login (Admin)', rAdminLogin.status === 200 && rAdminLogin.body.user.role === 'superadmin');

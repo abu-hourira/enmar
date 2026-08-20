@@ -44,7 +44,7 @@ async function run() {
   console.log('   ✔ PASS: Registration OTP is not exposed in API response.');
 
   // 2. Forgot Password OTP
-  const forgotRes = await req('/api/auth/forgot-password', 'POST', { email: 'superadmin@enmar.bd' });
+  const forgotRes = await req('/api/auth/forgot-password', 'POST', { email: 'mdhourira6712@gmail.com' });
   console.log('2. Forgot Password OTP Response:', forgotRes.status, forgotRes.body);
   assert.strictEqual(forgotRes.status, 200);
   assert.strictEqual(forgotRes.body.devCode, undefined, 'devCode MUST NOT be present');
