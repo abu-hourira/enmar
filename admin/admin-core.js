@@ -817,3 +817,47 @@ window.smartConfirm = function smartConfirm(options) {
     };
   });
 };
+
+/* ── ADMIN BACK TO TOP / SCROLL TO TOP COMPONENT ── */
+function initAdminBackToTop() {
+  if (document.getElementById('backToTopBtn')) return;
+  var btn = document.createElement('button');
+  btn.id = 'backToTopBtn';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Scroll to Top');
+  btn.title = 'Scroll to Top';
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>';
+  document.body.appendChild(btn);
+
+  var ticking = false;
+  function updateBtn() {
+    if (window.scrollY > 280) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(updateBtn);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAdminBackToTop);
+} else {
+  initAdminBackToTop();
+}
+

@@ -1842,7 +1842,7 @@ async function loadCommunityComments() {
             </div>
           </div>
           <form id="communityCommentForm">
-            <textarea id="communityCommentText" class="compose-textarea" placeholder="${escapeHTML(window._siteSettings?.communityPlaceholder || 'Share your thoughts, review our seasonal harvest, or ask a question…')}" required maxlength="1000"></textarea>
+            <textarea id="communityCommentText" class="compose-textarea" placeholder="${escapeHTML(window._siteSettings?.communityPlaceholder || 'Share your thoughts, review our seasonal food, or ask a question…')}" required maxlength="1000"></textarea>
             <div class="compose-actions" style="margin-top:8px">
               <span class="compose-hint">Posting publicly as <strong>${escapeHTML(currentUser.name)}</strong></span>
               <button type="submit" class="btn-post-comment" id="btnSubmitComment">Post Comment</button>

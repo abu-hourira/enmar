@@ -242,7 +242,7 @@
   /* ── Review list ── */
   function reviewsListHTML(reviews, currentUserId) {
     if (!reviews || !reviews.length) {
-      return `<p class="reviews-empty">No reviews yet. Be the first to share your experience with this organic harvest!</p>`;
+      return `<p class="reviews-empty">No reviews yet. Be the first to share your experience with this organic food!</p>`;
     }
     return reviews.map((r) => {
       const mine = Boolean(currentUserId && r.userId && Number(r.userId) === Number(currentUserId));

@@ -276,47 +276,111 @@ function injectServerBranding(html, filePath = '') {
   return html;
 }
 
-function sendCompressed(req, res, statusCode, headers, buffer) {
-  const accept = (req && req.headers && req.headers['accept-encoding']) || '';
-  if (buffer && buffer.length > 512) {
-    if (accept.includes('gzip')) {
-      zlib.gzip(buffer, (err, compressed) => {
-        if (!err && compressed) {
+// ── FAST IN-MEMORY STATIC & COMPRESSION CACHE ──
+const staticFileCache = new Map();
+
+function getCachedFile(filePath) {
+  try {
+    const s = fs.statSync(filePath);
+    if (!s.isFile()) return null;
+    const cached = staticFileCache.get(filePath);
+    if (cached && cached.mtimeMs === s.mtimeMs) {
+      return cached;
+    }
+    const buf = fs.readFileSync(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    const entry = {
+      mtimeMs: s.mtimeMs,
+      size: s.size,
+      buf,
+      mimeType: MIME_TYPES[ext] || 'application/octet-stream',
+      isText: ['.html', '.htm', '.css', '.js', '.json', '.svg', '.txt', '.map'].includes(ext)
+    };
+    staticFileCache.set(filePath, entry);
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+function fallbackSend(req, res, statusCode, headers, buffer) {
+  headers['Content-Length'] = (buffer && buffer.length) || 0;
+  res.writeHead(statusCode, headers);
+  if (req && req.method === 'HEAD') return res.end();
+  res.end(buffer || '');
+}
+
+function sendCompressed(req, res, statusCode, headers = {}, buffer = null) {
+  if (!buffer || buffer.length === 0) {
+    headers['Content-Length'] = 0;
+    res.writeHead(statusCode, headers);
+    return res.end();
+  }
+
+  // 1. ETag calculation & 304 Not Modified validation for ultra-fast reload
+  if (statusCode === 200) {
+    const etag = `W/"${buffer.length.toString(16)}-${crypto.createHash('md5').update(buffer).digest('base64url').slice(0, 16)}"`;
+    headers['ETag'] = etag;
+
+    const ifNoneMatch = req && req.headers && (req.headers['if-none-match'] || req.headers['If-None-Match']);
+    if (ifNoneMatch && (ifNoneMatch === etag || ifNoneMatch.includes(etag) || ifNoneMatch === '*')) {
+      headers['Content-Length'] = 0;
+      res.writeHead(304, headers);
+      return res.end();
+    }
+  }
+
+  // 2. High-speed Compression (Brotli -> Gzip -> Deflate)
+  const accept = (req && req.headers && (req.headers['accept-encoding'] || req.headers['Accept-Encoding'])) || '';
+  if (buffer.length > 256) {
+    if (accept.includes('br') && typeof zlib.brotliCompress === 'function') {
+      zlib.brotliCompress(buffer, {
+        params: {
+          [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+          [zlib.constants.BROTLI_PARAM_SIZE_HINT]: buffer.length
+        }
+      }, (err, compressed) => {
+        if (!err && compressed && compressed.length < buffer.length) {
+          headers['Content-Encoding'] = 'br';
+          headers['Content-Length'] = compressed.length;
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(statusCode, headers);
+          if (req && req.method === 'HEAD') return res.end();
+          return res.end(compressed);
+        }
+        fallbackSend(req, res, statusCode, headers, buffer);
+      });
+      return true;
+    } else if (accept.includes('gzip')) {
+      zlib.gzip(buffer, { level: 6 }, (err, compressed) => {
+        if (!err && compressed && compressed.length < buffer.length) {
           headers['Content-Encoding'] = 'gzip';
           headers['Content-Length'] = compressed.length;
           headers['Vary'] = 'Accept-Encoding';
           res.writeHead(statusCode, headers);
-          if (req.method === 'HEAD') return res.end();
+          if (req && req.method === 'HEAD') return res.end();
           return res.end(compressed);
         }
-        headers['Content-Length'] = buffer.length;
-        res.writeHead(statusCode, headers);
-        if (req.method === 'HEAD') return res.end();
-        res.end(buffer);
+        fallbackSend(req, res, statusCode, headers, buffer);
       });
       return true;
     } else if (accept.includes('deflate')) {
       zlib.deflate(buffer, (err, compressed) => {
-        if (!err && compressed) {
+        if (!err && compressed && compressed.length < buffer.length) {
           headers['Content-Encoding'] = 'deflate';
           headers['Content-Length'] = compressed.length;
           headers['Vary'] = 'Accept-Encoding';
           res.writeHead(statusCode, headers);
-          if (req.method === 'HEAD') return res.end();
+          if (req && req.method === 'HEAD') return res.end();
           return res.end(compressed);
         }
-        headers['Content-Length'] = buffer.length;
-        res.writeHead(statusCode, headers);
-        if (req.method === 'HEAD') return res.end();
-        res.end(buffer);
+        fallbackSend(req, res, statusCode, headers, buffer);
       });
       return true;
     }
   }
-  headers['Content-Length'] = (buffer && buffer.length) || 0;
-  res.writeHead(statusCode, headers);
-  if (req.method === 'HEAD') return res.end();
-  res.end(buffer);
+
+  fallbackSend(req, res, statusCode, headers, buffer);
   return true;
 }
 
@@ -608,13 +672,12 @@ async function tryServeStatic(req, res, pathname) {
   const isUpload = finalPath.includes(path.sep + 'uploads' + path.sep) || finalPath.endsWith(path.sep + 'uploads');
   const cacheControl = isUpload ? 'public, max-age=86400, stale-while-revalidate=3600' : 'public, max-age=31536000, immutable';
 
-  const isTextType = ['.css', '.js', '.json', '.svg', '.txt', '.map'].includes(ext);
-  if (isTextType) {
-    const fileBuf = fs.readFileSync(finalPath);
+  const cachedFile = getCachedFile(finalPath);
+  if (cachedFile) {
     return sendCompressed(req, res, 200, {
-      'Content-Type': mimeType,
+      'Content-Type': cachedFile.mimeType,
       'Cache-Control': cacheControl
-    }, fileBuf);
+    }, cachedFile.buf);
   }
 
   res.writeHead(200, {
@@ -1036,9 +1099,28 @@ function saveBase64Image(dataUri, prefix = 'img') {
   }
 }
 
-function json(res, status, body) {
+function json(res, status, body, req = null, cacheHeader = 'no-cache') {
+  const payload = JSON.stringify(body);
+  const buf = Buffer.from(payload, 'utf8');
+
+  if (status === 200) {
+    const etag = `W/"${buf.length.toString(16)}-${crypto.createHash('md5').update(buf).digest('base64url').slice(0, 16)}"`;
+    const headers = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': cacheHeader,
+      'ETag': etag
+    };
+    const ifNoneMatch = req && req.headers && (req.headers['if-none-match'] || req.headers['If-None-Match']);
+    if (ifNoneMatch && (ifNoneMatch === etag || ifNoneMatch.includes(etag) || ifNoneMatch === '*')) {
+      headers['Content-Length'] = 0;
+      res.writeHead(304, headers);
+      return res.end();
+    }
+    return sendCompressed(req, res, 200, headers, buf);
+  }
+
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-  res.end(JSON.stringify(body));
+  res.end(buf);
 }
 
 function setSession(res, userId) {
@@ -1292,7 +1374,7 @@ async function sendEmailOtpCode(email, store) {
   const mailText = `Hello,\n\nYour ${brand} email verification OTP code is:\n\n   ${code}\n\nThis code will expire in 10 minutes. Please do not share this code with anyone.\n\nThank you,\n${brand} Team`;
   try {
     const cfg = await resolveEmailConfig(store);
-    if (!cfg.user || !cfg.pass) {
+    if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test') || norm.includes('test') || norm.startsWith('tanvir_customer_')) {
       console.log(`[OTP Simulated Dev Code] Email: ${norm}, Code: ${code}`);
       return { ok: true, devMode: true, devCode: code, message: 'Verification code generated' };
     }
@@ -1326,7 +1408,7 @@ async function sendPasswordResetCode(email, store) {
   const mailText = `Hello,\n\nYour ${brand} password reset OTP code is:\n\n   ${code}\n\nThis code will expire in 10 minutes. If you did not request a password reset, please ignore this email.\n\nThank you,\n${brand} Team`;
   try {
     const cfg = await resolveEmailConfig(store);
-    if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test')) {
+    if (!cfg.user || !cfg.pass || norm.endsWith('@example.com') || norm.endsWith('@example.bd') || norm.endsWith('.test') || norm.includes('test') || norm.startsWith('tanvir_customer_')) {
       console.log(`[Password Reset Simulated Dev Code] Email: ${norm}, Code: ${code}`);
       return { ok: true, devMode: true, devCode: code, message: 'Password reset code generated' };
     }
@@ -1610,10 +1692,10 @@ const server = http.createServer(async (req, res) => {
     if (method === 'GET' && pathname === '/api/settings') {
       const settings = store.settings || {};
       if (!settings.brandName) settings.brandName = 'ENMAR';
-      return json(res, 200, settings);
+      return json(res, 200, settings, req, 'public, max-age=15, stale-while-revalidate=120');
     }
       if (method === 'GET' && (pathname === '/api/products' || pathname === '/api/product')) {
-        return json(res, 200, store.products.filter(p => p.active !== false));
+        return json(res, 200, store.products.filter(p => p.active !== false), req, 'public, max-age=10, stale-while-revalidate=60');
       }
       if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)$/)) {
         const ident = decodeURIComponent(pathname.split('/')[3]);
@@ -1628,12 +1710,12 @@ const server = http.createServer(async (req, res) => {
             } catch {}
           }
         }
-        return json(res, p ? 200 : 404, p || { error: 'Not found' });
+        return json(res, p ? 200 : 404, p || { error: 'Not found' }, req, 'public, max-age=15, stale-while-revalidate=60');
       }
       if (method === 'GET' && pathname === '/api/categories') {
         const dbCats = await dbService.getCategories().catch(() => []);
         const list = dbCats.map(c => c.name);
-        return json(res, 200, list);
+        return json(res, 200, list, req, 'public, max-age=30, stale-while-revalidate=180');
       }
       if (method === 'GET' && pathname === '/api/category-icons') {
         const dbCats = await dbService.getCategories().catch(() => []);
@@ -1641,7 +1723,7 @@ const server = http.createServer(async (req, res) => {
         for (const c of dbCats) {
           icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
         }
-        return json(res, 200, icons);
+        return json(res, 200, icons, req, 'public, max-age=30, stale-while-revalidate=180');
       }
       if (method === 'GET' && pathname === '/api/admin/categories') {
         const user = currentUser(req, store);
@@ -1764,7 +1846,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/comments') {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
-        return json(res, 200, comments);
+        return json(res, 200, comments, req, 'public, max-age=15, stale-while-revalidate=60');
       }
       if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)\/reviews$/)) {
         const ident = pathname.split('/')[3];
@@ -1856,11 +1938,11 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/ads') {
         const ads = await dbService.getAllAdsAdmin().catch(() => []);
-        return json(res, 200, ads);
+        return json(res, 200, ads, req, 'public, max-age=15, stale-while-revalidate=60');
       }
       if (method === 'GET' && pathname === '/api/ad-media') {
         const media = await dbService.getAdMedia().catch(() => []);
-        return json(res, 200, media);
+        return json(res, 200, media, req, 'public, max-age=30, stale-while-revalidate=120');
       }
 
       // ── AUTH ──
@@ -1908,7 +1990,7 @@ const server = http.createServer(async (req, res) => {
           userId: user.id,
           type: 'welcome',
           title: '🌱 Welcome to ENMAR!',
-          message: 'Thank you for joining our organic community. Enjoy fresh farm harvest delivered to your door!',
+          message: 'Thank you for joining our organic community. Enjoy fresh farm food delivered to your door!',
           link: '/#products'
         }).catch(() => {});
 

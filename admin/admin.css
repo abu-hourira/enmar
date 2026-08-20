@@ -1032,3 +1032,61 @@ button.countdown-chip:hover .cd-edit-hint { color: var(--forest); }
   box-shadow: 0 4px 12px rgba(99, 30, 42, 0.38);
 }
 
+/* ── FLOATING BACK TO TOP BUTTON ── */
+#backToTopBtn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--forest, #631e2a);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24), 0 0 0 1.5px rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(18px) scale(0.85);
+  transition: opacity 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.26s,
+              background 0.2s,
+              box-shadow 0.2s;
+  border: none;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#backToTopBtn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+#backToTopBtn:hover {
+  background: #4a151f;
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 12px rgba(245, 166, 35, 0.45);
+}
+#backToTopBtn:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+#backToTopBtn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+#backToTopBtn:hover svg {
+  transform: translateY(-2px);
+}
+
+

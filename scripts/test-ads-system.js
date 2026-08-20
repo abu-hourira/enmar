@@ -28,7 +28,7 @@ async function testAdsSystem() {
   console.log('3️⃣ Testing Promotional Ad Creation...');
   const sampleAd = await dbService.createAd({
     name: 'Summer Mango Fest',
-    tag: 'LIMITED HARVEST',
+    tag: 'LIMITED FOOD',
     headline: 'Fresh Rajshahi Mangoes\nDirect from Orchards',
     body: 'Hand-picked organic sweet mangoes delivered within 4 hours.',
     buttonText: 'Order Mangoes →',

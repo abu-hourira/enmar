@@ -4,7 +4,7 @@ const pool = require('../config/db.js');
 
 const PORT = 3000;
 const SUPERADMIN_EMAIL = 'mdhourira6712@gmail.com';
-const SUPERADMIN_PASSWORD = 'Abuhourira97@';
+const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Abuhorira97@';
 
 let passCount = 0;
 let failCount = 0;
@@ -95,7 +95,7 @@ async function verify() {
   const adminCookie = loginRes.cookie;
   test('Admin Login', loginRes.status === 200);
 
-  const testTagline = `Farm fresh organic harvest verified at ${Date.now()}`;
+  const testTagline = `Farm fresh organic food verified at ${Date.now()}`;
   const patchRes = await req('PATCH', '/api/admin/settings', {
     tagline: testTagline,
     deliveryCountdownHours: 4

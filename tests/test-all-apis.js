@@ -189,10 +189,10 @@ async function runAll() {
   test('POST /api/comments', rPostComment.status === 201 && rPostComment.body.comment.id);
   const commentId = rPostComment.body.comment.id;
 
-  const rPatchComment = await req('PATCH', `/api/comments/${commentId}`, { text: 'Updated: Outstanding harvest quality!' }, customerCookie);
+  const rPatchComment = await req('PATCH', `/api/comments/${commentId}`, { text: 'Updated: Outstanding food quality!' }, customerCookie);
   test('PATCH /api/comments/:id', rPatchComment.status === 200 && rPatchComment.body.comment.text.includes('Updated'));
 
-  const rPostReview = await req('POST', `/api/products/${firstProdId}/reviews`, { rating: 5, comment: 'Crisp and sweet fresh harvest.' }, customerCookie);
+  const rPostReview = await req('POST', `/api/products/${firstProdId}/reviews`, { rating: 5, comment: 'Crisp and sweet fresh food.' }, customerCookie);
   test('POST /api/products/:id/reviews', rPostReview.status === 201 && rPostReview.body.rating === 5);
   const reviewId = rPostReview.body.id;
 

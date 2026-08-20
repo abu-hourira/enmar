@@ -156,7 +156,7 @@ async function runMasterAudit() {
   const orderId = orderRes.body.order ? orderRes.body.order.id : 0;
 
   // Order Conversation & Messages
-  const msgRes = await req('POST', `/api/orders/${orderId}/messages`, { text: 'Please ensure fresh harvest packaging.' }, custCookie);
+  const msgRes = await req('POST', `/api/orders/${orderId}/messages`, { text: 'Please ensure fresh food packaging.' }, custCookie);
   check('Customer Sends Message on Order', msgRes.status === 201);
 
   const staffMsgRes = await req('POST', `/api/admin/orders/${orderId}/messages`, { text: 'Noted! Your order is being packed fresh.' }, adminCookie);

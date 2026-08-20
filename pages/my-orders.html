@@ -5,9 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="siteTitleTag"></title>
 <meta name="description" content="View and track your organic grocery orders, manage your profile and delivery address on ENMAR.">
-<link rel="canonical" href="https://enmar.shop/my-orders">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="/css/harvest-market.css?v=2.2" as="style">
 <link rel="icon" id="siteFavicon" href="/favicon.ico">
 <link rel="stylesheet" href="/css/harvest-market.css?v=2.2">
+<script type="speculationrules">
+{
+  "prefetch": [{ "source": "list", "urls": ["/", "/checkout"], "eagerness": "moderate" }],
+  "prerender": [{ "source": "list", "urls": ["/checkout"], "eagerness": "conservative" }]
+}
+</script>
 <script src="/js/theme.js?v=2.2"></script>
 <style>
 /* ── shell ── */
@@ -914,7 +922,7 @@ async function renderOrders(orders) {
   const container = document.getElementById('ordersContainer');
   if (!orders.length) {
     const emptyMsg = (_siteSettings && _siteSettings.myOrdersEmptyMessage) || "You haven't placed any orders yet.";
-    const btnText = (_siteSettings && _siteSettings.shopHarvestButtonText) || "Shop This Week's Foods";
+    const btnText = (_siteSettings && _siteSettings.shopHarvestButtonText) || "Shop This Week's Food";
     container.innerHTML = `<div class="orders-empty">
       <p>${esc(emptyMsg)}</p>
       <a href="/" class="btn-primary">${esc(btnText)}</a>

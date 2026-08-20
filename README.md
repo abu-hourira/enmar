@@ -1,4 +1,4 @@
-# ENMAR (Harvest Market Bangladesh)
+# ENMAR (Food Market Bangladesh)
 
 A dependency-free, full-stack JavaScript organic-food storefront and management system tailored for Bangladesh. Built entirely with vanilla JavaScript on both the frontend and backend using native Node.js core modules.
 

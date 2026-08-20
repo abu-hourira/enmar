@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Storefront Settings — ENMAR Admin</title>
+<link rel="preload" href="/admin/admin.css?v=2.2" as="style">
 <link rel="stylesheet" href="/admin/admin.css?v=2.2">
 </head>
 <body>
@@ -300,7 +301,7 @@
           <div class="field span2">
             <label for="footerShippingInfo">Shipping info</label>
             <textarea id="footerShippingInfo" rows="4" class="textarea-full" maxlength="800"
-              placeholder="We deliver within 48 hours of harvest.&#10;Free shipping on orders over ৳1500.&#10;Delivery available across Bangladesh."></textarea>
+              placeholder="We deliver within 48 hours of food.&#10;Free shipping on orders over ৳1500.&#10;Delivery available across Bangladesh."></textarea>
           </div>
           <div class="field span2">
             <label for="footerFarmInfo">Our Farms info</label>
@@ -499,11 +500,11 @@
           </div>
           <div class="field span2">
             <label for="searchPlaceholder">Search Input Placeholder</label>
-            <input type="text" id="searchPlaceholder" maxlength="150" placeholder="Search fresh harvest by name, variety, category…">
+            <input type="text" id="searchPlaceholder" maxlength="150" placeholder="Search fresh food by name, variety, category…">
           </div>
           <div class="field span2">
             <label for="cartEmptyMessage">Empty Cart / Basket Message</label>
-            <input type="text" id="cartEmptyMessage" maxlength="150" placeholder="Your harvest basket is empty.">
+            <input type="text" id="cartEmptyMessage" maxlength="150" placeholder="Your food basket is empty.">
           </div>
           <div class="span2">
             <button type="submit" class="btn-primary">Save Catalog &amp; Search Texts</button>
@@ -567,8 +568,8 @@
           </div>
           <div class="field">
             <label for="recentSectionRatingText">Star Rating Side Message</label>
-            <input type="text" id="recentSectionRatingText" maxlength="60" placeholder="New harvest">
-            <small class="field-hint">Message displayed beside the stars for products (e.g. "New harvest", "Farm Pick", "100% Organic").</small>
+            <input type="text" id="recentSectionRatingText" maxlength="60" placeholder="New food">
+            <small class="field-hint">Message displayed beside the stars for products (e.g. "New food", "Farm Pick", "100% Organic").</small>
           </div>
           <div class="span2">
             <button type="submit" class="btn-primary">Save Recent Products Settings</button>
@@ -598,11 +599,11 @@
           </div>
           <div class="field span2">
             <label for="communityPromptGuest">Guest Member Login Prompt</label>
-            <textarea id="communityPromptGuest" rows="2" class="textarea-full" maxlength="400" placeholder="Join our harvest community to leave comments, ask questions, or share feedback."></textarea>
+            <textarea id="communityPromptGuest" rows="2" class="textarea-full" maxlength="400" placeholder="Join our food community to leave comments, ask questions, or share feedback."></textarea>
           </div>
           <div class="field span2">
             <label for="communityPlaceholder">Comment Textarea Placeholder</label>
-            <input type="text" id="communityPlaceholder" maxlength="180" placeholder="Share your thoughts, review our seasonal harvest, or ask a question…">
+            <input type="text" id="communityPlaceholder" maxlength="180" placeholder="Share your thoughts, review our seasonal food, or ask a question…">
           </div>
           <div class="field span2">
             <label for="communityEmptyMessage">Empty Comments Message</label>
@@ -636,8 +637,8 @@
              <input type="text" id="myOrdersEmptyMessage" maxlength="250" placeholder="You haven't placed any orders yet.">
            </div>
            <div class="field span2">
-             <label for="shopHarvestButtonText">"Shop This Week's Harvest" Button Text</label>
-             <input type="text" id="shopHarvestButtonText" maxlength="100" placeholder="Shop This Week's Harvest" required>
+             <label for="shopHarvestButtonText">"Shop This Week's Food" Button Text</label>
+             <input type="text" id="shopHarvestButtonText" maxlength="100" placeholder="Shop This Week's Food" required>
              <small class="field-hint">The CTA button shown when customer has no orders yet.</small>
            </div>
            <div class="span2">
@@ -1011,7 +1012,7 @@ async function uploadAdFiles(files) {
     // Portal texts
     fill('myOrdersPageTitle',         s.myOrdersPageTitle);
     fill('myOrdersEmptyMessage',      s.myOrdersEmptyMessage);
-    fill('shopHarvestButtonText',     s.shopHarvestButtonText || 'Shop This Week\'s Harvest');
+    fill('shopHarvestButtonText',     s.shopHarvestButtonText || 'Shop This Week\'s Food');
 
     // Registration Instructions Guide
     if ($('regGuideEnabled')) $('regGuideEnabled').checked = s.regGuideEnabled !== 'false' && s.regGuideEnabled !== false;

@@ -35,12 +35,34 @@
   <meta name="geo.position" content="23.8103;90.4125">
   <meta name="ICBM" content="23.8103, 90.4125">
 
-  <!-- Performance Preconnects & High-Speed Fonts -->
+  <!-- Performance Preconnects, High-Speed Fonts & Preloads -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="/css/harvest-market.css?v=3.7" as="style">
+  <link rel="preload" href="/js/harvest-market.js?v=3.0" as="script">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
   <link rel="icon" id="siteFavicon" href="/favicon.ico">
   <link rel="stylesheet" href="/css/harvest-market.css?v=3.7">
+
+  <!-- Speculative Loading (Instant Navigation & Reload) -->
+  <script type="speculationrules">
+  {
+    "prefetch": [
+      {
+        "source": "list",
+        "urls": ["/checkout", "/my-orders", "/bmi-calculator", "/developer-info"],
+        "eagerness": "moderate"
+      }
+    ],
+    "prerender": [
+      {
+        "source": "list",
+        "urls": ["/checkout", "/my-orders"],
+        "eagerness": "conservative"
+      }
+    ]
+  }
+  </script>
 
   <!-- Structured Data (JSON-LD) for Google Search Rich Snippets -->
   <script type="application/ld+json">

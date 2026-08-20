@@ -3140,3 +3140,76 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   box-shadow: 0 4px 12px rgba(99, 30, 42, 0.38);
 }
 
+/* ── ULTRA-FAST RENDERING & LAYOUT PERFORMANCE ── */
+.product-card, .recent-card, .comment-item, .category-card, .review-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 320px;
+}
+
+/* ── FLOATING BACK TO TOP BUTTON ── */
+#backToTopBtn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--forest, #14421a);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24), 0 0 0 1.5px rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(18px) scale(0.85);
+  transition: opacity 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.26s,
+              background 0.2s,
+              box-shadow 0.2s;
+  border: none;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#backToTopBtn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+#backToTopBtn:hover {
+  background: var(--forest-deep, #0d2e11);
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 12px rgba(245, 166, 35, 0.45);
+}
+#backToTopBtn:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+#backToTopBtn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+#backToTopBtn:hover svg {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  #backToTopBtn {
+    bottom: 84px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+

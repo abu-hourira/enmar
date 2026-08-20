@@ -34,7 +34,7 @@ async function main() {
       phone: '01898765432',
       city: 'Dhaka',
       address: 'Plot 15, Block B, Bashundhara R/A',
-      bio: 'Managing and directing ENMAR Fresh Harvest Organic Market.',
+      bio: 'Managing and directing ENMAR Fresh Food Organic Market.',
       avatar: testAvatarBase64
     })
   });

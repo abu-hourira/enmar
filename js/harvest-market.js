@@ -364,7 +364,7 @@ function renderRecentProducts() {
   if (section) section.style.display = '';
 
   const defaultBadge = settings.recentSectionCardBadge || '🌱 Fresh Arrival';
-  const defaultStarText = settings.recentSectionRatingText || 'New harvest';
+  const defaultStarText = settings.recentSectionRatingText || 'New food';
 
   // Render side-by-side slides
   track.innerHTML = recentList.map(p => {
@@ -539,7 +539,7 @@ function renderProducts() {
       const rAvg = Number(p.rating) || 0;
       const ratingHTML = rCount > 0
         ? `<div class="card-rating-row"><span class="stars">${'★'.repeat(Math.round(rAvg))}${'☆'.repeat(5 - Math.round(rAvg))}</span> <span>${rAvg.toFixed(1)} (${rCount})</span></div>`
-        : `<div class="card-rating-row"><span class="stars" style="color:var(--line-dark)">★★★★★</span> <span>New harvest</span></div>`;
+        : `<div class="card-rating-row"><span class="stars" style="color:var(--line-dark)">★★★★★</span> <span>New food</span></div>`;
       return `<div class="product-card">
         <a class="card-image" href="${href}" aria-label="View details for ${p.name}">
           ${productImageHTML(p, 'full')}
@@ -867,4 +867,48 @@ window.smartConfirm = function smartConfirm(options) {
     };
   });
 };
+
+/* ── ULTRA-FAST BACK TO TOP / SCROLL TO TOP COMPONENT ── */
+function initBackToTop() {
+  if (document.getElementById('backToTopBtn')) return;
+  var btn = document.createElement('button');
+  btn.id = 'backToTopBtn';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Scroll to Top');
+  btn.title = 'Scroll to Top';
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>';
+  document.body.appendChild(btn);
+
+  var ticking = false;
+  function updateBtn() {
+    if (window.scrollY > 280) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(updateBtn);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBackToTop);
+} else {
+  initBackToTop();
+}
+
 

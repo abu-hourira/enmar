@@ -164,7 +164,7 @@ async function runCustomerJourney() {
 
   // STEP 18: Order Conversation Message
   const msgRes = await req('POST', `/api/orders/${placedOrder.id}/messages`, {
-    text: 'Please ensure fresh morning harvest packaging. Thank you!'
+    text: 'Please ensure fresh morning food packaging. Thank you!'
   }, customerCookie);
   test('STEP 18', 'Send In-Order Support Message', msgRes.status === 201 && msgRes.body.ok);
 
