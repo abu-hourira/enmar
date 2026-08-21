@@ -638,7 +638,7 @@
       .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
       .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
 
-    const svgIcon = produceIconSVG(product.icon || 'leaf', 80);
+    const svgIcon = produceIconSVG(product.icon || '', 80);
     const galleryContent = images.length
       ? `<div class="gallery-main">
           <img id="galleryImg" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.name)}" class="gallery-img"

@@ -57,7 +57,7 @@ function produceIconSVG(type, size = 44) {
 }
 
 function productImageHTML(p, size = 44) {
-  if (!p) return produceIconSVG('leaf', size);
+  if (!p) return '';
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const rawImages = (p.images && Array.isArray(p.images)) ? p.images : (p.images ? [p.images] : []);
   const validImages = rawImages
@@ -65,7 +65,7 @@ function productImageHTML(p, size = 44) {
     .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
     .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
 
-  const svgIcon = produceIconSVG(p.icon || 'leaf', size === 'full' ? 54 : size);
+  const svgIcon = produceIconSVG(p.icon || '', size === 'full' ? 54 : size);
 
   if (validImages.length > 0) {
     const firstImg = validImages[0];
@@ -81,7 +81,7 @@ function productImageHTML(p, size = 44) {
     return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="cart-img-fill"
              onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"><span class="cart-img-fallback" style="display:none;align-items:center;justify-content:center;width:100%;height:100%;">${svgIcon}</span>`;
   }
-  return svgIcon;
+  return svgIcon || '';
 }
 
 const UI_ICONS = {
@@ -178,13 +178,11 @@ async function buildCategoryCircles() {
       ? cicon
       : (cicon.image || '');
 
-    const svgIcon = produceIconSVG(cicon.icon || iconMap[key] || 'leaf', 32);
+    const svgIcon = produceIconSVG(cicon.icon || iconMap[key] || '', 32);
 
     const iconHTML = imgUrl
       ? `<img src="${esc(imgUrl)}" alt="${esc(cat)}" class="cat-circle-img" style="width:36px;height:36px;object-fit:cover;border-radius:50%" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"><span class="cat-circle-svg-fallback" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;">${svgIcon}</span>`
-      : (cicon.icon || (typeof cicon === 'string' && cicon)
-        ? (produceIconSVG(cicon.icon || cicon, 32) || `<span style="font-size:1.6rem">${esc(cicon.icon || cicon)}</span>`)
-        : svgIcon);
+      : (svgIcon || '');
 
     return `<button class="cat-circle${cat === activeCategory ? ' active' : ''}" data-cat="${esc(cat)}">
       <div class="cat-circle-icon">${iconHTML}</div>
