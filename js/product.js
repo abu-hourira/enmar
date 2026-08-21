@@ -139,18 +139,18 @@
 
   /* ── Produce icons (fallback when a product has no photo) ── */
   const PRODUCE_PATHS = {
-    tomato:  `<circle cx="24" cy="27" r="14"/><path d="M24 13c-2 2-3 3-6 3M24 13c2 2 3 3 6 3M24 13v4"/>`,
-    carrot:  `<path d="M24 14l6 24-6 6-6-6 6-24z"/><path d="M24 14v-4M20 12l2 3M28 12l-2 3"/>`,
-    leaf:    ``,
-    potato:  `<ellipse cx="24" cy="26" rx="15" ry="10"/><circle cx="18" cy="24" r="0.8" fill="currentColor"/><circle cx="27" cy="29" r="0.8" fill="currentColor"/><circle cx="30" cy="21" r="0.8" fill="currentColor"/>`,
-    apple:   `<path d="M24 18c-6-6-16-2-15 7 1 9 9 14 15 17 6-3 14-8 15-17 1-9-9-13-15-7z"/><path d="M24 18v-5M24 13c2-2 4-2 6-1"/>`,
-    berry:   `<circle cx="18" cy="22" r="6"/><circle cx="30" cy="22" r="6"/><circle cx="24" cy="31" r="6"/><path d="M24 12v4"/>`,
-    lemon:   `<ellipse cx="24" cy="24" rx="15" ry="11" transform="rotate(-20 24 24)"/><path d="M11 21c-2-1-3-1-4 0M41 27c2 1 3 1 4 0"/>`,
-    egg:     `<path d="M24 10c8 8 12 17 12 23a12 12 0 01-24 0c0-6 4-15 12-23z"/>`,
-    butter:  `<rect x="10" y="18" width="28" height="16" rx="2"/><path d="M10 24h28"/>`,
-    wheat:   `<path d="M24 10v28"/><path d="M24 14l-6 4M24 14l6 4M24 20l-6 4M24 20l6 4M24 26l-6 4M24 26l6 4"/>`,
-    honey:   `<path d="M17 12h14l3 5v18l-3 5H17l-3-5V17z"/><path d="M14 22h20M14 28h20"/>`,
-    bean:    `<path d="M14 18c-2 6 0 12 6 14s12-2 14-8"/><path d="M34 30c2-6 0-12-6-14s-12 2-14 8"/>`,
+    tomato:  `<circle cx="12" cy="13.5" r="7"/><path d="M12 6.5c-1 1-1.5 1.5-3 1.5M12 6.5c1 1 1.5 1.5 3 1.5M12 6.5v2"/>`,
+    carrot:  `<path d="M12 7l3 12-3 3-3-3 3-12z"/><path d="M12 7v-2M10 6l1 1.5M14 6l-1 1.5"/>`,
+    leaf:    `<path d="M6 17C5 9 12 5 18 5c.5 7-3 13-12 12z"/><path d="M7 16L17 6"/>`,
+    potato:  `<ellipse cx="12" cy="13" rx="7.5" ry="5"/><circle cx="9" cy="12" r="0.5" fill="currentColor"/><circle cx="13.5" cy="14.5" r="0.5" fill="currentColor"/><circle cx="15" cy="10.5" r="0.5" fill="currentColor"/>`,
+    apple:   `<path d="M12 9c-3-3-8-1-7.5 3.5.5 4.5 4.5 7 7.5 8.5 3-1.5 7-4 7.5-8.5.5-4.5-4.5-6.5-7.5-3.5z"/><path d="M12 9V6.5M12 6.5c1-1 2-1 3-.5"/>`,
+    berry:   `<circle cx="9" cy="11" r="3"/><circle cx="15" cy="11" r="3"/><circle cx="12" cy="15.5" r="3"/><path d="M12 6v2"/>`,
+    lemon:   `<ellipse cx="12" cy="12" rx="7.5" ry="5.5" transform="rotate(-20 12 12)"/><path d="M5.5 10.5c-1-.5-1.5-.5-2 0M20.5 13.5c1 .5 1.5.5 2 0"/>`,
+    egg:     `<path d="M12 5c4 4 6 8.5 6 11.5a6 6 0 01-12 0c0-3 2-7.5 6-11.5z"/>`,
+    butter:  `<rect x="5" y="9" width="14" height="8" rx="1"/><path d="M5 12h14"/>`,
+    wheat:   `<path d="M12 5v14"/><path d="M12 7l-3 2M12 7l3 2M12 10l-3 2M12 10l3 2M12 13l-3 2M12 13l3 2"/>`,
+    honey:   `<path d="M8.5 6h7l1.5 2.5v9l-1.5 2.5h-7L7 17.5v-9z"/><path d="M7 11h10M7 14h10"/>`,
+    bean:    `<path d="M7 9c-1 3 0 6 3 7s6-1 7-4"/><path d="M17 15c1-3 0-6-3-7s-6 1-7 4"/>`,
     frozen:  `<path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07"/>`,
     spice:   `<path d="M12 2a5 5 0 015 5c0 3-2 5-5 8-3-3-5-5-5-8a5 5 0 015-5z"/><path d="M12 22v-7"/>`,
     grain:   `<ellipse cx="12" cy="16" rx="7" ry="5"/><path d="M5 16c0-3 3-7 7-14 4 7 7 11 7 14"/>`,
@@ -158,9 +158,11 @@
     oil:     `<path d="M10 2h4v4l2 3v11a2 2 0 01-2 2H10a2 2 0 01-2-2V9l2-3V2z"/><path d="M8 11h8"/>`,
     nuts:    `<ellipse cx="12" cy="13" rx="7" ry="9"/><path d="M8 7c0-3 8-3 8 0"/><path d="M9 17c1 2 5 2 6 0"/>`,
     meat:    `<path d="M6 20c1-4 2-8 6-10 2-1 5 0 6 2s0 5-2 6c-4 2-8 1-10 2z"/><path d="M15 10l3-5"/>`,
+    ruti:    `<path d="M4 14c0-4 3.5-7 8-7s8 3 8 7c0 2-2 3-4 3H8c-2 0-4-1-4-3z"/><path d="M7 11l2 2M11 10l2 2M15 11l2 2"/>`,
+    bread:   `<path d="M4 14c0-4 3.5-7 8-7s8 3 8 7c0 2-2 3-4 3H8c-2 0-4-1-4-3z"/><path d="M7 11l2 2M11 10l2 2M15 11l2 2"/>`,
   };
   function produceIconSVG(type, size = 220) {
-    const d = PRODUCE_PATHS[type] || '';
+    const d = PRODUCE_PATHS[type] || PRODUCE_PATHS['leaf'] || '';
     if (!d) return '';
     return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   }
