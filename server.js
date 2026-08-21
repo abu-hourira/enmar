@@ -1692,10 +1692,10 @@ const server = http.createServer(async (req, res) => {
     if (method === 'GET' && pathname === '/api/settings') {
       const settings = store.settings || {};
       if (!settings.brandName) settings.brandName = 'ENMAR';
-      return json(res, 200, settings, req, 'public, max-age=15, stale-while-revalidate=120');
+      return json(res, 200, settings, req, 'no-cache, must-revalidate');
     }
       if (method === 'GET' && (pathname === '/api/products' || pathname === '/api/product')) {
-        return json(res, 200, store.products.filter(p => p.active !== false), req, 'public, max-age=10, stale-while-revalidate=60');
+        return json(res, 200, store.products.filter(p => p.active !== false), req, 'no-cache, must-revalidate');
       }
       if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)$/)) {
         const ident = decodeURIComponent(pathname.split('/')[3]);
@@ -1710,12 +1710,12 @@ const server = http.createServer(async (req, res) => {
             } catch {}
           }
         }
-        return json(res, p ? 200 : 404, p || { error: 'Not found' }, req, 'public, max-age=15, stale-while-revalidate=60');
+        return json(res, p ? 200 : 404, p || { error: 'Not found' }, req, 'no-cache, must-revalidate');
       }
       if (method === 'GET' && pathname === '/api/categories') {
         const dbCats = await dbService.getCategories().catch(() => []);
         const list = dbCats.map(c => c.name);
-        return json(res, 200, list, req, 'public, max-age=30, stale-while-revalidate=180');
+        return json(res, 200, list, req, 'no-cache, must-revalidate');
       }
       if (method === 'GET' && pathname === '/api/category-icons') {
         const dbCats = await dbService.getCategories().catch(() => []);
@@ -1723,7 +1723,7 @@ const server = http.createServer(async (req, res) => {
         for (const c of dbCats) {
           icons[c.name] = { icon: c.icon || 'leaf', image: c.image || '' };
         }
-        return json(res, 200, icons, req, 'public, max-age=30, stale-while-revalidate=180');
+        return json(res, 200, icons, req, 'no-cache, must-revalidate');
       }
       if (method === 'GET' && pathname === '/api/admin/categories') {
         const user = currentUser(req, store);
@@ -1846,7 +1846,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (method === 'GET' && pathname === '/api/comments') {
         const comments = await dbService.getAllCommentsAdmin().catch(() => []);
-        return json(res, 200, comments, req, 'public, max-age=15, stale-while-revalidate=60');
+        return json(res, 200, comments, req, 'no-cache, must-revalidate');
       }
       if (method === 'GET' && pathname.match(/^\/api\/products?\/([^\/]+)\/reviews$/)) {
         const ident = pathname.split('/')[3];
