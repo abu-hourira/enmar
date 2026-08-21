@@ -31,7 +31,7 @@ function getProductUrl(p) {
 const PRODUCE_PATHS = {
   tomato:  `<circle cx="24" cy="27" r="14"/><path d="M24 13c-2 2-3 3-6 3M24 13c2 2 3 3 6 3M24 13v4"/>`,
   carrot:  `<path d="M24 14l6 24-6 6-6-6 6-24z"/><path d="M24 14v-4M20 12l2 3M28 12l-2 3"/>`,
-  leaf:    `<path d="M12 34C10 18 24 10 36 10c1 14-6 26-24 24z"/><path d="M14 32L34 12"/>`,
+  leaf:    ``,
   potato:  `<ellipse cx="24" cy="26" rx="15" ry="10"/><circle cx="18" cy="24" r="0.8" fill="currentColor"/><circle cx="27" cy="29" r="0.8" fill="currentColor"/><circle cx="30" cy="21" r="0.8" fill="currentColor"/>`,
   apple:   `<path d="M24 18c-6-6-16-2-15 7 1 9 9 14 15 17 6-3 14-8 15-17 1-9-9-13-15-7z"/><path d="M24 18v-5M24 13c2-2 4-2 6-1"/>`,
   berry:   `<circle cx="18" cy="22" r="6"/><circle cx="30" cy="22" r="6"/><circle cx="24" cy="31" r="6"/><path d="M24 12v4"/>`,
@@ -51,7 +51,8 @@ const PRODUCE_PATHS = {
 };
 
 function produceIconSVG(type, size = 44) {
-  const d = PRODUCE_PATHS[type] || PRODUCE_PATHS.leaf;
+  const d = PRODUCE_PATHS[type] || '';
+  if (!d) return '';
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 }
 
