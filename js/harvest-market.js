@@ -67,8 +67,6 @@ function productImageHTML(p, size = 44) {
     .filter(img => img && img !== '[]' && img !== 'null' && img !== 'undefined' && img !== '""')
     .map(img => (img.startsWith('http') || img.startsWith('/') || img.startsWith('data:') ? img : `/${img}`));
 
-  const svgIcon = produceIconSVG(p.icon || '', size === 'full' ? 54 : size);
-
   if (validImages.length > 0) {
     const firstImg = validImages[0];
     if (size === 'full') {
@@ -78,12 +76,12 @@ function productImageHTML(p, size = 44) {
         : '';
       return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="card-img-fill"
                data-images='${esc(JSON.stringify(validImages))}' data-idx="0"
-               onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none'; const fb = this.parentElement && this.parentElement.querySelector('.card-img-fallback'); if(fb) fb.style.display='flex';">${dots}<div class="card-img-fallback" style="display:none;align-items:center;justify-content:center;width:100%;height:100%;">${svgIcon}</div>`;
+               onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">${dots}`;
     }
     return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="cart-img-fill"
-             onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"><span class="cart-img-fallback" style="display:none;align-items:center;justify-content:center;width:100%;height:100%;">${svgIcon}</span>`;
+             onerror="this.style.display='none';">`;
   }
-  return svgIcon || '';
+  return '';
 }
 
 const UI_ICONS = {
