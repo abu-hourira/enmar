@@ -1134,4 +1134,10 @@
   setupLightbox();
   refreshCartBadge();
   loadAll();
+
+  window.addEventListener('error', function (e) {
+    if (e.target && e.target.tagName === 'IMG') {
+      e.target.style.display = 'none';
+    }
+  }, true);
 })();

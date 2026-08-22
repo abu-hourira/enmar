@@ -75,11 +75,9 @@ function productImageHTML(p, size = 44) {
             `<span class="card-img-dot${i === 0 ? ' active' : ''}"></span>`).join('')}</div>`
         : '';
       return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="card-img-fill"
-               data-images='${esc(JSON.stringify(validImages))}' data-idx="0"
-               onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';">${dots}`;
+               data-images='${esc(JSON.stringify(validImages))}' data-idx="0">${dots}`;
     }
-    return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="cart-img-fill"
-             onerror="this.style.display='none';">`;
+    return `<img src="${esc(firstImg)}" alt="${esc(p.name || 'Product')}" class="cart-img-fill">`;
   }
   return '';
 }
@@ -182,7 +180,7 @@ async function buildCategoryCircles() {
     const svgIcon = produceIconSVG(cicon.icon || iconMap[key] || 'leaf', 32);
 
     const iconHTML = imgUrl
-      ? `<img src="${esc(imgUrl)}" alt="${esc(cat)}" class="cat-circle-img" style="width:36px;height:36px;object-fit:cover;border-radius:50%" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"><span class="cat-circle-svg-fallback" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;">${svgIcon}</span>`
+      ? `<img src="${esc(imgUrl)}" alt="${esc(cat)}" class="cat-circle-img" style="width:36px;height:36px;object-fit:cover;border-radius:50%">`
       : (svgIcon || '');
 
     return `<button class="cat-circle${cat === activeCategory ? ' active' : ''}" data-cat="${esc(cat)}">
@@ -913,5 +911,12 @@ if (document.readyState === 'loading') {
 } else {
   initBackToTop();
 }
+
+window.addEventListener('error', function (e) {
+  if (e.target && e.target.tagName === 'IMG') {
+    e.target.style.display = 'none';
+  }
+}, true);
+
 
 
